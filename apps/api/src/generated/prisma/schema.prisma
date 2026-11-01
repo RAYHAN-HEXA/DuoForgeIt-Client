@@ -1,0 +1,503 @@
+// TechService Hub — Neon PostgreSQL schema
+//
+// DATABASE_URL  → Neon POOLED endpoint (PgBouncer) for runtime queries
+// DIRECT_URL    → Neon DIRECT endpoint for `prisma migrate` / `db seed`
+//
+// Conventions:
+//  - UUID PKs, timestamps on every table
+//  - money: Decimal(12,2), serialized to strings over the API (never floats)
+//  - files: Cloudinary references only — no blobs in Postgres
+//  - orders snapshot service name/price at purchase time (OrderItem), so later
+//    catalog edits never rewrite order history
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  // native = local dev; rhel-openssl-3.0.x = Vercel serverless (Amazon Linux 2023)
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────── Enums ───────────────────────────
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum OrderStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  IN_PROGRESS
+  QUALITY_REVIEW
+  COMPLETED
+  DELIVERED
+  REJECTED
+  CANCELLED
+}
+
+enum PreferenceSource {
+  CUSTOMER_CHOICE
+  AUTO_ASSIGN
+  ADMIN_OVERRIDE
+}
+
+enum RevisionStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  DECLINED
+}
+
+enum PaymentMethod {
+  BKASH
+  NAGAD
+  ROCKET
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  SUBMITTED
+  VERIFIED
+  REJECTED
+  REFUNDED
+}
+
+enum NotificationType {
+  ORDER_STATUS
+  PAYMENT
+  REVISION
+  DELIVERABLE
+  GENERAL
+}
+
+enum FounderDiscipline {
+  WEB_SOFTWARE_ECOMMERCE
+  DESIGN_DOCS_UX
+  BOTH
+}
+
+// ─────────────────────── Users & identity ────────────────────────
+// Firebase Authentication is the identity provider (email/password, Google).
+// The `firebaseUid` from verified Firebase ID tokens is the join key; roles
+// and account status live ONLY here and are never accepted from clients.
+
+model User {
+  id            String        @id @default(uuid())
+  firebaseUid   String?       @unique
+  email         String        @unique
+  fullName      String
+  profileImage  String?
+  phone         String?
+  role          UserRole      @default(CUSTOMER)
+  emailVerified Boolean       @default(false)
+  accountStatus AccountStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  founderProfile   FounderProfile?
+  cart             Cart?
+  orders           Order[]              @relation("CustomerOrders")
+  assignedOrders   Order[]              @relation("AssignedFounder")
+  attachments      OrderAttachment[]
+  deliverables     Deliverable[]
+  revisionRequests RevisionRequest[]    @relation("RevisionCustomer")
+  statusChanges    OrderStatusHistory[]
+  verifiedPayments Payment[]            @relation("PaymentVerifier")
+  reviews          Review[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+
+  @@index([role])
+}
+
+model FounderProfile {
+  id           String            @id @default(uuid())
+  userId       String            @unique
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName  String
+  title        String
+  bio          String
+  photoUrl     String?
+  discipline   FounderDiscipline @default(BOTH)
+  skills       String[]          @default([])
+  displayOrder Int               @default(0)
+  isSelectable Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  preferredByOrders Order[] @relation("PreferredFounderOrders")
+}
+
+// ─────────────────────────── Catalog ───────────────────────────
+
+model ServiceCategory {
+  id           String   @id @default(uuid())
+  slug         String   @unique
+  name         String
+  description  String?
+  iconKey      String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  services Service[]
+  projects PortfolioProject[]
+
+  @@index([isActive])
+}
+
+model Service {
+  id                String            @id @default(uuid())
+  categoryId        String
+  category          ServiceCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  slug              String            @unique
+  name              String
+  tagline           String?
+  description       String
+  basePrice         Decimal           @db.Decimal(12, 2)
+  deliveryDays      Int
+  imageUrl          String?
+  // gates the founder picker: which lead(s) can take this kind of work
+  founderDiscipline FounderDiscipline @default(BOTH)
+  isFeatured        Boolean           @default(false)
+  isActive          Boolean           @default(true)
+  displayOrder      Int               @default(0)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  options    ServiceOption[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([categoryId, isActive])
+  @@index([isFeatured, isActive])
+}
+
+model ServiceOption {
+  id           String  @id @default(uuid())
+  serviceId    String
+  service      Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  // option groups render as radio/checkbox sets, e.g. "scope", "urgency", "extras"
+  groupKey     String
+  label        String
+  priceDelta   Decimal @default(0) @db.Decimal(12, 2)
+  daysDelta    Int     @default(0)
+  isDefault    Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  cartItems CartItemOption[]
+
+  @@index([serviceId])
+}
+
+// ─────────────────────────── Cart ───────────────────────────
+
+model Cart {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items CartItem[]
+}
+
+model CartItem {
+  id           String   @id @default(uuid())
+  cartId       String
+  cart         Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  serviceId    String
+  service      Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  quantity     Int      @default(1)
+  requirements String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  optionLinks CartItemOption[]
+
+  @@unique([cartId, serviceId]) // add-to-cart merges duplicates instead of stacking rows
+  @@index([cartId])
+}
+
+model CartItemOption {
+  cartItemId      String
+  serviceOptionId String
+  cartItem        CartItem      @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  serviceOption   ServiceOption @relation(fields: [serviceOptionId], references: [id], onDelete: Cascade)
+
+  @@id([cartItemId, serviceOptionId])
+}
+
+// ─────────────────────────── Orders ───────────────────────────
+
+model Order {
+  id                 String           @id @default(uuid())
+  orderNumber        String           @unique // TSH-YYYY-NNNNNN
+  customerId         String
+  customer           User             @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Restrict)
+  assignedFounderId  String?
+  assignedFounder    User?            @relation("AssignedFounder", fields: [assignedFounderId], references: [id], onDelete: SetNull)
+  preferredFounderId String?
+  preferredFounder   FounderProfile?  @relation("PreferredFounderOrders", fields: [preferredFounderId], references: [id], onDelete: SetNull)
+  preferenceSource   PreferenceSource @default(CUSTOMER_CHOICE)
+
+  status      OrderStatus @default(SUBMITTED)
+  title       String
+  deadline    DateTime
+  totalAmount Decimal     @db.Decimal(12, 2)
+  notes       String?
+
+  // duplicate-submission guard: the web app sends a uuid per checkout attempt;
+  // a retry with the same key replays the stored order instead of double-creating
+  idempotencyKey String @unique
+
+  submittedAt  DateTime  @default(now())
+  completedAt  DateTime?
+  deliveredAt  DateTime?
+  cancelledAt  DateTime?
+  cancelReason String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  items            OrderItem[]
+  attachments      OrderAttachment[]
+  payments         Payment[]
+  deliverables     Deliverable[]
+  revisionRequests RevisionRequest[]
+  statusHistory    OrderStatusHistory[]
+  reviews          Review[]
+
+  @@index([customerId, status])
+  @@index([assignedFounderId, status])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id           String   @id @default(uuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  serviceId    String
+  service      Service  @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  // snapshot pricing — never join to the live catalog for money
+  serviceName  String   @db.VarChar(160)
+  basePrice    Decimal  @db.Decimal(12, 2)
+  quantity     Int      @default(1)
+  lineTotal    Decimal  @db.Decimal(12, 2)
+  requirements String?
+  createdAt    DateTime @default(now())
+
+  optionSnapshots OrderItemOptionSnapshot[]
+
+  @@index([orderId])
+}
+
+model OrderItemOptionSnapshot {
+  id          String    @id @default(uuid())
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  label       String
+  priceDelta  Decimal   @db.Decimal(12, 2)
+  daysDelta   Int
+
+  @@index([orderItemId])
+}
+
+model OrderAttachment {
+  id                 String   @id @default(uuid())
+  // Nullable while STAGED during checkout (uploaded before the order exists);
+  // set when the checkout transaction claims the staged ids for the order.
+  orderId            String?
+  order              Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  uploadedById       String
+  uploadedBy         User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  // REQUIREMENT | DELIVERABLE_FEEDBACK | OTHER
+  kind               String   @default("REQUIREMENT")
+  cloudinaryPublicId String
+  fileName           String
+  mimeType           String
+  sizeBytes          Int
+  createdAt          DateTime @default(now())
+
+  @@index([orderId])
+  @@index([uploadedById, orderId])
+}
+
+model Deliverable {
+  id                 String   @id @default(uuid())
+  orderId            String
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  uploadedById       String
+  uploadedBy         User     @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  title              String
+  description        String?
+  cloudinaryPublicId String
+  fileName           String
+  mimeType           String
+  sizeBytes          Int
+  version            Int      @default(1)
+  downloadCount      Int      @default(0)
+  createdAt          DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model RevisionRequest {
+  id            String         @id @default(uuid())
+  orderId       String
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerId    String
+  customer      User           @relation("RevisionCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  description   String
+  status        RevisionStatus @default(OPEN)
+  adminResponse String?
+  resolvedAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([orderId, status])
+}
+
+model OrderStatusHistory {
+  id          String       @id @default(uuid())
+  orderId     String
+  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromStatus  OrderStatus?
+  toStatus    OrderStatus
+  changedById String?
+  changedBy   User?        @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  note        String?
+  createdAt   DateTime     @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+// ─────────────────────────── Payments ───────────────────────────
+// Manual BDT verification in v1. `provider`/`providerRef` exist from day one
+// so a gateway adapter (SSLCOMMERZ, Stripe, …) later is additive-only.
+
+model Payment {
+  id                 String        @id @default(uuid())
+  orderId            String
+  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method             PaymentMethod
+  status             PaymentStatus @default(PENDING)
+  amount             Decimal       @db.Decimal(12, 2)
+  transactionId      String?
+  screenshotPublicId String?
+  adminNote          String?
+  verifiedById       String?
+  verifiedBy         User?         @relation("PaymentVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt         DateTime?
+  provider           String        @default("MANUAL")
+  providerRef        String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([orderId])
+  @@index([status, createdAt])
+}
+
+// ─────────────────────────── Misc ───────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType @default(GENERAL)
+  title     String
+  body      String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  orderId    String   @unique // one review per order
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   User     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  rating     Int // 1..5, zod-validated at the edge
+  comment    String?
+  isPublic   Boolean  @default(false) // admins curate which reviews become testimonials
+  createdAt  DateTime @default(now())
+
+  @@index([isPublic, rating])
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     String // "ORDER.STATUS_UPDATE", "PAYMENT.VERIFY", …
+  entityType String
+  entityId   String
+  metadata   Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+}
+
+// ───────────────────── Editable homepage content ─────────────────────
+
+model SiteContent {
+  id        String   @id @default(uuid())
+  key       String   @unique // "hero", "why_us", "how_it_works", "faq", …
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model PortfolioProject {
+  id                String           @id @default(uuid())
+  title             String
+  description       String
+  imageUrl          String?
+  projectUrl        String?
+  serviceCategoryId String?
+  category          ServiceCategory? @relation(fields: [serviceCategoryId], references: [id], onDelete: SetNull)
+  displayOrder      Int              @default(0)
+  isPublic          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+}
+
+model Testimonial {
+  id           String   @id @default(uuid())
+  authorName   String
+  authorTitle  String?
+  quote        String
+  avatarUrl    String?
+  rating       Int      @default(5)
+  displayOrder Int      @default(0)
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}

@@ -1,0 +1,204 @@
+import { Router } from 'express';
+import { z } from 'zod';
+import { ok } from '../utils/envelope.js';
+import { hasDatabase, firebaseCredentialSource } from '../config/env.js';
+import { getFirebaseAuth } from '../config/firebase.js';
+import { prisma } from '../config/prisma.js';
+import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { apiLimiter, authLimiter } from '../middleware/rate-limit.js';
+import * as authController from '../controllers/auth.controller.js';
+import * as catalogController from '../controllers/catalog.controller.js';
+import * as userController from '../controllers/user.controller.js';
+import * as cartController from '../controllers/cart.controller.js';
+import * as orderController from '../controllers/order.controller.js';
+import * as uploadController from '../controllers/upload.controller.js';
+import * as contactController from '../controllers/contact.controller.js';
+import * as notificationController from '../controllers/notification.controller.js';
+import * as adminController from '../controllers/admin.controller.js';
+import {
+  cartItemAddSchema,
+  checkoutSchema,
+  contactSchema,
+  paymentSubmitSchema,
+  paginationQuerySchema,
+  profileUpdateSchema,
+  ORDER_STATUSES,
+} from '@tsh/shared';
+
+const orderListQuery = paginationQuerySchema.extend({
+  status: z.string().trim().max(30).optional(),
+});
+const adminOrderQuery = paginationQuerySchema.extend({
+  status: z.string().trim().max(30).optional(),
+  founderId: z.uuid().optional(),
+  search: z.string().trim().max(120).optional(),
+});
+const customerQuery = paginationQuerySchema.extend({
+  search: z.string().trim().max(120).optional(),
+});
+
+const router = Router();
+
+// ─── Health ──────────────────────────────────────────────────
+
+router.get('/health', async (_req, res, next) => {
+  try {
+    let db: 'ok' | 'unconfigured' | 'error' = hasDatabase ? 'error' : 'unconfigured';
+    if (hasDatabase) {
+      try {
+        await prisma.$queryRaw`SELECT 1`;
+        db = 'ok';
+      } catch {
+        db = 'error';
+      }
+    }
+    res.json(
+      ok({
+        status: 'ok',
+        db,
+        firebase: getFirebaseAuth() ? 'ok' : 'unconfigured',
+        firebaseCredentialSource,
+        time: new Date().toISOString(),
+      }),
+    );
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── Auth (Firebase ID tokens; sync provisions the Neon profile) ─────
+
+const authRouter = Router();
+authRouter.post('/sync', authController.syncProfile);
+authRouter.get('/me', authenticate, authController.me);
+router.use('/auth', authLimiter, authRouter);
+
+// ─── Public catalog ──────────────────────────────────────────
+
+router.get(
+  '/services',
+  validate({
+    query: z.object({
+      page: z.coerce.number().int().min(1).default(1),
+      pageSize: z.coerce.number().int().min(1).max(50).default(20),
+      search: z.string().trim().max(120).optional(),
+      category: z.string().trim().max(120).optional(),
+      sort: z.enum(['popular', 'price_asc', 'price_desc', 'newest']).optional(),
+    }),
+  }),
+  catalogController.listServices,
+);
+router.get('/services/:slug', catalogController.getService);
+router.get('/categories', catalogController.listCategories);
+router.get('/public/homepage', catalogController.homepage);
+
+// ─── Users ───────────────────────────────────────────────────
+
+const userRouter = Router();
+userRouter.get('/me', authenticate, userController.getMe);
+userRouter.patch('/me', authenticate, validate({ body: profileUpdateSchema }), userController.updateMe);
+router.use('/users', userRouter);
+
+// ─── Cart ────────────────────────────────────────────────────
+
+const cartRouter = Router();
+cartRouter.get('/', cartController.show);
+cartRouter.post('/items', validate({ body: cartItemAddSchema }), cartController.add);
+cartRouter.patch('/items/:itemId', validate({ params: z.object({ itemId: z.uuid() }) }), cartController.update);
+cartRouter.delete('/items/:itemId', validate({ params: z.object({ itemId: z.uuid() }) }), cartController.remove);
+router.use('/cart', authenticate, cartRouter);
+
+// ─── Orders (checkout, tracking, payments, revisions, files) ──
+
+const orderRouter = Router();
+orderRouter.post('/', validate({ body: checkoutSchema }), orderController.create);
+orderRouter.get('/', validate({ query: orderListQuery }), orderController.list);
+orderRouter.get('/:id', validate({ params: z.object({ id: z.uuid() }) }), orderController.detail);
+orderRouter.post('/:id/cancel', validate({ params: z.object({ id: z.uuid() }) }), orderController.cancel);
+orderRouter.post('/:id/payments', validate({ body: paymentSubmitSchema }), orderController.submitPayment);
+orderRouter.post('/:id/revisions', validate({ body: z.object({ description: z.string().trim().min(10).max(4000) }) }), orderController.requestRevision);
+orderRouter.post('/:id/review', validate({ body: z.object({ rating: z.number().int().min(1).max(5), comment: z.string().trim().max(2000).optional() }) }), orderController.submitReview);
+orderRouter.post(
+  '/:id/attachments',
+  validate({
+    body: z.object({
+      cloudinaryPublicId: z.string().trim().min(5).max(300),
+      fileName: z.string().trim().min(1).max(255),
+      mimeType: z.string().trim().min(3).max(120),
+      sizeBytes: z.number().int().min(1),
+      kind: z.enum(['REQUIREMENT', 'DELIVERABLE_FEEDBACK', 'OTHER']).default('REQUIREMENT'),
+    }),
+  }),
+  orderController.addAttachment,
+);
+router.use('/orders', authenticate, orderRouter);
+
+// ─── Uploads (signed client-side uploads) ────────────────────
+
+router.post('/uploads/sign', authenticate, authLimiter, validate({ body: z.object({ folder: z.enum(['requirements', 'deliveries', 'misc']) }) }), uploadController.sign);
+
+// ─── Contact (public) ────────────────────────────────────────
+
+router.post('/contact', authLimiter, validate({ body: contactSchema }), contactController.submit);
+
+// ─── Notifications ───────────────────────────────────────────
+
+const notificationRouter = Router();
+notificationRouter.get('/', notificationController.list);
+notificationRouter.post('/read', validate({ body: z.object({ ids: z.array(z.uuid()).max(100).optional() }).optional() }), notificationController.markRead);
+router.use('/notifications', authenticate, notificationRouter);
+
+// ─── Admin (both co-founders; every action audited) ──────────
+
+const adminRouter = Router();
+adminRouter.get('/ping', (_req, res) => res.json(ok({ pong: true })));
+adminRouter.get('/stats', adminController.stats);
+adminRouter.get('/orders', validate({ query: adminOrderQuery }), adminController.listOrders);
+adminRouter.get('/orders/:id', validate({ params: z.object({ id: z.uuid() }) }), adminController.getOrder);
+adminRouter.patch(
+  '/orders/:id/status',
+  validate({ params: z.object({ id: z.uuid() }), body: z.object({ status: z.enum(ORDER_STATUSES), note: z.string().trim().max(2000).optional() }) }),
+  adminController.updateOrderStatus,
+);
+adminRouter.patch(
+  '/orders/:id/assignment',
+  validate({ params: z.object({ id: z.uuid() }), body: z.object({ assignedFounderId: z.uuid().nullable() }) }),
+  adminController.assignOrder,
+);
+adminRouter.post(
+  '/orders/:id/deliverables',
+  validate({
+    params: z.object({ id: z.uuid() }),
+    body: z.object({
+      title: z.string().trim().min(2).max(160),
+      description: z.string().trim().max(2000).optional(),
+      cloudinaryPublicId: z.string().trim().min(5).max(300),
+      fileName: z.string().trim().min(1).max(255),
+      mimeType: z.string().trim().min(3).max(120),
+      sizeBytes: z.number().int().min(1),
+    }),
+  }),
+  adminController.addDeliverable,
+);
+adminRouter.get('/payments', validate({ query: z.object({ status: z.string().trim().max(30).optional() }).optional() }), adminController.listPayments);
+adminRouter.patch(
+  '/payments/:id',
+  validate({ params: z.object({ id: z.uuid() }), body: z.object({ decision: z.enum(['VERIFIED', 'REJECTED']), note: z.string().trim().max(2000).optional() }) }),
+  adminController.reviewPayment,
+);
+adminRouter.patch(
+  '/revisions/:id',
+  validate({ params: z.object({ id: z.uuid() }), body: z.object({ status: z.enum(['IN_PROGRESS', 'RESOLVED', 'DECLINED']), adminResponse: z.string().trim().max(4000).optional() }) }),
+  adminController.respondRevision,
+);
+adminRouter.get('/customers', validate({ query: customerQuery }), adminController.listCustomers);
+adminRouter.get('/founders', adminController.listFounders);
+adminRouter.get('/messages', validate({ query: z.object({ page: z.coerce.number().int().min(1).default(1) }).optional() }), adminController.listMessages);
+adminRouter.patch('/messages/:id', validate({ params: z.object({ id: z.uuid() }) }), adminController.markMessageRead);
+adminRouter.patch('/reviews/:id', validate({ params: z.object({ id: z.uuid() }), body: z.object({ isPublic: z.boolean() }) }), adminController.curateReview);
+adminRouter.get('/site-content', adminController.getSiteContent);
+adminRouter.put('/site-content', validate({ body: z.object({ key: z.string().trim().min(2).max(80), value: z.unknown() }) }), adminController.putSiteContent);
+router.use('/admin', authenticate, requireAdmin, adminRouter);
+
+export { router as apiRouter, apiLimiter };

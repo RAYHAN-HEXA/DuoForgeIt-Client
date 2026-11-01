@@ -1,0 +1,34 @@
+{
+  "name": "techservice-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TechService Hub — two-founder IT services platform (Next.js + Express + Neon PostgreSQL + Prisma + Firebase Auth)",
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev -w @tsh/api",
+    "dev:web": "npm run dev -w @tsh/web",
+    "build": "npm run build -w @tsh/shared && npm run build -w @tsh/api && npm run build -w @tsh/web",
+    "typecheck": "npm run typecheck -w @tsh/shared && npm run typecheck -w @tsh/api && npm run typecheck -w @tsh/web",
+    "lint": "eslint packages/shared apps/api && npm run lint -w @tsh/web",
+    "test": "npm run test -w @tsh/shared && npm run test -w @tsh/api",
+    "db:migrate": "npm run db:migrate -w @tsh/api",
+    "db:seed": "npm run db:seed -w @tsh/api",
+    "db:studio": "npm run db:studio -w @tsh/api"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.20.0",
+    "eslint-config-prettier": "^10.0.0",
+    "prettier": "^3.5.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.25.0"
+  }
+}

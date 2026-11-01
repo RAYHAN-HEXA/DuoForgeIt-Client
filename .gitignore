@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# Prisma generated client — keep the compiled client + engines for deploys
+# (Vercel uploads respect .gitignore); only exclude the local-OS binary
+**/src/generated/prisma/libquery_engine-darwin-*
+
+# Environment — never commit real secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+!**/.env.example
+
+# Firebase service accounts — NEVER commit these
+firebase-service-account*.json
+serviceAccountKey*.json
+**/*service-account*.json
+**/*firebase-adminsdk*.json
+*.pem
+
+# Testing
+coverage/
+
+# Misc
+.DS_Store
+*.log
+.vercel
+.turbo

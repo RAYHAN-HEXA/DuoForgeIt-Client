@@ -1,0 +1,53 @@
+{
+  "name": "@tsh/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TechService Hub REST API (Express 5 + Prisma + Firebase Admin)",
+  "scripts": {
+    "dev": "tsx watch --conditions development src/server.ts",
+    "build": "tsc -b",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "promote:admin": "tsx scripts/set-role.ts",
+    "predev": "bash ../../scripts/vendor-shared.sh",
+    "provision:accounts": "tsx scripts/provision-accounts.ts",
+    "sync:shared": "bash ../../scripts/vendor-shared.sh",
+    "prebuild": "if [ -f ../../scripts/vendor-shared.sh ]; then bash ../../scripts/vendor-shared.sh; else echo '[sync:shared] deployment build \u2014 using committed vendor copy'; fi"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "postinstall": "prisma generate",
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "@tsh/shared": "file:./src/vendor-shared",
+    "cors": "2.8.6",
+    "decimal.js-light": "2.5.1",
+    "dotenv": "16.6.1",
+    "express": "5.3.0",
+    "express-rate-limit": "7.5.1",
+    "firebase-admin": "13.10.0",
+    "helmet": "8.3.0",
+    "pino": "9.14.0",
+    "pino-http": "10.5.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/supertest": "^6.0.3",
+    "pino-pretty": "^13.0.0",
+    "prisma": "^6.7.0",
+    "supertest": "^7.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
