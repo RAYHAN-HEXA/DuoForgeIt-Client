@@ -19,7 +19,7 @@
     "predev": "bash ../../scripts/vendor-shared.sh",
     "provision:accounts": "tsx scripts/provision-accounts.ts",
     "sync:shared": "bash ../../scripts/vendor-shared.sh",
-    "prebuild": "if [ -f ../../scripts/vendor-shared.sh ]; then bash ../../scripts/vendor-shared.sh; else echo '[sync:shared] deployment build \u2014 using committed vendor copy'; fi"
+    "prebuild": "if [ -f ../../scripts/vendor-shared.sh ]; then bash ../../scripts/vendor-shared.sh; else echo '[sync:shared] deployment build — using committed vendor copy'; fi"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -32,16 +32,19 @@
     "decimal.js-light": "2.5.1",
     "dotenv": "16.6.1",
     "express": "5.3.0",
-    "express-rate-limit": "7.5.1",
+    "express-rate-limit": "^8.7.3",
     "firebase-admin": "13.10.0",
-    "helmet": "8.3.0",
+    "@vercel/blob": "^0.17.0",
+    "nodemailer": "^10.3.1",
     "pino": "9.14.0",
     "pino-http": "10.5.0",
-    "zod": "4.6.7"
+    "rate-limit-redis": "^6.0.2"
+
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
+    "@types/nodemailer": "^8.0.2",
     "@types/supertest": "^6.0.3",
     "pino-pretty": "^13.0.0",
     "prisma": "^6.7.0",

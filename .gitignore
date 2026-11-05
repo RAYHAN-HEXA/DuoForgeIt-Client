@@ -33,3 +33,7 @@ coverage/
 *.log
 .vercel
 .turbo
+
+# Local backups / scratch files
+apps.zip
+*.tmp.mjs

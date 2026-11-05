@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2, Lock } from 'lucide-react';
+import { Loader2, Lock, ShieldX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
@@ -31,16 +31,38 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 }
 
 export function RequireAdmin({ children }: { children: React.ReactNode }) {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login?next=/admin');
-    if (!loading && user && !isAdmin) router.replace('/dashboard');
-  }, [loading, user, isAdmin, router]);
+  }, [loading, user, router]);
 
   if (loading) return <GuardLoader />;
-  if (!user || !isAdmin) return <GuardLoader />;
+  if (!user) return <GuardLoader />; // redirect is in flight
+  if (!isAdmin) {
+    return (
+      <div className="flex min-h-[50vh] flex-1 items-center justify-center px-4">
+        <Card className="w-full max-w-sm">
+          <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <ShieldX className="h-5 w-5 text-destructive" />
+            </div>
+            <div>
+              <p className="font-medium">Admin access only</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                You're signed in as {user.email}. Switch to a founder account to open the admin console.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild><Link href="/dashboard">My dashboard</Link></Button>
+              <Button variant="ghost" onClick={() => void logout().then(() => router.replace('/login'))}>Sign out</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   return <>{children}</>;
 }
 

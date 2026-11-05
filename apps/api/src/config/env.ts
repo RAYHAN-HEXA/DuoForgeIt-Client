@@ -5,6 +5,13 @@ import { z } from 'zod';
  * Loaded from apps/api/.env by server.ts (`import 'dotenv/config'`).
  */
 const envSchema = z.object({
+  // Cloudinary security feature flags
+  ENABLE_CLOUDINARY_AUTH: z.string().default('false'),
+  CLOUDINARY_AUTH_GRACE: z.string().default('false'),
+  CLOUDINARY_AUTH_UPLOAD_PRESET: z.string().optional(),
+  // Upstash Redis placeholders for development
+  UPSTASH_REDIS_REST_URL: z.string().optional(),
+  UPSTASH_REDIS_TOKEN: z.string().optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(5000),
   LOG_LEVEL: z.string().default('info'),
@@ -28,6 +35,19 @@ const envSchema = z.object({
 
   RESEND_API_KEY: z.string().min(1).optional(),
   MAIL_FROM: z.string().min(1).optional(),
+  SMTP_HOST: z.string().min(1).optional(),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).optional(),
+  SMTP_USER: z.string().min(1).optional(),
+  SMTP_PASS: z.string().min(1).optional(),
+
+  // Founder email alerts (order placed / TrxID submitted); comma-separated.
+  FOUNDER_NOTIFY_EMAILS: z.string().min(1).optional(),
+  ADMIN_PANEL_URL: z.string().min(1).optional(),
+
+  // Feature flags — exactly the string 'true' enables; anything else (including
+  // unset) keeps legacy behaviour. Marketplace routes/pages are gated on these.
+  SERVICE_MARKETPLACE_ENABLED: z.string().default('false'),
+  WALLET_ENABLED: z.string().default('false'),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -37,6 +57,12 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+// Feature flag to enable Cloudinary authenticated delivery (default: false)
+export const ENABLE_CLOUDINARY_AUTH = env.ENABLE_CLOUDINARY_AUTH === 'true';
+
+// Grace period flag – when true, both legacy and authenticated URLs are accepted during migration.
+export const CLOUDINARY_AUTH_GRACE = env.CLOUDINARY_AUTH_GRACE === 'true';
 
 export const corsOrigins = env.CORS_ORIGINS.split(',')
   .map((s) => s.trim())
@@ -57,3 +83,6 @@ export const firebaseCredentialSource: FirebaseCredentialSource =
 export const hasCloudinary = Boolean(
   env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET,
 );
+
+export const serviceMarketplaceEnabled = env.SERVICE_MARKETPLACE_ENABLED === 'true';
+export const walletEnabled = env.WALLET_ENABLED === 'true';

@@ -47,6 +47,8 @@ export async function getHomepage(): Promise<HomepageDto> {
       title: f.title,
       bio: f.bio,
       photoUrl: f.photoUrl,
+      portfolioUrl: f.portfolioUrl,
+      portfolioImageUrl: f.portfolioImageUrl,
       skills: f.skills,
       discipline: f.discipline,
       isSelectable: f.isSelectable,

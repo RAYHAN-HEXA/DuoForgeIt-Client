@@ -14,6 +14,10 @@ const ORDER_STYLES: Record<OrderStatus, string> = {
   DELIVERED: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300',
   REJECTED: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300',
   CANCELLED: 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-400',
+  // Marketplace v2 pipeline (quotation-paid orders)
+  PAID_SCHEDULED: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300',
+  REVIEW_REVISION: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300',
+  DELIVERED_COMPLETED: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300',
 };
 
 const PAYMENT_STYLES: Record<PaymentStatus, string> = {
@@ -41,6 +45,9 @@ const LABELS: Record<string, string> = {
   DELIVERED: 'Delivered',
   REJECTED: 'Rejected',
   CANCELLED: 'Cancelled',
+  PAID_SCHEDULED: 'Paid — scheduled',
+  REVIEW_REVISION: 'Review & revision',
+  DELIVERED_COMPLETED: 'Delivered',
   PENDING: 'Pending',
   VERIFIED: 'Verified',
   REFUNDED: 'Refunded',

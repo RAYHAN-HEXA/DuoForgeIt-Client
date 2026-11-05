@@ -1,15 +1,17 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { OrderStatus } from '@tsh/shared';
+import { formatBDT, type OrderStatus } from '@tsh/shared';
 import { ok } from '../utils/envelope.js';
 import { validated } from '../middleware/validate.js';
 import { prisma } from '../config/prisma.js';
 import { hasCloudinary } from '../config/env.js';
-import { assertUploadAllowed, signedDownloadUrl } from '../utils/cloudinary.js';
-import { toAdminOrderDto, toAdminPaymentDto } from '../utils/mappers.js';
+import { assertUploadAllowed, signUpload, signedDownloadUrl, generateAuthToken, ENABLE_CLOUDINARY_AUTH, CLOUDINARY_AUTH_GRACE } from '../utils/cloudinary.js';
+import { toAdminOrderDto, toAdminPaymentAccountDto, toAdminPaymentDto } from '../utils/mappers.js';
 import { getAnyOrder } from '../services/order.service.js';
 import { notifyUser } from '../services/notification.service.js';
+import { emailShell, sendCustomerEmail } from '../services/mail.service.js';
 import { audit } from '../utils/audit.js';
 import * as admin from '../services/admin.service.js';
+import * as paymentAccounts from '../services/paymentAccount.service.js';
 
 /** All request validation happens in routes/index.ts — these are the shapes. */
 type IdParams = { id: string };
@@ -131,12 +133,50 @@ export async function assignOrder(req: Request, res: Response, next: NextFunctio
   }
 }
 
-/** GET /api/admin/payments — verification queue. */
+/** GET /api/admin/payments — paginated verification queue with filters (Stage 6). */
 export async function listPayments(req: Request, res: Response, next: NextFunction) {
   try {
-    const { status } = validated<{ status?: string }>(req, 'query');
-    const rows = await admin.listPayments(status);
-    res.json(ok({ items: rows.map(toAdminPaymentDto) }));
+    const q = validated<{
+      page: number;
+      pageSize: number;
+      status?: string;
+      method?: string;
+      search?: string;
+      from?: string;
+      to?: string;
+    }>(req, 'query');
+    const { total, rows } = await admin.listPayments(q);
+    res.json(
+      ok({
+        items: rows.map(toAdminPaymentDto),
+        page: q.page,
+        pageSize: q.pageSize,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / q.pageSize)),
+      }),
+    );
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** GET /api/admin/payments/stats — per-status counts for the dashboard cards. */
+export async function paymentStats(_req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json(ok(await admin.getPaymentQueueStats()));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/admin/payments/:id/screenshot — short-lived signed URL minted from
+ * the public id stored on the payment row. The client never supplies a
+ * signing target; null means no screenshot was submitted.
+ */
+export async function paymentScreenshot(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json(ok(await admin.getPaymentScreenshotUrl(paramId(req))));
   } catch (err) {
     next(err);
   }
@@ -147,27 +187,243 @@ export async function reviewPayment(req: Request, res: Response, next: NextFunct
   try {
     const paymentId = paramId(req);
     const body = validated<{ decision: 'VERIFIED' | 'REJECTED'; note?: string }>(req, 'body');
-    const { payment, order } = await admin.reviewPayment(paymentId, body.decision, body.note, req.authUser!.id);
+    const { payment, order, previousStatus } = await admin.reviewPayment(
+      paymentId,
+      body.decision,
+      body.note,
+      req.authUser!.id,
+    );
+
+    // Everything below runs only after the database transaction committed.
+    // A losing concurrent review threw above and never reaches this block.
+    const rejected = body.decision === 'REJECTED';
+    const reason = payment.rejectionReason ?? body.note?.trim() ?? null;
 
     await audit({
       actorId: req.authUser!.id,
-      action: 'PAYMENT.VERIFY',
+      action: rejected ? 'PAYMENT.REJECT' : 'PAYMENT.VERIFY',
       entityType: 'Payment',
       entityId: paymentId,
-      metadata: { decision: body.decision, method: payment.method, amount: payment.amount.toString() },
+      metadata: {
+        from: previousStatus,
+        to: payment.status,
+        adminId: req.authUser!.id,
+        method: payment.method,
+        amount: payment.amount.toFixed(2),
+        ...(rejected ? { rejectionReason: reason } : {}),
+      },
       ip: req.ip,
     });
+
     await notifyUser({
       userId: order.customerId,
       type: 'PAYMENT',
-      title: body.decision === 'VERIFIED' ? 'Payment verified' : 'Payment could not be verified',
-      body:
-        body.decision === 'VERIFIED'
-          ? `Your payment for order ${order.orderNumber} is confirmed.`
-          : (body.note ?? 'We could not verify your transaction — please check the ID and resubmit.'),
+      title: rejected ? 'Payment could not be verified' : 'Payment verified',
+      body: rejected
+        ? (reason ?? 'We could not verify your transaction — please check the ID and resubmit.')
+        : `Your payment of ${formatBDT(payment.amount.toFixed(2))} for order ${order.orderNumber} is confirmed.`,
       link: `/orders/${order.id}`,
     });
+
+    // Customer email is best-effort and post-commit. A mail failure is
+    // logged inside the mail service and never affects this response.
+    await sendCustomerEmail(
+      order.customer.email,
+      rejected ? `Payment not verified — ${order.orderNumber}` : `Payment verified — ${order.orderNumber}`,
+      emailShell(
+        rejected ? 'We could not verify your payment' : 'Payment verified',
+        [
+          ['Order', `${order.orderNumber} · ${order.title}`],
+          ['Amount', formatBDT(payment.amount.toFixed(2))],
+          ['Status', rejected ? 'Rejected' : 'Verified'],
+          ...(rejected && reason ? ([['Reason', reason]] as Array<[string, string]>) : []),
+        ],
+      ),
+    );
+
     res.json(ok({ id: payment.id, status: payment.status }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ─── Payment accounts (manual-payments v2, Stage 4) ──────────
+
+/** GET /api/admin/payment-accounts — active AND inactive receiving accounts. */
+export async function listPaymentAccounts(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const rows = await paymentAccounts.listPaymentAccounts();
+    res.json(ok({ items: rows.map(toAdminPaymentAccountDto) }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** GET /api/admin/payment-accounts/:id — single management view. */
+export async function getPaymentAccount(req: Request, res: Response, next: NextFunction) {
+  try {
+    const account = await paymentAccounts.getPaymentAccount(paramId(req));
+    res.json(ok(toAdminPaymentAccountDto(account)));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** POST /api/admin/payment-accounts — create a receiving account. */
+export async function createPaymentAccount(req: Request, res: Response, next: NextFunction) {
+  try {
+    const body = validated<paymentAccounts.CreatePaymentAccountInput>(req, 'body');
+    const account = await paymentAccounts.createPaymentAccount(body, req.authUser!.id);
+
+    await audit({
+      actorId: req.authUser!.id,
+      action: 'PAYMENT_ACCOUNT.CREATE',
+      entityType: 'PaymentAccount',
+      entityId: account.id,
+      metadata: {
+        methodKey: account.methodKey,
+        label: account.label,
+        isActive: account.isActive,
+        displayOrder: account.displayOrder,
+      },
+      ip: req.ip,
+    });
+
+    res.status(201).json(ok(toAdminPaymentAccountDto(account)));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * PATCH /api/admin/payment-accounts/:id — edit configuration. Editing never
+ * touches Payment snapshots or orders.
+ */
+export async function updatePaymentAccount(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = paramId(req);
+    const body = validated<paymentAccounts.UpdatePaymentAccountInput>(req, 'body');
+    const { account, previous, changedFields } = await paymentAccounts.updatePaymentAccount(
+      id,
+      body,
+      req.authUser!.id,
+    );
+
+    const onlyStatusChanged = changedFields.length === 1 && changedFields[0] === 'isActive';
+    const action = onlyStatusChanged
+      ? account.isActive
+        ? 'PAYMENT_ACCOUNT.ACTIVATE'
+        : 'PAYMENT_ACCOUNT.DEACTIVATE'
+      : 'PAYMENT_ACCOUNT.UPDATE';
+
+    await audit({
+      actorId: req.authUser!.id,
+      action,
+      entityType: 'PaymentAccount',
+      entityId: account.id,
+      metadata: {
+        changedFields,
+        fromActive: previous.isActive,
+        toActive: account.isActive,
+        ...(changedFields.includes('qrPublicId')
+          ? { qrChanged: true, hasQr: Boolean(account.qrPublicId) }
+          : {}),
+      },
+      ip: req.ip,
+    });
+
+    res.json(ok(toAdminPaymentAccountDto(account)));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** PATCH /api/admin/payment-accounts/:id/status — explicit activate/deactivate. */
+export async function setPaymentAccountStatus(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = paramId(req);
+    const body = validated<{ isActive: boolean }>(req, 'body');
+    const { account, previous, changed } = await paymentAccounts.setPaymentAccountStatus(
+      id,
+      body.isActive,
+      req.authUser!.id,
+    );
+
+    if (changed) {
+      await audit({
+        actorId: req.authUser!.id,
+        action: body.isActive ? 'PAYMENT_ACCOUNT.ACTIVATE' : 'PAYMENT_ACCOUNT.DEACTIVATE',
+        entityType: 'PaymentAccount',
+        entityId: account.id,
+        metadata: { fromActive: previous.isActive, toActive: account.isActive, label: account.label },
+        ip: req.ip,
+      });
+    }
+
+    res.json(ok(toAdminPaymentAccountDto(account)));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** PATCH /api/admin/payment-accounts/reorder — transactional display order. */
+export async function reorderPaymentAccounts(req: Request, res: Response, next: NextFunction) {
+  try {
+    const body = validated<{ items: Array<{ id: string; displayOrder: number }> }>(req, 'body');
+    const rows = await paymentAccounts.reorderPaymentAccounts(body.items, req.authUser!.id);
+
+    await audit({
+      actorId: req.authUser!.id,
+      action: 'PAYMENT_ACCOUNT.REORDER',
+      entityType: 'PaymentAccount',
+      entityId: 'batch',
+      metadata: { items: body.items },
+      ip: req.ip,
+    });
+
+    res.json(ok({ items: rows.map(toAdminPaymentAccountDto) }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * DELETE /api/admin/payment-accounts/:id — only unreferenced accounts.
+ * Referenced accounts return 409 ACCOUNT_IN_USE; deactivate instead.
+ */
+export async function deletePaymentAccount(req: Request, res: Response, next: NextFunction) {
+  try {
+    const account = await paymentAccounts.deletePaymentAccount(paramId(req));
+
+    await audit({
+      actorId: req.authUser!.id,
+      action: 'PAYMENT_ACCOUNT.DELETE',
+      entityType: 'PaymentAccount',
+      entityId: account.id,
+      metadata: {
+        methodKey: account.methodKey,
+        label: account.label,
+        displayOrder: account.displayOrder,
+        wasActive: account.isActive,
+        usageCount: 0,
+      },
+      ip: req.ip,
+    });
+
+    res.json(ok({ id: account.id, deleted: true }));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/admin/payment-accounts/qr/sign — admin-only Cloudinary signature
+ * for a receiving-account QR image. The public id is minted server-side in the
+ * dedicated admin namespace; the secret never leaves the server.
+ */
+export async function signPaymentAccountQr(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json(ok(signUpload('paymentAccounts', { userId: req.authUser!.id })));
   } catch (err) {
     next(err);
   }

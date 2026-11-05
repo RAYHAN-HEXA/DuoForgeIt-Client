@@ -1,5 +1,8 @@
-import type { PublicUser } from '@tsh/shared';
-import type { User, FounderProfile, Service, ServiceCategory, Testimonial, PortfolioProject } from '../generated/prisma/client.js';
+import type { PublicUser, AdminPaymentAccountDto, PaymentAccountOptionDto } from '@tsh/shared';
+import type { User, FounderProfile, Service, ServiceCategory, Testimonial, PortfolioProject, PaymentAccount } from '../generated/prisma/client.js';
+import { hasCloudinary } from '../config/env.js';
+import { signedDownloadUrl } from './cloudinary.js';
+import { subtractMoney } from './money.js';
 
 /** Strip internal fields for API responses. */
 export function toPublicUser(user: User): PublicUser {
@@ -63,6 +66,8 @@ export function toFounderDto(profile: FounderProfile) {
     title: profile.title,
     bio: profile.bio,
     photoUrl: profile.photoUrl,
+    portfolioUrl: profile.portfolioUrl,
+    portfolioImageUrl: profile.portfolioImageUrl,
     skills: profile.skills,
     discipline: profile.discipline,
     isSelectable: profile.isSelectable,
@@ -130,6 +135,9 @@ type OrderFull = Order & {
     adminNote: string | null;
     verifiedAt: Date | null;
     createdAt: Date;
+    // Manual-payments v2 (optional — legacy rows are null/absent)
+    rejectionReason?: string | null;
+    rejectedAt?: Date | null;
   }>;
   attachments?: OrderAttachment[];
   deliverables?: Deliverable[];
@@ -156,17 +164,23 @@ export function toOrderItemDto(item: OrderItemFull): OrderItemDto {
   };
 }
 
-export function toPaymentDto(p: {
-  id: string;
-  method: Payment['method'];
-  status: Payment['status'];
-  amount: Decimalish;
-  transactionId: string | null;
-  screenshotPublicId: string | null;
-  adminNote: string | null;
-  verifiedAt: Date | null;
-  createdAt: Date;
-}): PaymentDto {
+export function toPaymentDto(
+  p: {
+    id: string;
+    method: Payment['method'];
+    status: Payment['status'];
+    amount: Decimalish;
+    transactionId: string | null;
+    screenshotPublicId: string | null;
+    adminNote: string | null;
+    verifiedAt: Date | null;
+    createdAt: Date;
+    rejectionReason?: string | null;
+    rejectedAt?: Date | null;
+  },
+  options: { includeAdminFields?: boolean } = {},
+): PaymentDto {
+  const rejected = p.status === 'REJECTED';
   return {
     id: p.id,
     method: p.method,
@@ -174,8 +188,14 @@ export function toPaymentDto(p: {
     amount: p.amount.toString(),
     transactionId: p.transactionId,
     hasScreenshot: Boolean(p.screenshotPublicId),
-    adminNote: p.adminNote,
+    // Staff-only notes stay hidden from customer responses. The legacy
+    // `adminNote` remains populated for REJECTED rows because the customer
+    // order page has always rendered it as the rejection reason; v2 also
+    // exposes the dedicated rejectionReason field.
+    adminNote: options.includeAdminFields || rejected ? p.adminNote : null,
     verifiedAt: p.verifiedAt?.toISOString() ?? null,
+    rejectionReason: rejected ? (p.rejectionReason ?? p.adminNote) : null,
+    rejectedAt: rejected ? (p.rejectedAt?.toISOString() ?? null) : null,
     createdAt: p.createdAt.toISOString(),
   };
 }
@@ -259,7 +279,7 @@ export function toOrderDto(
         note: h.note,
         createdAt: h.createdAt.toISOString(),
       })),
-    payments: order.payments.map(toPaymentDto),
+    payments: order.payments.map((p) => toPaymentDto(p)),
     attachments: (order.attachments ?? []).map((a) =>
       toAttachmentDto(a, urls.attachments?.get(a.id) ?? null),
     ),
@@ -269,6 +289,15 @@ export function toOrderDto(
     revisions: (order.revisionRequests ?? []).map(toRevisionDto),
     review: order.reviews?.[0] ? toReviewDto(order.reviews[0]) : null,
     createdAt: order.createdAt.toISOString(),
+    // Stage 1 accounting columns — Σ VERIFIED payments and the derived
+    // balance. Both were declared optional on the DTO since Stage 1; the
+    // Stage 6 admin dashboard needs the server-calculated values, so the
+    // mapper now always populates them (customers see only their own order).
+    amountPaid: order.amountPaid?.toString() ?? '0.00',
+    outstandingAmount: subtractMoney(
+      order.totalAmount.toString(),
+      order.amountPaid?.toString() ?? '0.00',
+    ),
   };
 }
 
@@ -310,22 +339,112 @@ export function toAdminPaymentDto(
     adminNote: string | null;
     verifiedAt: Date | null;
     createdAt: Date;
-  } & { order: { id: string; orderNumber: string; title: string; customer: { fullName: string } } },
+    // ── Manual-payments v2 fields (null on legacy rows) ──
+    senderNumber?: string | null;
+    rejectedAt?: Date | null;
+    methodKeySnapshot?: string | null;
+    methodLabelSnapshot?: string | null;
+    accountTypeSnapshot?: string | null;
+    accountNumberSnapshot?: string | null;
+    accountHolderSnapshot?: string | null;
+    instructionsSnapshot?: string | null;
+    verifiedBy?: { fullName: string } | null;
+    rejectedBy?: { fullName: string } | null;
+  } & {
+    order: {
+      id: string;
+      orderNumber: string;
+      title: string;
+      customer: { fullName: string; email: string };
+      totalAmount?: Decimalish;
+      amountPaid?: Decimalish | null;
+    };
+  },
 ): AdminPaymentDto {
   return {
-    ...toPaymentDto(p),
+    ...toPaymentDto(p, { includeAdminFields: true }),
+    senderNumber: p.senderNumber ?? null,
+    methodKeySnapshot: p.methodKeySnapshot ?? null,
+    methodLabelSnapshot: p.methodLabelSnapshot ?? null,
+    accountTypeSnapshot: p.accountTypeSnapshot ?? null,
+    accountNumberSnapshot: p.accountNumberSnapshot ?? null,
+    accountHolderSnapshot: p.accountHolderSnapshot ?? null,
+    instructionsSnapshot: p.instructionsSnapshot ?? null,
+    hasScreenshot: Boolean(p.screenshotPublicId),
+    verifiedByName: p.verifiedBy?.fullName ?? null,
+    rejectedByName: p.rejectedBy?.fullName ?? null,
     order: {
       id: p.order.id,
       orderNumber: p.order.orderNumber,
       title: p.order.title,
       customerName: p.order.customer.fullName,
+      customerEmail: p.order.customer.email,
+      // Queue rows include the order accounting columns so the dashboard can
+      // show the order's payment position without a second query; when the
+      // caller omits them the keys are omitted too — never fabricated.
+      ...(p.order.totalAmount !== undefined
+        ? {
+            totalAmount: subtractMoney(p.order.totalAmount.toString(), '0.00'),
+            ...(p.order.amountPaid !== undefined
+              ? {
+                  outstandingAmount: subtractMoney(
+                    subtractMoney(p.order.totalAmount.toString(), '0.00'),
+                    (p.order.amountPaid ?? '0.00').toString(),
+                  ),
+                }
+              : {}),
+          }
+        : {}),
     },
+  };
+}
+
+/**
+ * Customer-safe receiving-account DTO. Deliberately excludes isActive,
+ * displayOrder, usage counts, audit ids and the raw Cloudinary public id.
+ * QR images are exposed only as short-lived signed URLs.
+ */
+export function toPaymentAccountOptionDto(a: PaymentAccount): PaymentAccountOptionDto {
+  return {
+    id: a.id,
+    methodKey: a.methodKey,
+    label: a.label,
+    accountType: a.accountType,
+    accountNumber: a.accountNumber,
+    accountHolder: a.accountHolder,
+    instructions: a.instructions,
+    qrUrl: a.qrPublicId && hasCloudinary ? signedDownloadUrl(a.qrPublicId, 'image') : null,
+  };
+}
+
+type PaymentAccountWithMeta = PaymentAccount & {
+  _count: { payments: number };
+  createdBy: { fullName: string } | null;
+  updatedBy: { fullName: string } | null;
+};
+
+/** Admin DTO — management view with usage and safe audit display fields. */
+export function toAdminPaymentAccountDto(a: PaymentAccountWithMeta): AdminPaymentAccountDto {
+  return {
+    ...toPaymentAccountOptionDto(a),
+    isActive: a.isActive,
+    displayOrder: a.displayOrder,
+    hasQr: Boolean(a.qrPublicId),
+    usageCount: a._count.payments,
+    createdById: a.createdById,
+    updatedById: a.updatedById,
+    createdByName: a.createdBy?.fullName ?? null,
+    updatedByName: a.updatedBy?.fullName ?? null,
+    createdAt: a.createdAt.toISOString(),
+    updatedAt: a.updatedAt.toISOString(),
   };
 }
 
 export function toAdminOrderDto(order: OrderFull & { customer: { id: string; fullName: string; email: string } }, urls?: Parameters<typeof toOrderDto>[1]): AdminOrderDto {
   return {
     ...toOrderDto(order, urls),
+    // Customer-safe mapping hides staff-only notes; admins get the full view.
+    payments: order.payments.map((p) => toPaymentDto(p, { includeAdminFields: true })),
     customer: {
       id: order.customer.id,
       fullName: order.customer.fullName,

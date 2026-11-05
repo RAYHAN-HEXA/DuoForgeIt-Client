@@ -45,6 +45,19 @@ enum OrderStatus {
   DELIVERED
   REJECTED
   CANCELLED
+  // Marketplace v2 pipeline (quotation-paid orders only)
+  PAID_SCHEDULED
+  REVIEW_REVISION
+  DELIVERED_COMPLETED
+}
+
+// Payment status for wallet-paid marketplace orders AND fully-verified manual
+// payments (manual-payments v2 backfills/writes it when covered). Null = no
+// verified money received yet.
+enum OrderPaymentStatus {
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
 }
 
 enum PreferenceSource {
@@ -65,6 +78,11 @@ enum PaymentMethod {
   NAGAD
   ROCKET
   BANK_TRANSFER
+  // Manual-payments v2: rails live in PaymentAccount rows. CUSTOM methods that
+  // don't map to a legacy rail (e.g. Upay) land here — the true identity and
+  // display label travel in the payment's immutable snapshots
+  // (methodKeySnapshot / methodLabelSnapshot).
+  OTHER
 }
 
 enum PaymentStatus {
@@ -81,12 +99,171 @@ enum NotificationType {
   REVISION
   DELIVERABLE
   GENERAL
+  // Marketplace v2 + wallet events
+  REQUEST_STATUS
+  QUOTATION
+  WALLET_DEPOSIT
+  WALLET_WITHDRAWAL
+  WALLET_REFUND
 }
 
 enum FounderDiscipline {
   WEB_SOFTWARE_ECOMMERCE
   DESIGN_DOCS_UX
   BOTH
+}
+
+// ─────────────────── Service Marketplace v2 enums ───────────────────
+
+enum ServiceType {
+  SD_WEB
+  COMMERCIAL_WEB
+  JAVA_OOP
+  PRESENTATION
+  LAB_REPORT
+  ASSIGNMENT_FORMATTING
+  PROJECT_DOCUMENTATION
+  HARDWARE_PROJECT
+  PC_REPAIR
+  CONSULTATION
+}
+
+enum PricingModel {
+  FIXED
+  STARTING_FROM
+  RANGE
+  CUSTOM_QUOTE
+}
+
+// Marketplace lifecycle; legacy rows keep `isActive`, v2 reads `status`.
+enum ServiceStatus {
+  DRAFT
+  PUBLISHED
+  UNPUBLISHED
+  ARCHIVED
+}
+
+enum ServiceOptionKind {
+  PACKAGE
+  ADDON
+}
+
+enum FormFieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  SELECT
+  MULTISELECT
+  DATE
+  CHECKBOX
+  FILE
+  URL
+  PHONE
+}
+
+enum ServiceRequestStatus {
+  REQUEST_SUBMITTED
+  UNDER_REVIEW
+  DIAGNOSIS_SCHEDULED
+  DIAGNOSIS_SENT
+  QUOTATION_SENT
+  QUOTATION_DECLINED
+  QUOTATION_EXPIRED
+  ACCEPTED_AWAITING_PAYMENT
+  ORDER_CREATED
+  CANCELLED
+  REJECTED
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  SUPERSEDED
+}
+
+enum RequestFileKind {
+  ATTACHMENT
+  PHOTO
+  DELIVERABLE
+}
+
+enum RepairDeviceType {
+  LAPTOP
+  DESKTOP
+}
+
+enum RepairIssueCategory {
+  WINDOWS_BOOT
+  SOFTWARE_DRIVERS
+  PERFORMANCE
+  HARDWARE_DIAGNOSIS
+  LAPTOP_SPECIFIC
+  GENERAL_TROUBLESHOOTING
+}
+
+enum StatusEntityType {
+  REQUEST
+  ORDER
+}
+
+// ─────────────────────── Wallet enums (v1.1) ───────────────────────
+
+enum WalletStatus {
+  ACTIVE
+  FROZEN
+  CLOSED
+}
+
+enum WalletTxType {
+  DEPOSIT
+  ORDER_PAYMENT
+  REFUND
+  WITHDRAWAL_HOLD
+  WITHDRAWAL_RELEASE
+  WITHDRAWAL
+  FEE
+  ADMIN_CREDIT
+  ADMIN_DEBIT
+  REVERSAL
+}
+
+enum WalletTxDirection {
+  CREDIT
+  DEBIT
+}
+
+enum WalletMethod {
+  BKASH
+  NAGAD
+  ROCKET
+  BINANCE
+  BANK_TRANSFER
+}
+
+enum DepositStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  CANCELLED
+}
+
+enum DepositDeclineReason {
+  TRX_NOT_FOUND
+  AMOUNT_MISMATCH
+  DUPLICATE
+  SUSPECTED_FRAUD
+  OTHER
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+  CANCELLED
 }
 
 // ─────────────────────── Users & identity ────────────────────────
@@ -107,36 +284,55 @@ model User {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  founderProfile   FounderProfile?
-  cart             Cart?
-  orders           Order[]              @relation("CustomerOrders")
-  assignedOrders   Order[]              @relation("AssignedFounder")
-  attachments      OrderAttachment[]
-  deliverables     Deliverable[]
-  revisionRequests RevisionRequest[]    @relation("RevisionCustomer")
-  statusChanges    OrderStatusHistory[]
-  verifiedPayments Payment[]            @relation("PaymentVerifier")
-  reviews          Review[]
-  notifications    Notification[]
-  auditLogs        AuditLog[]
+  founderProfile         FounderProfile?
+  cart                   Cart?
+  orders                 Order[]              @relation("CustomerOrders")
+  assignedOrders         Order[]              @relation("AssignedFounder")
+  attachments            OrderAttachment[]
+  deliverables           Deliverable[]
+  revisionRequests       RevisionRequest[]    @relation("RevisionCustomer")
+  statusChanges          OrderStatusHistory[]
+  verifiedPayments       Payment[]            @relation("PaymentVerifier")
+  rejectedPayments       Payment[]            @relation("PaymentRejector")
+  paymentAccountsCreated PaymentAccount[]     @relation("PaymentAccountCreator")
+  paymentAccountsUpdated PaymentAccount[]     @relation("PaymentAccountUpdater")
+  reviews                Review[]
+  notifications          Notification[]
+  auditLogs              AuditLog[]
+
+  // Marketplace v2 + wallet
+  serviceRequests     ServiceRequest[]    @relation("ServiceRequestCustomer")
+  assignedRequests    ServiceRequest[]    @relation("ServiceRequestAssignee")
+  requestFiles        RequestFile[]       @relation("RequestFileUploader")
+  sentQuotations      Quotation[]         @relation("QuotationSender")
+  requestUpdates      RequestUpdate[]     @relation("RequestUpdateAuthor")
+  statusHistory       StatusHistory[]     @relation("StatusHistoryActor")
+  wallet              Wallet?
+  deposits            DepositRequest[]    @relation("DepositOwner")
+  reviewedDeposits    DepositRequest[]    @relation("DepositReviewer")
+  withdrawals         WithdrawalRequest[] @relation("WithdrawalOwner")
+  reviewedWithdrawals WithdrawalRequest[] @relation("WithdrawalReviewer")
+  walletTxActors      WalletTransaction[] @relation("WalletTxActor")
 
   @@index([role])
 }
 
 model FounderProfile {
-  id           String            @id @default(uuid())
-  userId       String            @unique
-  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  displayName  String
-  title        String
-  bio          String
-  photoUrl     String?
-  discipline   FounderDiscipline @default(BOTH)
-  skills       String[]          @default([])
-  displayOrder Int               @default(0)
-  isSelectable Boolean           @default(true)
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  id                String            @id @default(uuid())
+  userId            String            @unique
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName       String
+  title             String
+  bio               String
+  photoUrl          String?
+  portfolioUrl      String?
+  portfolioImageUrl String?
+  discipline        FounderDiscipline @default(BOTH)
+  skills            String[]          @default([])
+  displayOrder      Int               @default(0)
+  isSelectable      Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   preferredByOrders Order[] @relation("PreferredFounderOrders")
 }
@@ -151,6 +347,9 @@ model ServiceCategory {
   iconKey      String?
   displayOrder Int      @default(0)
   isActive     Boolean  @default(true)
+  // v2 marketplace additions (name doubles as nameEn; Bangla label optional)
+  nameBn       String?
+  imageUrl     String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -161,43 +360,71 @@ model ServiceCategory {
 }
 
 model Service {
-  id                String            @id @default(uuid())
-  categoryId        String
-  category          ServiceCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  slug              String            @unique
-  name              String
-  tagline           String?
-  description       String
-  basePrice         Decimal           @db.Decimal(12, 2)
-  deliveryDays      Int
-  imageUrl          String?
+  id                   String            @id @default(uuid())
+  categoryId           String
+  category             ServiceCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  slug                 String            @unique
+  name                 String
+  tagline              String?
+  description          String
+  basePrice            Decimal           @db.Decimal(12, 2)
+  deliveryDays         Int
+  imageUrl             String?
   // gates the founder picker: which lead(s) can take this kind of work
-  founderDiscipline FounderDiscipline @default(BOTH)
-  isFeatured        Boolean           @default(false)
-  isActive          Boolean           @default(true)
-  displayOrder      Int               @default(0)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  founderDiscipline    FounderDiscipline @default(BOTH)
+  isFeatured           Boolean           @default(false)
+  isActive             Boolean           @default(true)
+  displayOrder         Int               @default(0)
+  // ── v2 marketplace additions (null/defaults for legacy rows) ──
+  serviceType          ServiceType?
+  pricingModel         PricingModel?
+  priceFrom            Decimal?          @db.Decimal(12, 2)
+  priceTo              Decimal?          @db.Decimal(12, 2)
+  priceNote            String?
+  // Admin-set only — never fabricated by the platform (R6)
+  deliveryEstimateText String?
+  revisionPolicy       String?
+  features             Json?
+  deliverables         Json?
+  requirementsText     String?
+  acceptedFileTypes    Json?
+  faqs                 Json?
+  thumbnail            String?
+  bannerImage          String?
+  isPopular            Boolean           @default(false)
+  status               ServiceStatus     @default(DRAFT)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
   options    ServiceOption[]
   cartItems  CartItem[]
   orderItems OrderItem[]
+  formFields ServiceFormField[]
+  requests   ServiceRequest[]
 
   @@index([categoryId, isActive])
   @@index([isFeatured, isActive])
+  @@index([status, isPopular])
+  @@index([status, isFeatured])
 }
 
 model ServiceOption {
-  id           String  @id @default(uuid())
+  id           String             @id @default(uuid())
   serviceId    String
-  service      Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  // option groups render as radio/checkbox sets, e.g. "scope", "urgency", "extras"
+  service      Service            @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  // option groups render as radio/checkbox sets, e.g. "scope", "urgency", "extras";
+  // v2 marketplace rows carry kind = PACKAGE | ADDON with range pricing instead
+  kind         ServiceOptionKind?
   groupKey     String
   label        String
-  priceDelta   Decimal @default(0) @db.Decimal(12, 2)
-  daysDelta    Int     @default(0)
-  isDefault    Boolean @default(false)
-  displayOrder Int     @default(0)
+  description  String?
+  priceDelta   Decimal            @default(0) @db.Decimal(12, 2)
+  daysDelta    Int                @default(0)
+  priceFrom    Decimal?           @db.Decimal(12, 2)
+  priceTo      Decimal?           @db.Decimal(12, 2)
+  isDefault    Boolean            @default(false)
+  isActive     Boolean            @default(true)
+  displayOrder Int                @default(0)
 
   cartItems CartItemOption[]
 
@@ -264,6 +491,17 @@ model Order {
   // duplicate-submission guard: the web app sends a uuid per checkout attempt;
   // a retry with the same key replays the stored order instead of double-creating
   idempotencyKey String @unique
+
+  // ── Marketplace v2: quotation-paid orders (null for legacy cart orders) ──
+  requestId           String?
+  request             ServiceRequest?     @relation("RequestOrders", fields: [requestId], references: [id], onDelete: SetNull)
+  acceptedQuotationId String?             @unique
+  acceptedQuotation   Quotation?          @relation("QuotationOrders", fields: [acceptedQuotationId], references: [id], onDelete: SetNull)
+  amountPaid          Decimal?            @db.Decimal(12, 2)
+  amountRefunded      Decimal             @default(0) @db.Decimal(12, 2)
+  paymentStatus       OrderPaymentStatus?
+  // Frozen service/quotation/answers snapshot written at order creation (R4)
+  serviceSnapshot     Json?
 
   submittedAt  DateTime  @default(now())
   completedAt  DateTime?
@@ -386,8 +624,14 @@ model OrderStatusHistory {
 }
 
 // ─────────────────────────── Payments ───────────────────────────
-// Manual BDT verification in v1. `provider`/`providerRef` exist from day one
-// so a gateway adapter (SSLCOMMERZ, Stripe, …) later is additive-only.
+// Manual BDT verification. Manual-payments v2 adds admin-managed
+// PaymentAccount receivers with immutable submission-time snapshots, a
+// normalized-TrxID dedupe key, and a rejection audit trail. `provider`/
+// `providerRef` remain reserved (additive-only) for any future gateway.
+//
+// REFUND CONTRACT: any future writer that changes Payment.status to REFUNDED
+// must recompute the associated Order.amountPaid and Order.paymentStatus in
+// the same database transaction (verifiedPaidAmount = Σ VERIFIED payments).
 
 model Payment {
   id                 String        @id @default(uuid())
@@ -404,11 +648,67 @@ model Payment {
   verifiedAt         DateTime?
   provider           String        @default("MANUAL")
   providerRef        String?
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+
+  // ── Manual-payments v2 (all nullable — legacy rows stay null) ──
+  // Receiving account actually used. RESTRICT: deleting a referenced account
+  // is refused at the DB level — admins disable accounts instead, and these
+  // snapshots keep every historical payment self-sufficient regardless.
+  paymentAccountId        String?
+  account                 PaymentAccount? @relation(fields: [paymentAccountId], references: [id], onDelete: Restrict)
+  // Immutable submission-time snapshots — editing/disabling the account never
+  // rewrites what the customer saw when they paid.
+  methodKeySnapshot       String?
+  methodLabelSnapshot     String?
+  accountTypeSnapshot     String?
+  accountNumberSnapshot   String?
+  accountHolderSnapshot   String?
+  instructionsSnapshot    String?
+  // Customer-submitted details
+  senderNumber            String?
+  transactionIdNormalized String?
+  // Rejection audit (verification trail: verifiedById/verifiedAt above)
+  rejectedById            String?
+  rejectedBy              User?           @relation("PaymentRejector", fields: [rejectedById], references: [id], onDelete: SetNull)
+  rejectedAt              DateTime?
+  rejectionReason         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([orderId])
   @@index([status, createdAt])
+  @@index([transactionIdNormalized])
+}
+
+// Admin-managed receiving account for manual payments (bKash/Nagad/Rocket/
+// Upay/bank/custom). methodKey is a stable free string — custom rails need no
+// migration. Multiple accounts per method are supported; `isActive: false` is
+// the everyday off-switch and hides the account from customers while keeping
+// historical payments fully reviewable via their snapshots.
+model PaymentAccount {
+  id            String  @id @default(uuid())
+  methodKey     String
+  label         String
+  accountType   String?
+  accountNumber String
+  accountHolder String
+  instructions  String?
+  qrPublicId    String?
+  isActive      Boolean @default(true)
+  displayOrder  Int     @default(0)
+
+  createdById String?
+  createdBy   User?   @relation("PaymentAccountCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedById String?
+  updatedBy   User?   @relation("PaymentAccountUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments Payment[]
+
+  @@index([isActive, displayOrder])
+  @@index([methodKey])
 }
 
 // ─────────────────────────── Misc ───────────────────────────
@@ -500,4 +800,286 @@ model Testimonial {
   displayOrder Int      @default(0)
   isPublic     Boolean  @default(true)
   createdAt    DateTime @default(now())
+}
+
+// ───────────────────── Service Marketplace v2 ─────────────────────
+
+// Data-driven order forms: each service asks only its own fields (R5/§D).
+model ServiceFormField {
+  id           String        @id @default(uuid())
+  serviceId    String
+  service      Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  key          String
+  label        String
+  type         FormFieldType
+  options      Json?
+  required     Boolean       @default(false)
+  validation   Json?
+  helpText     String?
+  displayOrder Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([serviceId, key])
+  @@index([serviceId])
+}
+
+// Pre-order, unpaid unit (R1). Money moves only when its accepted quotation
+// is paid from the wallet — that moment creates the Order.
+model ServiceRequest {
+  id                String               @id @default(uuid())
+  referenceNo       String               @unique // TSH-YYYY-NNNNNN (same shape as orders)
+  userId            String
+  user              User                 @relation("ServiceRequestCustomer", fields: [userId], references: [id], onDelete: Restrict)
+  serviceId         String
+  service           Service              @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  status            ServiceRequestStatus @default(REQUEST_SUBMITTED)
+  answers           Json
+  deadline          DateTime?
+  contactPreference String?
+  notes             String?
+  assignedToId      String?
+  assignedTo        User?                @relation("ServiceRequestAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  // Frozen copy of the service content at request time (R4 snapshot rule)
+  serviceSnapshot   Json
+  isRepair          Boolean              @default(false)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  files         RequestFile[]
+  quotations    Quotation[]
+  updates       RequestUpdate[]
+  // Timeline lives in the polymorphic StatusHistory table (entityType=REQUEST,
+  // entityId=this id) — queried manually, no hard FK.
+  repairRequest RepairRequest?
+  orders        Order[]         @relation("RequestOrders")
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@index([serviceId])
+  @@index([assignedToId, status])
+}
+
+// Customer attachments / photos / admin deliverables — Cloudinary references
+// only; access via ownership-checked signed URLs. Nullable requestId supports
+// staged uploads before the request exists (same pattern as OrderAttachment).
+model RequestFile {
+  id           String          @id @default(uuid())
+  requestId    String?
+  request      ServiceRequest? @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User            @relation("RequestFileUploader", fields: [uploadedById], references: [id], onDelete: Cascade)
+  storagePath  String
+  originalName String
+  mime         String
+  size         Int
+  kind         RequestFileKind @default(ATTACHMENT)
+  createdAt    DateTime        @default(now())
+
+  @@index([requestId])
+  @@index([uploadedById, requestId])
+}
+
+// Versioned price offer; a new version supersedes the previous one.
+model Quotation {
+  id                String          @id @default(uuid())
+  requestId         String
+  request           ServiceRequest  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  version           Int             @default(1)
+  price             Decimal         @db.Decimal(12, 2)
+  items             Json // [{ label, amount }]
+  scopeText         String
+  deliverables      Json // string[]
+  estimatedTimeline String
+  validUntil        DateTime
+  status            QuotationStatus @default(DRAFT)
+  sentById          String?
+  sentBy            User?           @relation("QuotationSender", fields: [sentById], references: [id], onDelete: SetNull)
+  sentAt            DateTime?
+  respondedAt       DateTime?
+  declineReason     String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  orders Order[] @relation("QuotationOrders")
+
+  @@unique([requestId, version])
+  @@index([requestId, status])
+  @@index([status, validUntil])
+}
+
+// 1:1 repair specifics for ServiceRequest rows where serviceType = PC_REPAIR.
+model RepairRequest {
+  id                 String              @id @default(uuid())
+  requestId          String              @unique
+  request            ServiceRequest      @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  deviceType         RepairDeviceType
+  brand              String
+  model              String?
+  issueCategory      RepairIssueCategory
+  symptoms           String
+  location           String?
+  contactMethod      String?
+  diagnosisNotes     String?
+  estimatedCost      Decimal?            @db.Decimal(12, 2)
+  customerApprovedAt DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([issueCategory])
+}
+
+// Append-only timeline for both requests and marketplace orders; legacy orders
+// keep using OrderStatusHistory.
+model StatusHistory {
+  id         String           @id @default(uuid())
+  entityType StatusEntityType
+  entityId   String
+  fromStatus String?
+  toStatus   String
+  actorId    String?
+  actor      User?            @relation("StatusHistoryActor", fields: [actorId], references: [id], onDelete: SetNull)
+  note       String?
+  createdAt  DateTime         @default(now())
+
+  @@index([entityType, entityId, createdAt])
+}
+
+// "Important updates" + customer replies on a request — no live chat.
+model RequestUpdate {
+  id        String         @id @default(uuid())
+  requestId String
+  request   ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User           @relation("RequestUpdateAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  body      String
+  createdAt DateTime       @default(now())
+
+  @@index([requestId, createdAt])
+}
+
+// ─────────────────────── Wallet (Addendum v1.1) ───────────────────────
+
+model Wallet {
+  id           String       @id @default(uuid())
+  userId       String       @unique
+  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  balance      Decimal      @default(0) @db.Decimal(12, 2)
+  heldBalance  Decimal      @default(0) @db.Decimal(12, 2)
+  status       WalletStatus @default(ACTIVE)
+  frozenReason String?
+  // Optimistic-lock counter bumped on every balance mutation
+  version      Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  transactions WalletTransaction[]
+
+  @@index([status])
+}
+
+// Immutable ledger — rows are never updated or deleted (LED-01).
+model WalletTransaction {
+  id            String            @id @default(uuid())
+  walletId      String
+  wallet        Wallet            @relation(fields: [walletId], references: [id], onDelete: Restrict)
+  type          WalletTxType
+  direction     WalletTxDirection
+  amount        Decimal           @db.Decimal(12, 2)
+  balanceBefore Decimal           @db.Decimal(12, 2)
+  balanceAfter  Decimal           @db.Decimal(12, 2)
+  refType       String?
+  refId         String?
+  actorId       String?
+  actor         User?             @relation("WalletTxActor", fields: [actorId], references: [id], onDelete: SetNull)
+  reason        String?
+  createdAt     DateTime          @default(now())
+
+  @@index([walletId, createdAt])
+  @@index([refType, refId])
+}
+
+// Manual deposit: customer sends money off-platform, submits amount + TrxID;
+// ONLY admin approval credits the wallet (R2). Partial-unique index on
+// (method, trxIdNormalized) where status <> DECLINED is added in migration SQL.
+model DepositRequest {
+  id                 String                @id @default(uuid())
+  userId             String
+  user               User                  @relation("DepositOwner", fields: [userId], references: [id], onDelete: Restrict)
+  method             WalletMethod
+  amountClaimed      Decimal               @db.Decimal(12, 2)
+  // Admin may correct the received amount on approval (DEP-08)
+  amountCredited     Decimal?              @db.Decimal(12, 2)
+  currency           String                @default("BDT")
+  // Binance deposits: USDT amount + the frozen rate used for the BDT credit
+  usdtAmount         Decimal?              @db.Decimal(18, 6)
+  fxRate             Decimal?              @db.Decimal(18, 6)
+  trxId              String
+  trxIdNormalized    String
+  screenshotPublicId String?
+  status             DepositStatus         @default(PENDING)
+  declineReason      DepositDeclineReason?
+  adminNote          String?
+  reviewedById       String?
+  reviewedBy         User?                 @relation("DepositReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt         DateTime?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@index([trxIdNormalized])
+}
+
+// Withdrawal: submission holds funds (WITHDRAWAL_HOLD); mark-paid finalizes
+// (WITHDRAWAL); rejection releases the hold (WITHDRAWAL_RELEASE).
+model WithdrawalRequest {
+  id            String           @id @default(uuid())
+  userId        String
+  user          User             @relation("WithdrawalOwner", fields: [userId], references: [id], onDelete: Restrict)
+  method        WalletMethod
+  destination   String
+  network       String?
+  amount        Decimal          @db.Decimal(12, 2)
+  fee           Decimal          @default(0) @db.Decimal(12, 2)
+  status        WithdrawalStatus @default(PENDING)
+  rejectReason  String?
+  outgoingTrxId String?
+  proofPublicId String?
+  approvedAt    DateTime?
+  paidAt        DateTime?
+  reviewedById  String?
+  reviewedBy    User?            @relation("WithdrawalReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+}
+
+// Per-method admin config: receiving account, limits, fees (ADM-06).
+model PaymentMethodConfig {
+  method          WalletMethod @id
+  enabled         Boolean      @default(true)
+  depositEnabled  Boolean      @default(true)
+  withdrawEnabled Boolean      @default(true)
+  accountLabel    String?
+  accountValue    String?
+  accountType     String?
+  qrPublicId      String?
+  minDeposit      Decimal      @db.Decimal(12, 2)
+  maxDeposit      Decimal      @db.Decimal(12, 2)
+  minWithdraw     Decimal      @db.Decimal(12, 2)
+  maxWithdraw     Decimal      @db.Decimal(12, 2)
+  feePercent      Decimal      @default(0) @db.Decimal(5, 4)
+  feeFlat         Decimal      @default(0) @db.Decimal(12, 2)
+  updatedById     String?
+  updatedAt       DateTime     @updatedAt
+}
+
+// Wallet-wide settings: USDT→BDT rate, stale hours, caps, refund policy text.
+model WalletSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
 }

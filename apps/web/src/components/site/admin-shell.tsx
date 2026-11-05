@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   ArrowLeft,
+  Landmark,
   LayoutDashboard,
   MessageSquare,
   ShieldCheck,
@@ -21,6 +22,7 @@ const ADMIN_LINKS: Array<{ href: string; label: string; icon: typeof LayoutDashb
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/admin/payments', label: 'Payments', icon: Wallet },
+  { href: '/admin/payment-accounts', label: 'Receiving accounts', icon: Landmark },
   { href: '/admin/customers', label: 'Customers', icon: Users },
   { href: '/admin/messages', label: 'Inbox', icon: MessageSquare },
 ];

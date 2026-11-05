@@ -9,7 +9,15 @@
  * Replace placeholder founder names/bios/skills with the real ones before
  * launch (or edit via admin SiteContent/founder management later).
  */
-import { PrismaClient, FounderDiscipline } from '../src/generated/prisma/client.js';
+import { PrismaClient, FounderDiscipline, WalletMethod } from '../src/generated/prisma/client.js';
+import {
+  MARKETPLACE_CATALOGUE,
+  LEGACY_SERVICE_SLUGS,
+  REPLACED_SERVICE_SLUGS,
+  PAYMENT_METHOD_SEED,
+  WALLET_SETTINGS_SEED,
+  type ServiceSeed as V2ServiceSeed,
+} from '../src/catalogue.js';
 
 const prisma = new PrismaClient();
 
@@ -432,13 +440,185 @@ async function main() {
     });
   }
 
+  // ── Marketplace v2 catalogue (PRD v2.0) ──
+  await seedMarketplace();
+
+  // ── Wallet config + wallet backfill (Addendum v1.1) ──
+  await seedWalletFoundation();
+
   const counts = {
     users: await prisma.user.count(),
     categories: await prisma.serviceCategory.count(),
     services: await prisma.service.count(),
     options: await prisma.serviceOption.count(),
+    publishedV2: await prisma.service.count({ where: { status: 'PUBLISHED' } }),
+    archivedLegacy: await prisma.service.count({ where: { status: 'ARCHIVED' } }),
   };
   console.log('Seed complete:', counts);
+}
+
+/**
+ * Seeds the six v2 categories + ten services with packages/add-ons and
+ * data-driven form fields. Idempotent by slug/label/key upserts.
+ *
+ * New categories are created with isActive=false so the LEGACY homepage
+ * (flag off) never shows empty category cards — the v2 marketplace derives
+ * its category list from services with status=PUBLISHED instead.
+ */
+async function seedMarketplace() {
+  for (const [ci, category] of MARKETPLACE_CATALOGUE.entries()) {
+    // New v2-only categories are created hidden (isActive=false) so the legacy
+    // homepage (flag off) never shows empty category cards. Existing/reused
+    // rows keep whatever isActive they have — only content is updated.
+    const cat = await prisma.serviceCategory.upsert({
+      where: { slug: category.slug },
+      update: {
+        name: category.name,
+        description: category.description,
+        iconKey: category.iconKey,
+        displayOrder: ci + 1,
+      },
+      create: {
+        slug: category.slug,
+        name: category.name,
+        description: category.description,
+        iconKey: category.iconKey,
+        displayOrder: ci + 1,
+        isActive: false,
+      },
+    });
+
+    for (const [si, svc] of category.services.entries()) {
+      await upsertMarketplaceService(cat.id, svc, si + 1);
+    }
+  }
+
+  // Archive legacy catalog services + superseded v2 slugs (soft delete only).
+  await prisma.service.updateMany({
+    where: { slug: { in: [...LEGACY_SERVICE_SLUGS, ...REPLACED_SERVICE_SLUGS] } },
+    data: { status: 'ARCHIVED' },
+  });
+}
+
+async function upsertMarketplaceService(categoryId: string, svc: V2ServiceSeed, displayOrder: number) {
+  const shared = {
+    name: svc.name,
+    tagline: svc.tagline,
+    description: svc.description,
+    basePrice: svc.basePrice,
+    deliveryDays: 7, // legacy column; v2 shows deliveryEstimateText (admin-set) instead
+    founderDiscipline: svc.founderDiscipline,
+    serviceType: svc.serviceType,
+    pricingModel: svc.pricingModel,
+    priceFrom: svc.priceFrom,
+    priceTo: svc.priceTo,
+    priceNote: svc.priceNote,
+    revisionPolicy: svc.revisionPolicy,
+    features: svc.features,
+    deliverables: svc.deliverables,
+    requirementsText: svc.requirementsText,
+    acceptedFileTypes: svc.acceptedFileTypes,
+    faqs: svc.faqs,
+    isFeatured: svc.isFeatured ?? false,
+    isPopular: svc.isPopular ?? false,
+    status: 'PUBLISHED' as const,
+    // Hidden from the LEGACY catalog (isActive pages) — the v2 marketplace
+    // filters by status only. Flag off ⇒ legacy site shows exactly the
+    // seven legacy services, as before.
+    isActive: false,
+    displayOrder,
+    categoryId,
+  };
+  const service = await prisma.service.upsert({
+    where: { slug: svc.slug },
+    update: shared,
+    create: { slug: svc.slug, ...shared },
+  });
+
+  // Packages & add-ons (kind rows; legacy groupKey columns stay neutral)
+  for (const [oi, pkg] of svc.packages.entries()) {
+    const existing = await prisma.serviceOption.findFirst({
+      where: { serviceId: service.id, kind: pkg.kind, label: pkg.label },
+    });
+    const payload = {
+      kind: pkg.kind,
+      groupKey: pkg.kind === 'PACKAGE' ? 'package' : 'addon',
+      label: pkg.label,
+      description: pkg.description,
+      priceDelta: '0',
+      daysDelta: 0,
+      priceFrom: pkg.priceFrom,
+      priceTo: pkg.priceTo,
+      isActive: true,
+      displayOrder: oi + 1,
+    };
+    if (existing) {
+      await prisma.serviceOption.update({ where: { id: existing.id }, data: payload });
+    } else {
+      await prisma.serviceOption.create({ data: { ...payload, serviceId: service.id } });
+    }
+  }
+
+  // Data-driven form fields
+  for (const [fi, field] of svc.formFields.entries()) {
+    const payload = {
+      label: field.label,
+      type: field.type,
+      options: field.options ?? undefined,
+      required: field.required,
+      validation: field.validation ?? undefined,
+      helpText: field.helpText,
+      displayOrder: fi + 1,
+    };
+    await prisma.serviceFormField.upsert({
+      where: { serviceId_key: { serviceId: service.id, key: field.key } },
+      update: payload,
+      create: { serviceId: service.id, key: field.key, ...payload },
+    });
+  }
+}
+
+/**
+ * Wallet foundations: per-method payment config, wallet settings and the
+ * WAL-01 back-fill (every existing user gets a zero-balance wallet).
+ */
+async function seedWalletFoundation() {
+  for (const m of PAYMENT_METHOD_SEED) {
+    const data = {
+      enabled: m.enabled,
+      depositEnabled: m.depositEnabled,
+      withdrawEnabled: m.withdrawEnabled,
+      minDeposit: m.minDeposit,
+      maxDeposit: m.maxDeposit,
+      minWithdraw: m.minWithdraw,
+      maxWithdraw: m.maxWithdraw,
+    };
+    await prisma.paymentMethodConfig.upsert({
+      where: { method: m.method as WalletMethod },
+      update: data,
+      create: { method: m.method as WalletMethod, ...data },
+    });
+  }
+
+  for (const [key, value] of Object.entries(WALLET_SETTINGS_SEED)) {
+    await prisma.walletSetting.upsert({
+      where: { key },
+      update: {},
+      create: { key, value: value as object },
+    });
+  }
+
+  // WAL-01 back-fill: zero-balance wallet for every user without one.
+  const usersWithoutWallet = await prisma.user.findMany({
+    where: { wallet: null },
+    select: { id: true },
+  });
+  for (const user of usersWithoutWallet) {
+    await prisma.wallet.create({ data: { userId: user.id } });
+  }
+  if (usersWithoutWallet.length > 0) {
+    console.log(`Wallets back-filled for ${usersWithoutWallet.length} user(s)`);
+  }
 }
 
 main()

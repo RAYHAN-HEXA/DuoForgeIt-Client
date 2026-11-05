@@ -26,14 +26,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { OrderTracker } from '@/components/order-tracker';
-import { StatusBadge, statusLabel } from '@/components/status-badge';
+import { StatusBadge, PaymentMethodBadge, statusLabel } from '@/components/status-badge';
+import { OrderPaymentSection, PaymentStatusBanner, orderOutstanding, moneyToCents, ZERO_CENTS } from '@/components/order-payment';
 import { RequireAuth } from '@/components/guards';
 
 function OrderDetailContent() {
@@ -73,8 +71,12 @@ function OrderDetailContent() {
   const canPay = !['CANCELLED', 'REJECTED'].includes(order.status);
   const canRevise = ['IN_PROGRESS', 'QUALITY_REVIEW', 'DELIVERED'].includes(order.status);
   const canReview = ['COMPLETED', 'DELIVERED'].includes(order.status) && !order.review;
+  const outstandingCents = moneyToCents(orderOutstanding(order));
   const unverifiedPayment = order.payments.find((p) => p.status === 'SUBMITTED' || p.status === 'PENDING');
-  const rejectedPayment = order.payments.find((p) => p.status === 'REJECTED');
+  // Latest rejection — retry cycles can accumulate several rejected payments.
+  const rejectedPayment = [...order.payments].filter((p) => p.status === 'REJECTED').at(-1);
+  const showPaymentForm = canPay && !unverifiedPayment && outstandingCents > ZERO_CENTS;
+  const fullyPaid = outstandingCents <= ZERO_CENTS;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-12 sm:px-6">
@@ -195,28 +197,60 @@ function OrderDetailContent() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {fullyPaid && order.payments.length > 0 && (
+              <PaymentStatusBanner payments={order.payments} fullyPaid />
+            )}
+            {!fullyPaid && unverifiedPayment && (
+              <PaymentStatusBanner payments={order.payments} fullyPaid={false} />
+            )}
             {order.payments.length === 0 && (
               <p className="text-sm text-muted-foreground">No payment submitted yet.</p>
             )}
-            {order.payments.map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
-                <div>
-                  <p className="font-medium">{p.method === 'BANK_TRANSFER' ? 'Bank transfer' : p.method}</p>
+            {[...order.payments].reverse().map((p) => (
+              <div key={p.id} className="flex items-start justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 font-medium">
+                    <PaymentMethodBadge method={p.method} /> {statusLabel(p.method)}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {p.transactionId ? `Txn: ${p.transactionId} · ` : ''}
+                    {p.transactionId ? `TrxID: ${p.transactionId} · ` : ''}
+                    {p.senderNumber ? `from ${p.senderNumber} · ` : ''}
                     {new Date(p.createdAt).toLocaleString()}
                   </p>
-                  {p.adminNote && <p className="mt-1 text-xs text-muted-foreground">Note: {p.adminNote}</p>}
+                  {p.hasScreenshot && (
+                    <p className="text-xs text-muted-foreground">Screenshot attached</p>
+                  )}
+                  {(p.status === 'REJECTED' || p.status === 'VERIFIED') && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {p.status === 'REJECTED'
+                        ? 'Rejected'
+                        : 'Verified'}{' '}
+                      {new Date((p.status === 'REJECTED' ? p.rejectedAt : p.verifiedAt) ?? p.createdAt).toLocaleString()}
+                    </p>
+                  )}
+                  {p.status === 'REJECTED' && (p.rejectionReason ?? p.adminNote) && (
+                    <p className="mt-1 rounded-md bg-destructive/10 p-2 text-xs text-destructive">
+                      Reason: {p.rejectionReason ?? p.adminNote}
+                    </p>
+                  )}
                 </div>
-                <div className="text-right">
+                <div className="shrink-0 text-right">
                   <p className="font-semibold">{formatBDT(p.amount)}</p>
                   <StatusBadge status={p.status} className="mt-1" />
                 </div>
               </div>
             ))}
-            {canPay && !unverifiedPayment && <PaymentSection orderId={order.id} rejected={rejectedPayment} onDone={() => void mutate()} />}
           </CardContent>
         </Card>
+
+        {/* Manual payment flow — account selection, instructions and submission */}
+        {showPaymentForm && (
+          <OrderPaymentSection
+            order={order}
+            rejectedPayment={rejectedPayment}
+            onDone={() => void mutate()}
+          />
+        )}
 
         {/* Revisions */}
         <Card>
@@ -331,75 +365,6 @@ function OrderDetailContent() {
         )}
       </div>
     </div>
-  );
-}
-
-function PaymentSection({ orderId, rejected, onDone }: { orderId: string; rejected?: { transactionId: string | null; adminNote: string | null }; onDone: () => void }) {
-  const [method, setMethod] = useState('BKASH');
-  const [transactionId, setTransactionId] = useState(rejected?.transactionId ?? '');
-  const [submitting, setSubmitting] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  async function submit() {
-    setSubmitting(true);
-    try {
-      await api.post(`/orders/${orderId}/payments`, { method, transactionId: transactionId.trim() });
-      toast.success('Payment submitted for verification');
-      setOpen(false);
-      onDone();
-    } catch (err) {
-      toast.error('Could not submit payment', { description: errorMessage(err) });
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full">
-          <Wallet className="h-4 w-4" /> {rejected ? 'Resubmit payment' : 'Submit payment'}
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Submit your payment</DialogTitle>
-        </DialogHeader>
-        {rejected && (
-          <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-            Previous transaction was rejected{rejected.adminNote ? `: ${rejected.adminNote}` : '. Check the ID and resubmit.'}
-          </p>
-        )}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Payment method</Label>
-            <RadioGroup value={method} onValueChange={setMethod} className="grid grid-cols-2 gap-2">
-              {['BKASH', 'NAGAD', 'ROCKET', 'BANK_TRANSFER'].map((m) => (
-                <Label key={m} className="flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm has-[[data-state=checked]]:border-primary">
-                  <RadioGroupItem value={m} /> {m === 'BANK_TRANSFER' ? 'Bank transfer' : m.charAt(0) + m.slice(1).toLowerCase()}
-                </Label>
-              ))}
-            </RadioGroup>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="txn">Transaction ID</Label>
-            <Input
-              id="txn"
-              value={transactionId}
-              onChange={(e) => setTransactionId(e.target.value)}
-              placeholder="e.g. BKASH8H2K9L0P"
-              minLength={6}
-              maxLength={60}
-            />
-            <p className="text-xs text-muted-foreground">Copy the exact transaction/trx ID from your payment receipt.</p>
-          </div>
-          <Button className="w-full" onClick={submit} disabled={submitting || transactionId.trim().length < 6}>
-            {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Submit for verification
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }
 

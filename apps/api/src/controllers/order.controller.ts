@@ -1,17 +1,18 @@
 import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import type { checkoutSchema, paymentSubmitSchema } from '@tsh/shared';
-import { REVISION_ALLOWED } from '@tsh/shared';
+import { REVISION_ALLOWED, formatBDT } from '@tsh/shared';
 import { ok } from '../utils/envelope.js';
 import { ApiError } from '../utils/ApiError.js';
 import { validated } from '../middleware/validate.js';
 import { prisma } from '../config/prisma.js';
-import { hasCloudinary } from '../config/env.js';
+import { env, hasCloudinary } from '../config/env.js';
 import { assertUploadAllowed, signedDownloadUrl } from '../utils/cloudinary.js';
 import { toOrderDto, toOrderSummaryDto } from '../utils/mappers.js';
 import { checkout, customerCancel, getOwnOrder } from '../services/order.service.js';
 import { clearServices } from '../services/cart.service.js';
 import { notifyUser } from '../services/notification.service.js';
+import { emailShell, notifyFounders } from '../services/mail.service.js';
 import { audit } from '../utils/audit.js';
 
 /**
@@ -44,6 +45,28 @@ export async function create(req: Request, res: Response, next: NextFunction) {
     }
 
     const order = await getOwnOrder(req.authUser!.id, orderId);
+
+    // Founder alert — a fresh order needs eyes in the admin console. Best-effort.
+    if (!replayed) {
+      const adminBase = env.ADMIN_PANEL_URL ?? 'https://techservicehub.vercel.app';
+      await notifyFounders(
+        `🛒 New order ${order.orderNumber} — ${formatBDT(order.totalAmount.toString())}`,
+        emailShell(
+          'New order received',
+          [
+            ['Order', order.orderNumber],
+            ['Service', order.items.map((i) => `${i.serviceName} × ${i.quantity}`).join(', ')],
+            ['Total', formatBDT(order.totalAmount.toString())],
+            ['Deadline', new Date(order.deadline).toLocaleDateString('en-GB')],
+            ['Customer', `${req.authUser!.fullName} (${req.authUser!.email})`],
+            ['Founder preference', body.founderPreference ?? 'AUTO_ASSIGN'],
+          ],
+          'Open in admin console',
+          `${adminBase}/admin/orders/${orderId}`,
+        ),
+      );
+    }
+
     res.status(201).json(ok({ order: toOrderDto(order), replayed }));
   } catch (err) {
     next(err);
@@ -145,6 +168,27 @@ export async function submitPayment(req: Request, res: Response, next: NextFunct
       body: `We received your ${body.method} transaction ID for verification.`,
       link: `/orders/${orderId}`,
     });
+
+    // Founder alert — a TrxID is waiting for verification. Best-effort.
+    {
+      const adminBase = env.ADMIN_PANEL_URL ?? 'https://techservicehub.vercel.app';
+      await notifyFounders(
+        `💳 Payment submitted for ${order.orderNumber} — ${formatBDT(total)}`,
+        emailShell(
+          'Transaction ID awaiting verification',
+          [
+            ['Order', `${order.orderNumber} · ${order.title}`],
+            ['Amount', formatBDT(total)],
+            ['Method', body.method === 'BANK_TRANSFER' ? 'Bank transfer' : body.method],
+            ['Transaction ID', body.transactionId],
+            ['Customer', `${req.authUser!.fullName} (${req.authUser!.email})`],
+          ],
+          'Verify payment',
+          `${adminBase}/admin/payments`,
+        ),
+      );
+    }
+
     res.status(201).json(
       ok({
         id: payment.id,

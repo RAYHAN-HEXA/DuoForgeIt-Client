@@ -23,7 +23,7 @@ export function createApp() {
   const app = express();
 
   app.set('trust proxy', 1); // Render/Railway sit behind a proxy
-  app.use(helmet);
+  app.use(helmet());
   app.use(
     cors({
       origin: (origin, cb) => {

@@ -25,6 +25,8 @@ import {
 import type { HomepageDto } from '@tsh/shared';
 import { formatBDT } from '@tsh/shared';
 import { api, errorMessage } from '@/lib/api';
+import { SERVICE_MARKETPLACE_ENABLED } from '@/lib/feature-flags';
+import { MarketplaceHomeSections } from '@/components/marketplace/home-sections';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -112,8 +114,15 @@ export default function HomePage() {
   return (
     <>
       <Hero hero={hero} />
-      <Categories categories={data!.categories} />
-      <FeaturedServices services={data!.featuredServices} />
+      {SERVICE_MARKETPLACE_ENABLED ? (
+        // Marketplace-v2 catalogue (PRD v2.0) — replaces the legacy sections
+        <MarketplaceHomeSections />
+      ) : (
+        <>
+          <Categories categories={data!.categories} />
+          <FeaturedServices services={data!.featuredServices} />
+        </>
+      )}
       <WhyUs items={whyUs.items ?? FALLBACK_WHY_US.items ?? []} />
       <HowItWorks steps={howItWorks.steps ?? FALLBACK_HOW.steps ?? []} />
       <Founders founders={data!.founders} />
@@ -382,6 +391,31 @@ function Founders({ founders }: { founders: HomepageDto['founders'] }) {
                       </Badge>
                     ))}
                   </div>
+                  {f.portfolioUrl && (
+                    <a
+                      href={f.portfolioUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group/port mt-auto block overflow-hidden rounded-lg border transition-all hover:shadow-md"
+                    >
+                      {f.portfolioImageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={f.portfolioImageUrl}
+                          alt={`${f.displayName} — personal portfolio`}
+                          className="h-32 w-full object-cover object-top transition-transform group-hover/port:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-32 items-center justify-center bg-gradient-to-br from-primary/15 to-fuchsia-500/10">
+                          <Code2 className="h-8 w-8 text-primary/40" />
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between px-3 py-2 text-sm font-medium text-primary">
+                        Personal portfolio
+                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/port:translate-x-0.5" />
+                      </div>
+                    </a>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>

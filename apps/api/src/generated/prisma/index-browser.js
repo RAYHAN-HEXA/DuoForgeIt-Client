@@ -142,6 +142,8 @@ exports.Prisma.FounderProfileScalarFieldEnum = {
   title: 'title',
   bio: 'bio',
   photoUrl: 'photoUrl',
+  portfolioUrl: 'portfolioUrl',
+  portfolioImageUrl: 'portfolioImageUrl',
   discipline: 'discipline',
   skills: 'skills',
   displayOrder: 'displayOrder',
@@ -158,6 +160,8 @@ exports.Prisma.ServiceCategoryScalarFieldEnum = {
   iconKey: 'iconKey',
   displayOrder: 'displayOrder',
   isActive: 'isActive',
+  nameBn: 'nameBn',
+  imageUrl: 'imageUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -176,6 +180,22 @@ exports.Prisma.ServiceScalarFieldEnum = {
   isFeatured: 'isFeatured',
   isActive: 'isActive',
   displayOrder: 'displayOrder',
+  serviceType: 'serviceType',
+  pricingModel: 'pricingModel',
+  priceFrom: 'priceFrom',
+  priceTo: 'priceTo',
+  priceNote: 'priceNote',
+  deliveryEstimateText: 'deliveryEstimateText',
+  revisionPolicy: 'revisionPolicy',
+  features: 'features',
+  deliverables: 'deliverables',
+  requirementsText: 'requirementsText',
+  acceptedFileTypes: 'acceptedFileTypes',
+  faqs: 'faqs',
+  thumbnail: 'thumbnail',
+  bannerImage: 'bannerImage',
+  isPopular: 'isPopular',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -183,11 +203,16 @@ exports.Prisma.ServiceScalarFieldEnum = {
 exports.Prisma.ServiceOptionScalarFieldEnum = {
   id: 'id',
   serviceId: 'serviceId',
+  kind: 'kind',
   groupKey: 'groupKey',
   label: 'label',
+  description: 'description',
   priceDelta: 'priceDelta',
   daysDelta: 'daysDelta',
+  priceFrom: 'priceFrom',
+  priceTo: 'priceTo',
   isDefault: 'isDefault',
+  isActive: 'isActive',
   displayOrder: 'displayOrder'
 };
 
@@ -226,6 +251,12 @@ exports.Prisma.OrderScalarFieldEnum = {
   totalAmount: 'totalAmount',
   notes: 'notes',
   idempotencyKey: 'idempotencyKey',
+  requestId: 'requestId',
+  acceptedQuotationId: 'acceptedQuotationId',
+  amountPaid: 'amountPaid',
+  amountRefunded: 'amountRefunded',
+  paymentStatus: 'paymentStatus',
+  serviceSnapshot: 'serviceSnapshot',
   submittedAt: 'submittedAt',
   completedAt: 'completedAt',
   deliveredAt: 'deliveredAt',
@@ -317,6 +348,35 @@ exports.Prisma.PaymentScalarFieldEnum = {
   verifiedAt: 'verifiedAt',
   provider: 'provider',
   providerRef: 'providerRef',
+  paymentAccountId: 'paymentAccountId',
+  methodKeySnapshot: 'methodKeySnapshot',
+  methodLabelSnapshot: 'methodLabelSnapshot',
+  accountTypeSnapshot: 'accountTypeSnapshot',
+  accountNumberSnapshot: 'accountNumberSnapshot',
+  accountHolderSnapshot: 'accountHolderSnapshot',
+  instructionsSnapshot: 'instructionsSnapshot',
+  senderNumber: 'senderNumber',
+  transactionIdNormalized: 'transactionIdNormalized',
+  rejectedById: 'rejectedById',
+  rejectedAt: 'rejectedAt',
+  rejectionReason: 'rejectionReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PaymentAccountScalarFieldEnum = {
+  id: 'id',
+  methodKey: 'methodKey',
+  label: 'label',
+  accountType: 'accountType',
+  accountNumber: 'accountNumber',
+  accountHolder: 'accountHolder',
+  instructions: 'instructions',
+  qrPublicId: 'qrPublicId',
+  isActive: 'isActive',
+  displayOrder: 'displayOrder',
+  createdById: 'createdById',
+  updatedById: 'updatedById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -394,6 +454,197 @@ exports.Prisma.TestimonialScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.ServiceFormFieldScalarFieldEnum = {
+  id: 'id',
+  serviceId: 'serviceId',
+  key: 'key',
+  label: 'label',
+  type: 'type',
+  options: 'options',
+  required: 'required',
+  validation: 'validation',
+  helpText: 'helpText',
+  displayOrder: 'displayOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ServiceRequestScalarFieldEnum = {
+  id: 'id',
+  referenceNo: 'referenceNo',
+  userId: 'userId',
+  serviceId: 'serviceId',
+  status: 'status',
+  answers: 'answers',
+  deadline: 'deadline',
+  contactPreference: 'contactPreference',
+  notes: 'notes',
+  assignedToId: 'assignedToId',
+  serviceSnapshot: 'serviceSnapshot',
+  isRepair: 'isRepair',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RequestFileScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  uploadedById: 'uploadedById',
+  storagePath: 'storagePath',
+  originalName: 'originalName',
+  mime: 'mime',
+  size: 'size',
+  kind: 'kind',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.QuotationScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  version: 'version',
+  price: 'price',
+  items: 'items',
+  scopeText: 'scopeText',
+  deliverables: 'deliverables',
+  estimatedTimeline: 'estimatedTimeline',
+  validUntil: 'validUntil',
+  status: 'status',
+  sentById: 'sentById',
+  sentAt: 'sentAt',
+  respondedAt: 'respondedAt',
+  declineReason: 'declineReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RepairRequestScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  deviceType: 'deviceType',
+  brand: 'brand',
+  model: 'model',
+  issueCategory: 'issueCategory',
+  symptoms: 'symptoms',
+  location: 'location',
+  contactMethod: 'contactMethod',
+  diagnosisNotes: 'diagnosisNotes',
+  estimatedCost: 'estimatedCost',
+  customerApprovedAt: 'customerApprovedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StatusHistoryScalarFieldEnum = {
+  id: 'id',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  fromStatus: 'fromStatus',
+  toStatus: 'toStatus',
+  actorId: 'actorId',
+  note: 'note',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RequestUpdateScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  authorId: 'authorId',
+  body: 'body',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.WalletScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  balance: 'balance',
+  heldBalance: 'heldBalance',
+  status: 'status',
+  frozenReason: 'frozenReason',
+  version: 'version',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WalletTransactionScalarFieldEnum = {
+  id: 'id',
+  walletId: 'walletId',
+  type: 'type',
+  direction: 'direction',
+  amount: 'amount',
+  balanceBefore: 'balanceBefore',
+  balanceAfter: 'balanceAfter',
+  refType: 'refType',
+  refId: 'refId',
+  actorId: 'actorId',
+  reason: 'reason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.DepositRequestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  method: 'method',
+  amountClaimed: 'amountClaimed',
+  amountCredited: 'amountCredited',
+  currency: 'currency',
+  usdtAmount: 'usdtAmount',
+  fxRate: 'fxRate',
+  trxId: 'trxId',
+  trxIdNormalized: 'trxIdNormalized',
+  screenshotPublicId: 'screenshotPublicId',
+  status: 'status',
+  declineReason: 'declineReason',
+  adminNote: 'adminNote',
+  reviewedById: 'reviewedById',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WithdrawalRequestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  method: 'method',
+  destination: 'destination',
+  network: 'network',
+  amount: 'amount',
+  fee: 'fee',
+  status: 'status',
+  rejectReason: 'rejectReason',
+  outgoingTrxId: 'outgoingTrxId',
+  proofPublicId: 'proofPublicId',
+  approvedAt: 'approvedAt',
+  paidAt: 'paidAt',
+  reviewedById: 'reviewedById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PaymentMethodConfigScalarFieldEnum = {
+  method: 'method',
+  enabled: 'enabled',
+  depositEnabled: 'depositEnabled',
+  withdrawEnabled: 'withdrawEnabled',
+  accountLabel: 'accountLabel',
+  accountValue: 'accountValue',
+  accountType: 'accountType',
+  qrPublicId: 'qrPublicId',
+  minDeposit: 'minDeposit',
+  maxDeposit: 'maxDeposit',
+  minWithdraw: 'minWithdraw',
+  maxWithdraw: 'maxWithdraw',
+  feePercent: 'feePercent',
+  feeFlat: 'feeFlat',
+  updatedById: 'updatedById',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WalletSettingScalarFieldEnum = {
+  key: 'key',
+  value: 'value',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -439,6 +690,38 @@ exports.FounderDiscipline = exports.$Enums.FounderDiscipline = {
   BOTH: 'BOTH'
 };
 
+exports.ServiceType = exports.$Enums.ServiceType = {
+  SD_WEB: 'SD_WEB',
+  COMMERCIAL_WEB: 'COMMERCIAL_WEB',
+  JAVA_OOP: 'JAVA_OOP',
+  PRESENTATION: 'PRESENTATION',
+  LAB_REPORT: 'LAB_REPORT',
+  ASSIGNMENT_FORMATTING: 'ASSIGNMENT_FORMATTING',
+  PROJECT_DOCUMENTATION: 'PROJECT_DOCUMENTATION',
+  HARDWARE_PROJECT: 'HARDWARE_PROJECT',
+  PC_REPAIR: 'PC_REPAIR',
+  CONSULTATION: 'CONSULTATION'
+};
+
+exports.PricingModel = exports.$Enums.PricingModel = {
+  FIXED: 'FIXED',
+  STARTING_FROM: 'STARTING_FROM',
+  RANGE: 'RANGE',
+  CUSTOM_QUOTE: 'CUSTOM_QUOTE'
+};
+
+exports.ServiceStatus = exports.$Enums.ServiceStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  UNPUBLISHED: 'UNPUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+exports.ServiceOptionKind = exports.$Enums.ServiceOptionKind = {
+  PACKAGE: 'PACKAGE',
+  ADDON: 'ADDON'
+};
+
 exports.PreferenceSource = exports.$Enums.PreferenceSource = {
   CUSTOMER_CHOICE: 'CUSTOMER_CHOICE',
   AUTO_ASSIGN: 'AUTO_ASSIGN',
@@ -454,7 +737,16 @@ exports.OrderStatus = exports.$Enums.OrderStatus = {
   COMPLETED: 'COMPLETED',
   DELIVERED: 'DELIVERED',
   REJECTED: 'REJECTED',
-  CANCELLED: 'CANCELLED'
+  CANCELLED: 'CANCELLED',
+  PAID_SCHEDULED: 'PAID_SCHEDULED',
+  REVIEW_REVISION: 'REVIEW_REVISION',
+  DELIVERED_COMPLETED: 'DELIVERED_COMPLETED'
+};
+
+exports.OrderPaymentStatus = exports.$Enums.OrderPaymentStatus = {
+  PAID: 'PAID',
+  PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
+  REFUNDED: 'REFUNDED'
 };
 
 exports.RevisionStatus = exports.$Enums.RevisionStatus = {
@@ -468,7 +760,8 @@ exports.PaymentMethod = exports.$Enums.PaymentMethod = {
   BKASH: 'BKASH',
   NAGAD: 'NAGAD',
   ROCKET: 'ROCKET',
-  BANK_TRANSFER: 'BANK_TRANSFER'
+  BANK_TRANSFER: 'BANK_TRANSFER',
+  OTHER: 'OTHER'
 };
 
 exports.PaymentStatus = exports.$Enums.PaymentStatus = {
@@ -484,7 +777,128 @@ exports.NotificationType = exports.$Enums.NotificationType = {
   PAYMENT: 'PAYMENT',
   REVISION: 'REVISION',
   DELIVERABLE: 'DELIVERABLE',
-  GENERAL: 'GENERAL'
+  GENERAL: 'GENERAL',
+  REQUEST_STATUS: 'REQUEST_STATUS',
+  QUOTATION: 'QUOTATION',
+  WALLET_DEPOSIT: 'WALLET_DEPOSIT',
+  WALLET_WITHDRAWAL: 'WALLET_WITHDRAWAL',
+  WALLET_REFUND: 'WALLET_REFUND'
+};
+
+exports.FormFieldType = exports.$Enums.FormFieldType = {
+  TEXT: 'TEXT',
+  TEXTAREA: 'TEXTAREA',
+  NUMBER: 'NUMBER',
+  SELECT: 'SELECT',
+  MULTISELECT: 'MULTISELECT',
+  DATE: 'DATE',
+  CHECKBOX: 'CHECKBOX',
+  FILE: 'FILE',
+  URL: 'URL',
+  PHONE: 'PHONE'
+};
+
+exports.ServiceRequestStatus = exports.$Enums.ServiceRequestStatus = {
+  REQUEST_SUBMITTED: 'REQUEST_SUBMITTED',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  DIAGNOSIS_SCHEDULED: 'DIAGNOSIS_SCHEDULED',
+  DIAGNOSIS_SENT: 'DIAGNOSIS_SENT',
+  QUOTATION_SENT: 'QUOTATION_SENT',
+  QUOTATION_DECLINED: 'QUOTATION_DECLINED',
+  QUOTATION_EXPIRED: 'QUOTATION_EXPIRED',
+  ACCEPTED_AWAITING_PAYMENT: 'ACCEPTED_AWAITING_PAYMENT',
+  ORDER_CREATED: 'ORDER_CREATED',
+  CANCELLED: 'CANCELLED',
+  REJECTED: 'REJECTED'
+};
+
+exports.RequestFileKind = exports.$Enums.RequestFileKind = {
+  ATTACHMENT: 'ATTACHMENT',
+  PHOTO: 'PHOTO',
+  DELIVERABLE: 'DELIVERABLE'
+};
+
+exports.QuotationStatus = exports.$Enums.QuotationStatus = {
+  DRAFT: 'DRAFT',
+  SENT: 'SENT',
+  ACCEPTED: 'ACCEPTED',
+  DECLINED: 'DECLINED',
+  EXPIRED: 'EXPIRED',
+  SUPERSEDED: 'SUPERSEDED'
+};
+
+exports.RepairDeviceType = exports.$Enums.RepairDeviceType = {
+  LAPTOP: 'LAPTOP',
+  DESKTOP: 'DESKTOP'
+};
+
+exports.RepairIssueCategory = exports.$Enums.RepairIssueCategory = {
+  WINDOWS_BOOT: 'WINDOWS_BOOT',
+  SOFTWARE_DRIVERS: 'SOFTWARE_DRIVERS',
+  PERFORMANCE: 'PERFORMANCE',
+  HARDWARE_DIAGNOSIS: 'HARDWARE_DIAGNOSIS',
+  LAPTOP_SPECIFIC: 'LAPTOP_SPECIFIC',
+  GENERAL_TROUBLESHOOTING: 'GENERAL_TROUBLESHOOTING'
+};
+
+exports.StatusEntityType = exports.$Enums.StatusEntityType = {
+  REQUEST: 'REQUEST',
+  ORDER: 'ORDER'
+};
+
+exports.WalletStatus = exports.$Enums.WalletStatus = {
+  ACTIVE: 'ACTIVE',
+  FROZEN: 'FROZEN',
+  CLOSED: 'CLOSED'
+};
+
+exports.WalletTxType = exports.$Enums.WalletTxType = {
+  DEPOSIT: 'DEPOSIT',
+  ORDER_PAYMENT: 'ORDER_PAYMENT',
+  REFUND: 'REFUND',
+  WITHDRAWAL_HOLD: 'WITHDRAWAL_HOLD',
+  WITHDRAWAL_RELEASE: 'WITHDRAWAL_RELEASE',
+  WITHDRAWAL: 'WITHDRAWAL',
+  FEE: 'FEE',
+  ADMIN_CREDIT: 'ADMIN_CREDIT',
+  ADMIN_DEBIT: 'ADMIN_DEBIT',
+  REVERSAL: 'REVERSAL'
+};
+
+exports.WalletTxDirection = exports.$Enums.WalletTxDirection = {
+  CREDIT: 'CREDIT',
+  DEBIT: 'DEBIT'
+};
+
+exports.WalletMethod = exports.$Enums.WalletMethod = {
+  BKASH: 'BKASH',
+  NAGAD: 'NAGAD',
+  ROCKET: 'ROCKET',
+  BINANCE: 'BINANCE',
+  BANK_TRANSFER: 'BANK_TRANSFER'
+};
+
+exports.DepositStatus = exports.$Enums.DepositStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  DECLINED: 'DECLINED',
+  CANCELLED: 'CANCELLED'
+};
+
+exports.DepositDeclineReason = exports.$Enums.DepositDeclineReason = {
+  TRX_NOT_FOUND: 'TRX_NOT_FOUND',
+  AMOUNT_MISMATCH: 'AMOUNT_MISMATCH',
+  DUPLICATE: 'DUPLICATE',
+  SUSPECTED_FRAUD: 'SUSPECTED_FRAUD',
+  OTHER: 'OTHER'
+};
+
+exports.WithdrawalStatus = exports.$Enums.WithdrawalStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  PAID: 'PAID',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED'
 };
 
 exports.Prisma.ModelName = {
@@ -504,13 +918,27 @@ exports.Prisma.ModelName = {
   RevisionRequest: 'RevisionRequest',
   OrderStatusHistory: 'OrderStatusHistory',
   Payment: 'Payment',
+  PaymentAccount: 'PaymentAccount',
   Notification: 'Notification',
   Review: 'Review',
   ContactMessage: 'ContactMessage',
   AuditLog: 'AuditLog',
   SiteContent: 'SiteContent',
   PortfolioProject: 'PortfolioProject',
-  Testimonial: 'Testimonial'
+  Testimonial: 'Testimonial',
+  ServiceFormField: 'ServiceFormField',
+  ServiceRequest: 'ServiceRequest',
+  RequestFile: 'RequestFile',
+  Quotation: 'Quotation',
+  RepairRequest: 'RepairRequest',
+  StatusHistory: 'StatusHistory',
+  RequestUpdate: 'RequestUpdate',
+  Wallet: 'Wallet',
+  WalletTransaction: 'WalletTransaction',
+  DepositRequest: 'DepositRequest',
+  WithdrawalRequest: 'WithdrawalRequest',
+  PaymentMethodConfig: 'PaymentMethodConfig',
+  WalletSetting: 'WalletSetting'
 };
 
 /**

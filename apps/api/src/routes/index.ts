@@ -7,6 +7,19 @@ import { prisma } from '../config/prisma.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { apiLimiter, authLimiter } from '../middleware/rate-limit.js';
+import { serviceMarketplaceEnabled } from '../config/env.js';
+import * as marketplaceController from '../controllers/marketplace.controller.js';
+import * as paymentController from '../controllers/payment.controller.js';
+import {
+  marketplaceListQuerySchema,
+  paymentAccountCreateSchema,
+  paymentAccountReorderSchema,
+  paymentAccountUpdateSchema,
+  paymentReviewSchema,
+  paymentSubmitV2Schema,
+  requestFileRegisterSchema,
+  serviceRequestCreateSchema,
+} from '@tsh/shared';
 import * as authController from '../controllers/auth.controller.js';
 import * as catalogController from '../controllers/catalog.controller.js';
 import * as userController from '../controllers/user.controller.js';
@@ -24,6 +37,7 @@ import {
   paginationQuerySchema,
   profileUpdateSchema,
   ORDER_STATUSES,
+  PAYMENT_STATUSES,
 } from '@tsh/shared';
 
 const orderListQuery = paginationQuerySchema.extend({
@@ -36,6 +50,23 @@ const adminOrderQuery = paginationQuerySchema.extend({
 });
 const customerQuery = paginationQuerySchema.extend({
   search: z.string().trim().max(120).optional(),
+});
+// Stage 6 admin payment queue: enum-validated status, method (enum value or
+// custom rail key), free-text search, and whole-UTC-day / ISO date bounds.
+const adminDateParam = z
+  .string()
+  .trim()
+  .regex(
+    /^(\d{4}-\d{2}-\d{2}|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:?\d{2})?)$/,
+    'Use YYYY-MM-DD or an ISO datetime',
+  )
+  .refine((v) => !Number.isNaN(Date.parse(v)), 'Invalid date value');
+const adminPaymentQuery = paginationQuerySchema.extend({
+  status: z.enum(PAYMENT_STATUSES).optional(),
+  method: z.string().trim().min(2).max(30).optional(),
+  search: z.string().trim().max(120).optional(),
+  from: adminDateParam.optional(),
+  to: adminDateParam.optional(),
 });
 
 const router = Router();
@@ -93,6 +124,42 @@ router.get('/services/:slug', catalogController.getService);
 router.get('/categories', catalogController.listCategories);
 router.get('/public/homepage', catalogController.homepage);
 
+// ─── Marketplace v2 (flag-gated; PUBLISHED-only catalog) ─────
+
+if (serviceMarketplaceEnabled) {
+  const marketplaceRouter = Router();
+  marketplaceRouter.get(
+    '/services',
+    validate({ query: marketplaceListQuerySchema }),
+    marketplaceController.listServices,
+  );
+  marketplaceRouter.get('/services/:slug', marketplaceController.getService);
+  marketplaceRouter.get(
+    '/services/:slug/form',
+    validate({ params: z.object({ slug: z.string().trim().min(1).max(160) }) }),
+    marketplaceController.getServiceForm,
+  );
+  marketplaceRouter.post(
+    '/services/:slug/requests',
+    authenticate,
+    authLimiter,
+    validate({
+      params: z.object({ slug: z.string().trim().min(1).max(160) }),
+      body: serviceRequestCreateSchema,
+    }),
+    marketplaceController.createRequest,
+  );
+  marketplaceRouter.post(
+    '/files',
+    authenticate,
+    authLimiter,
+    validate({ body: requestFileRegisterSchema }),
+    marketplaceController.registerFile,
+  );
+  marketplaceRouter.get('/categories', marketplaceController.listCategories);
+  router.use('/marketplace', marketplaceRouter);
+}
+
 // ─── Users ───────────────────────────────────────────────────
 
 const userRouter = Router();
@@ -116,12 +183,25 @@ orderRouter.post('/', validate({ body: checkoutSchema }), orderController.create
 orderRouter.get('/', validate({ query: orderListQuery }), orderController.list);
 orderRouter.get('/:id', validate({ params: z.object({ id: z.uuid() }) }), orderController.detail);
 orderRouter.post('/:id/cancel', validate({ params: z.object({ id: z.uuid() }) }), orderController.cancel);
-orderRouter.post('/:id/payments', validate({ body: paymentSubmitSchema }), orderController.submitPayment);
-orderRouter.post('/:id/revisions', validate({ body: z.object({ description: z.string().trim().min(10).max(4000) }) }), orderController.requestRevision);
-orderRouter.post('/:id/review', validate({ body: z.object({ rating: z.number().int().min(1).max(5), comment: z.string().trim().max(2000).optional() }) }), orderController.submitReview);
+// Manual-payments v2 (account-driven submission) — a distinct sub-path so the
+// live v1 endpoint keeps its exact validation and response semantics: old
+// clients can never be routed into v2 validation, and Express 5's exact-path
+// matching keeps the two contracts isolated. authLimiter mirrors the other
+// authenticated mutation endpoints (60 req/15 min/IP — far above any
+// legitimate submission cadence).
+orderRouter.post(
+  '/:id/payments/v2',
+  authLimiter,
+  validate({ params: z.object({ id: z.uuid() }), body: paymentSubmitV2Schema }),
+  paymentController.submitPaymentV2,
+);
+orderRouter.post('/:id/payments', validate({ params: z.object({ id: z.uuid() }), body: paymentSubmitSchema }), orderController.submitPayment);
+orderRouter.post('/:id/revisions', validate({ params: z.object({ id: z.uuid() }), body: z.object({ description: z.string().trim().min(10).max(4000) }) }), orderController.requestRevision);
+orderRouter.post('/:id/review', validate({ params: z.object({ id: z.uuid() }), body: z.object({ rating: z.number().int().min(1).max(5), comment: z.string().trim().max(2000).optional() }) }), orderController.submitReview);
 orderRouter.post(
   '/:id/attachments',
   validate({
+    params: z.object({ id: z.uuid() }),
     body: z.object({
       cloudinaryPublicId: z.string().trim().min(5).max(300),
       fileName: z.string().trim().min(1).max(255),
@@ -136,7 +216,11 @@ router.use('/orders', authenticate, orderRouter);
 
 // ─── Uploads (signed client-side uploads) ────────────────────
 
-router.post('/uploads/sign', authenticate, authLimiter, validate({ body: z.object({ folder: z.enum(['requirements', 'deliveries', 'misc']) }) }), uploadController.sign);
+router.post('/uploads/sign', authenticate, authLimiter, validate({ body: z.object({ folder: z.enum(['requirements', 'deliveries', 'misc', 'payments']) }) }), uploadController.sign);
+
+// ─── Payment accounts (manual-payments v2) ───────────────────
+
+router.get('/payment-accounts', authenticate, paymentController.listAccounts);
 
 // ─── Contact (public) ────────────────────────────────────────
 
@@ -181,12 +265,61 @@ adminRouter.post(
   }),
   adminController.addDeliverable,
 );
-adminRouter.get('/payments', validate({ query: z.object({ status: z.string().trim().max(30).optional() }).optional() }), adminController.listPayments);
+// Stage 6 queue routes — `/stats` and `/:id/screenshot` are registered before
+// any conflicting `/:id` usage (only PATCH exists below, but keep GETs first).
+adminRouter.get('/payments/stats', adminController.paymentStats);
+adminRouter.get('/payments', validate({ query: adminPaymentQuery }), adminController.listPayments);
+adminRouter.get(
+  '/payments/:id/screenshot',
+  validate({ params: z.object({ id: z.uuid() }) }),
+  adminController.paymentScreenshot,
+);
 adminRouter.patch(
   '/payments/:id',
-  validate({ params: z.object({ id: z.uuid() }), body: z.object({ decision: z.enum(['VERIFIED', 'REJECTED']), note: z.string().trim().max(2000).optional() }) }),
+  // Shared contract: decision + optional note, with a mandatory ≥5-character
+  // reason when decision = REJECTED. Unknown client fields (amountPaid,
+  // paymentStatus, reviewer id, …) are stripped by the schema.
+  validate({ params: z.object({ id: z.uuid() }), body: paymentReviewSchema }),
   adminController.reviewPayment,
 );
+
+// ─── Receiving-account management (Stage 4) ──────────────────
+// Literal routes (`/qr/sign`, `/reorder`) are registered before `/:id` so an
+// account id can never swallow them. Every route is protected by the
+// adminRouter-level authenticate + requireAdmin middleware below.
+adminRouter.get('/payment-accounts', adminController.listPaymentAccounts);
+adminRouter.post('/payment-accounts/qr/sign', adminController.signPaymentAccountQr);
+adminRouter.patch(
+  '/payment-accounts/reorder',
+  validate({ body: paymentAccountReorderSchema }),
+  adminController.reorderPaymentAccounts,
+);
+adminRouter.post(
+  '/payment-accounts',
+  validate({ body: paymentAccountCreateSchema }),
+  adminController.createPaymentAccount,
+);
+adminRouter.get(
+  '/payment-accounts/:id',
+  validate({ params: z.object({ id: z.uuid() }) }),
+  adminController.getPaymentAccount,
+);
+adminRouter.patch(
+  '/payment-accounts/:id/status',
+  validate({ params: z.object({ id: z.uuid() }), body: z.object({ isActive: z.boolean() }) }),
+  adminController.setPaymentAccountStatus,
+);
+adminRouter.patch(
+  '/payment-accounts/:id',
+  validate({ params: z.object({ id: z.uuid() }), body: paymentAccountUpdateSchema }),
+  adminController.updatePaymentAccount,
+);
+adminRouter.delete(
+  '/payment-accounts/:id',
+  validate({ params: z.object({ id: z.uuid() }) }),
+  adminController.deletePaymentAccount,
+);
+
 adminRouter.patch(
   '/revisions/:id',
   validate({ params: z.object({ id: z.uuid() }), body: z.object({ status: z.enum(['IN_PROGRESS', 'RESOLVED', 'DECLINED']), adminResponse: z.string().trim().max(4000).optional() }) }),

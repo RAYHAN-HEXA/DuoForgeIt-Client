@@ -37,3 +37,20 @@ export function sumMoney(values: string[]): string {
 export function estimateDays(deliveryDays: number, optionDaysDeltas: number[]): number {
   return Math.max(1, deliveryDays + optionDaysDeltas.reduce((a, d) => a + d, 0));
 }
+
+/** a − b over money strings — outstanding amount = totalAmount − amountPaid. */
+export function subtractMoney(a: string, b: string): string {
+  return toMoney(toCents(a) - toCents(b));
+}
+
+/**
+ * Strict parse of a client-submitted money string to exact BigInt cents.
+ * Unlike toCents (lenient, DB-shaped input), this returns null for anything
+ * malformed — callers reject, never silently treat garbage as 0.
+ */
+export function parseMoneyToCents(value: string): bigint | null {
+  const m = /^(\d+)(?:\.(\d{1,2}))?$/.exec(value.trim());
+  if (!m) return null;
+  const frac = ((m[2] ?? '') + '0').slice(0, 2);
+  return BigInt(m[1]!) * 100n + BigInt(frac);
+}

@@ -50,4 +50,20 @@ describe('RBAC smoke', () => {
     const res = await request(app).get('/api/auth/me');
     expect(res.status).toBe(401);
   });
+
+  // ── Manual-payments v2 (Stage 2): authenticated-only surfaces ──
+
+  it('rejects /api/payment-accounts without a token', async () => {
+    const res = await request(app).get('/api/payment-accounts');
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHENTICATED');
+  });
+
+  it('rejects the v2 payment submission without a token (v1 route still mounted)', async () => {
+    const res = await request(app)
+      .post('/api/orders/00000000-0000-4000-8000-000000000000/payments/v2')
+      .send({ accountId: '00000000-0000-4000-8000-000000000001', transactionId: 'TEST123', amount: '10.00' });
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHENTICATED');
+  });
 });

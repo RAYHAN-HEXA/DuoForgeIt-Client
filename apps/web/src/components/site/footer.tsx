@@ -9,8 +9,8 @@ const columns = [
     title: 'Services',
     links: [
       { href: '/services?category=web-development', label: 'Website Development' },
-      { href: '/services?category=software-projects', label: 'Software Projects' },
-      { href: '/services?category=presentation-design', label: 'Presentation Design' },
+      { href: '/services?category=software-projects', label: 'Software & Programming' },
+      { href: '/services?category=academic-documentation-presentation', label: 'Academic Docs & Presentations' },
       { href: '/services', label: 'All services' },
     ],
   },

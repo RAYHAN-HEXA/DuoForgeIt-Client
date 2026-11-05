@@ -5,7 +5,9 @@ import type {
   OrderStatus,
   PaymentMethod,
   PaymentStatus,
+  PricingModel,
   RevisionStatus,
+  ServiceType,
   UserRole,
 } from '../constants/index.js';
 
@@ -72,6 +74,8 @@ export type FounderDto = {
   title: string;
   bio: string;
   photoUrl: string | null;
+  portfolioUrl: string | null;
+  portfolioImageUrl: string | null;
   skills: string[];
   discipline: FounderDiscipline;
   isSelectable: boolean;
@@ -148,6 +152,19 @@ export type PaymentDto = {
   adminNote: string | null;
   verifiedAt: string | null;
   createdAt: string;
+  // ── Manual-payments v2 (optional until API stages populate them) ──
+  /** Customer's own MFS number for wallet rails (null for legacy rows). */
+  senderNumber?: string | null;
+  /** Required customer-facing reason when status is REJECTED. */
+  rejectionReason?: string | null;
+  rejectedAt?: string | null;
+  /** Immutable submission-time snapshots of the receiving account. */
+  methodKeySnapshot?: string | null;
+  methodLabelSnapshot?: string | null;
+  accountTypeSnapshot?: string | null;
+  accountNumberSnapshot?: string | null;
+  accountHolderSnapshot?: string | null;
+  instructionsSnapshot?: string | null;
 };
 
 export type DeliverableDto = {
@@ -189,6 +206,11 @@ export type OrderDto = {
   revisions: RevisionRequestDto[];
   review: ReviewDto | null;
   createdAt: string;
+  // ── Manual-payments v2 accounting (optional until API stages populate) ──
+  /** Σ VERIFIED payment amounts (money string) — '0.00' until money clears. */
+  amountPaid?: string;
+  /** totalAmount − amountPaid (money string). */
+  outstandingAmount?: string;
 };
 
 export type OrderSummaryDto = {
@@ -282,7 +304,104 @@ export type AdminStatsDto = {
 };
 
 export type AdminPaymentDto = PaymentDto & {
-  order: { id: string; orderNumber: string; title: string; customerName: string };
+  order: {
+    id: string;
+    orderNumber: string;
+    title: string;
+    customerName: string;
+    // ── Manual-payments v2 (optional until API stages populate) ──
+    totalAmount?: string;
+    outstandingAmount?: string;
+    customerEmail?: string;
+  };
+  /** True when a screenshot reference is stored (URL is minted per request). */
+  hasScreenshot?: boolean;
+  /** Reviewer display names — null until the corresponding review happened. */
+  verifiedByName?: string | null;
+  rejectedByName?: string | null;
+};
+
+/** Per-status payment counts for the admin review dashboard (Stage 6). */
+export type AdminPaymentStatsDto = {
+  counts: Record<PaymentStatus, number>;
+  total: number;
+  /** Σ amounts awaiting review (PENDING + SUBMITTED, money string). */
+  awaitingAmount: string;
+};
+
+/** Server-paginated admin payment queue response (Stage 6). */
+export type AdminPaymentQueueDto = {
+  items: AdminPaymentDto[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
+// ─── Payment accounts (manual-payments v2) ───────────────────
+
+/** Customer-facing enabled receiving account — safe fields only. */
+export type PaymentAccountOptionDto = {
+  id: string;
+  /** Stable rail key (BKASH / NAGAD / UPAY / …) for icon/badge lookup. */
+  methodKey: string;
+  /** Admin-authored display name, shown verbatim to customers. */
+  label: string;
+  accountType: string | null;
+  accountNumber: string;
+  accountHolder: string;
+  instructions: string | null;
+  /** Short-lived signed URL for the QR image; null when absent/unconfigured. */
+  qrUrl?: string | null;
+};
+
+/** Admin view of a receiving account — includes disabled rows + audit fields. */
+export type AdminPaymentAccountDto = PaymentAccountOptionDto & {
+  isActive: boolean;
+  displayOrder: number;
+  /** Whether a QR identifier is stored, even when Cloudinary is unconfigured. */
+  hasQr: boolean;
+  /** Number of historical payments referencing this account. */
+  usageCount: number;
+  createdById: string | null;
+  updatedById: string | null;
+  createdByName: string | null;
+  updatedByName: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** Per-rail counts over the admin queue's current filter set. */
+export type AdminPaymentMethodBreakdownDto = {
+  methodKey: string;
+  count: number;
+};
+
+/**
+ * Customer-facing result of a v2 manual payment submission (manual-payments
+ * v2, Stage 2). Snapshots reflect the receiving account AT SUBMISSION TIME —
+ * later admin edits never rewrite them. Raw Cloudinary references and admin
+ * audit fields deliberately stay server-side.
+ */
+export type PaymentSubmissionDto = {
+  id: string;
+  orderId: string;
+  /** Stable rail key from the account snapshot (BKASH / NAGAD / UPAY / …). */
+  methodKey: string;
+  /** Account label snapshot at submission time. */
+  methodLabel: string | null;
+  /** Receiving-account number snapshot — the account the customer paid. */
+  accountNumber: string | null;
+  /** Customer's own MFS number, as submitted. */
+  senderNumber: string | null;
+  /** Server-computed exact outstanding amount the payment must cover. */
+  amount: string;
+  /** Original customer-submitted transaction ID (normalized copy stays server-side). */
+  transactionId: string;
+  status: PaymentStatus;
+  /** True when screenshot metadata was attached; never exposes the public ID. */
+  hasScreenshot: boolean;
+  createdAt: string;
 };
 
 export type AdminOrderDto = OrderDto & {
@@ -297,4 +416,71 @@ export type NotificationDto = {
   link: string | null;
   readAt: string | null;
   createdAt: string;
+};
+
+// ─── Marketplace v2 (public, PUBLISHED-only) ─────────────────
+
+export type MarketplaceCategoryDto = {
+  slug: string;
+  name: string;
+  description: string | null;
+  iconKey: string | null;
+  /** Number of PUBLISHED services in the category. */
+  serviceCount: number;
+};
+
+export type MarketplacePackageDto = {
+  id: string;
+  kind: 'PACKAGE' | 'ADDON';
+  label: string;
+  description: string | null;
+  priceFrom: string | null;
+  priceTo: string | null;
+};
+
+export type MarketplaceServiceCardDto = {
+  id: string;
+  slug: string;
+  name: string;
+  tagline: string | null;
+  description: string;
+  serviceType: ServiceType;
+  pricingModel: PricingModel;
+  /** FIXED price / STARTING_FROM floor (money string). */
+  basePrice: string;
+  priceFrom: string | null;
+  priceTo: string | null;
+  priceNote: string | null;
+  /** Shown only when an admin set it — never fabricated (R6). */
+  deliveryEstimateText: string | null;
+  thumbnail: string | null;
+  imageUrl: string | null;
+  isFeatured: boolean;
+  isPopular: boolean;
+  category: { slug: string; name: string; iconKey: string | null };
+};
+
+export type MarketplaceServiceDetailDto = MarketplaceServiceCardDto & {
+  features: string[];
+  deliverables: string[];
+  requirementsText: string | null;
+  acceptedFileTypes: string[];
+  revisionPolicy: string | null;
+  faqs: Array<{ q: string; a: string }>;
+  packages: MarketplacePackageDto[];
+  addOns: MarketplacePackageDto[];
+};
+
+/** Response of GET /api/marketplace/services/:slug — form fields for M4 request forms. */
+export type MarketplaceServiceFormDto = {
+  service: { id: string; slug: string; name: string; isRepair: boolean };
+  fields: Array<{
+    key: string;
+    label: string;
+    type: string;
+    options: string[] | null;
+    required: boolean;
+    validation: Record<string, unknown> | null;
+    helpText: string | null;
+  }>;
 };

@@ -1,7 +1,15 @@
-import type { AdminStatsDto, OrderStatus, PaymentStatus } from '@tsh/shared';
+import type { AdminPaymentStatsDto, AdminStatsDto, OrderStatus, PaymentStatus } from '@tsh/shared';
+import { PAYMENT_ERROR_CODES, PAYMENT_METHODS } from '@tsh/shared';
+import type { Prisma, PaymentMethod } from '../generated/prisma/client.js';
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
+import { signedDownloadUrl, PAYMENTS_UPLOAD_ROOT } from '../utils/cloudinary.js';
 import { assertTransition } from './order.service.js';
+import {
+  REVIEWABLE_PAYMENT_STATUSES,
+  isReviewablePaymentStatus,
+  recalculateOrderPaymentAccounting,
+} from './payment.service.js';
 
 /**
  * Admin platform statistics (PRD §11): customer/order totals, verified vs
@@ -198,19 +206,171 @@ export async function assignOrder(orderId: string, assignedFounderUserId: string
 
 // ─── Payments ────────────────────────────────────────────────
 
-export async function listPayments(status?: string) {
-  return prisma.payment.findMany({
-    where: status ? { status: status.toUpperCase() as PaymentStatus } : {},
-    orderBy: { createdAt: 'desc' },
-    take: 100,
-    include: { order: { select: { id: true, orderNumber: true, title: true, customer: { select: { fullName: true } } } } },
-  });
+export type PaymentQueueQuery = {
+  page: number;
+  pageSize: number;
+  status?: string;
+  method?: string;
+  search?: string;
+  from?: string;
+  to?: string;
+};
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Queue bounds arrive as `YYYY-MM-DD` (interpreted as whole UTC days — the
+ * UI sends date-only inputs) or full ISO datetimes (used as-is). Validated
+ * by the route schema; this only normalizes.
+ */
+function resolveDateBound(value: string, bound: 'from' | 'to'): Date {
+  if (DATE_ONLY_RE.test(value)) {
+    return new Date(`${value}T${bound === 'from' ? '00:00:00.000' : '23:59:59.999'}Z`);
+  }
+  return new Date(value);
 }
 
 /**
- * Verify or reject a submitted payment. The payment record — never the
- * frontend — is the source of truth; verification writes the verifier and
- * timestamp and notifies the customer.
+ * Admin payment queue (Stage 6): server-side pagination + validated
+ * filters. Ordering is `status asc` (Postgres enum order = PENDING,
+ * SUBMITTED, VERIFIED, REJECTED, REFUNDED) then `createdAt asc` — reviewable
+ * work first, oldest unreviewed submissions at the top, stable under
+ * pagination. Terminal records stay reachable through filters.
+ *
+ * Method filter: known `PaymentMethod` enum values match the column;
+ * anything else (custom rails like UPAY) matches the immutable
+ * `methodKeySnapshot` that v2 submissions store.
+ */
+export async function listPayments(q: PaymentQueueQuery): Promise<{ total: number; rows: Array<Prisma.PaymentGetPayload<{ include: typeof PAYMENT_QUEUE_INCLUDE }>> }> {
+  const where: Prisma.PaymentWhereInput = {};
+
+  if (q.status) where.status = q.status as PaymentStatus;
+  if (q.method) {
+    if ((PAYMENT_METHODS as readonly string[]).includes(q.method)) {
+      where.method = q.method as PaymentMethod;
+    } else {
+      where.methodKeySnapshot = q.method.toUpperCase();
+    }
+  }
+  if (q.search) {
+    const s = q.search;
+    const or: Prisma.PaymentWhereInput[] = [
+      { transactionId: { contains: s, mode: 'insensitive' } },
+      // Normalized TrxIDs are stored uppercased — compare in the same form.
+      { transactionIdNormalized: { contains: s.toUpperCase() } },
+      { order: { orderNumber: { contains: s, mode: 'insensitive' } } },
+      { order: { customer: { fullName: { contains: s, mode: 'insensitive' } } } },
+      { order: { customer: { email: { contains: s, mode: 'insensitive' } } } },
+    ];
+    if (UUID_RE.test(s)) or.push({ id: s });
+    where.OR = or;
+  }
+  if (q.from || q.to) {
+    where.createdAt = {
+      ...(q.from ? { gte: resolveDateBound(q.from, 'from') } : {}),
+      ...(q.to ? { lte: resolveDateBound(q.to, 'to') } : {}),
+    };
+  }
+
+  const [rows, total] = await Promise.all([
+    prisma.payment.findMany({
+      where,
+      orderBy: [{ status: 'asc' }, { createdAt: 'asc' }],
+      skip: (q.page - 1) * q.pageSize,
+      take: q.pageSize,
+      include: PAYMENT_QUEUE_INCLUDE,
+    }),
+    prisma.payment.count({ where }),
+  ]);
+  return { total, rows };
+}
+
+/** Relations the queue DTO needs — selected, never a raw Prisma dump. */
+const PAYMENT_QUEUE_INCLUDE = {
+  order: {
+    select: {
+      id: true,
+      orderNumber: true,
+      title: true,
+      totalAmount: true,
+      amountPaid: true,
+      customer: { select: { fullName: true, email: true } },
+    },
+  },
+  verifiedBy: { select: { fullName: true } },
+  rejectedBy: { select: { fullName: true } },
+} satisfies Prisma.PaymentInclude;
+
+/** Per-status counts for the dashboard summary cards (Stage 6). */
+export async function getPaymentQueueStats(): Promise<AdminPaymentStatsDto> {
+  const [groupBy, awaiting] = await Promise.all([
+    prisma.payment.groupBy({ by: ['status'], _count: { _all: true } }),
+    prisma.payment.aggregate({
+      where: { status: { in: ['PENDING', 'SUBMITTED'] } },
+      _sum: { amount: true },
+    }),
+  ]);
+
+  const counts: AdminPaymentStatsDto['counts'] = {
+    PENDING: 0,
+    SUBMITTED: 0,
+    VERIFIED: 0,
+    REJECTED: 0,
+    REFUNDED: 0,
+  };
+  let total = 0;
+  for (const row of groupBy) {
+    counts[row.status] = row._count._all;
+    total += row._count._all;
+  }
+  return {
+    counts,
+    total,
+    awaitingAmount: awaiting._sum.amount?.toFixed(2) ?? '0.00',
+  };
+}
+
+/**
+ * Short-lived signed URL for one payment's screenshot (Stage 6). The public
+ * id is loaded from the authorized payment row — the client never supplies
+ * a signing target. The namespace check is defense-in-depth: v2 submission
+ * already rejects foreign namespaces at upload time.
+ */
+export async function getPaymentScreenshotUrl(paymentId: string): Promise<{ screenshotUrl: string | null }> {
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    select: { screenshotPublicId: true },
+  });
+  if (!payment) throw ApiError.notFound('Payment not found');
+  if (!payment.screenshotPublicId) return { screenshotUrl: null };
+  if (!payment.screenshotPublicId.startsWith(PAYMENTS_UPLOAD_ROOT)) {
+    throw ApiError.badRequest('The stored screenshot reference is outside the payments namespace');
+  }
+  return { screenshotUrl: signedDownloadUrl(payment.screenshotPublicId, 'image') };
+}
+
+function paymentNotReviewable(status: PaymentStatus): ApiError {
+  return new ApiError(
+    409,
+    PAYMENT_ERROR_CODES.PAYMENT_NOT_REVIEWABLE,
+    'This payment has already been reviewed. Refresh the queue and try again.',
+    { status },
+  );
+}
+
+/**
+ * Verify or reject a submitted payment.
+ *
+ * The database decides the winner, never application timing. The conditional
+ * `updateMany` matches the payment id *and* a currently reviewable status, so
+ * two concurrent admins can never both transition the same row. The initial
+ * read only supplies the order id / previous status for accounting and audit;
+ * it is not the gate. A losing transaction gets zero rows updated and throws
+ * PAYMENT_NOT_REVIEWABLE before any side effect can run.
+ *
+ * Verification recalculates the order's amountPaid/paymentStatus inside the
+ * same transaction as the status change. Rejection never touches accounting.
  */
 export async function reviewPayment(
   paymentId: string,
@@ -218,21 +378,79 @@ export async function reviewPayment(
   note: string | undefined,
   actorId: string,
 ) {
-  const payment = await prisma.payment.findUnique({ where: { id: paymentId }, include: { order: true } });
-  if (!payment) throw ApiError.notFound('Payment not found');
-  if (payment.status === 'VERIFIED') throw ApiError.conflict('Payment already verified');
-  if (payment.status === 'REFUNDED') throw ApiError.conflict('Payment was refunded');
+  const rejectionReason = note?.trim();
+  if (decision === 'REJECTED' && (!rejectionReason || rejectionReason.length < 5)) {
+    throw new ApiError(422, 'VALIDATION_ERROR', 'A rejection reason is required (at least 5 characters)');
+  }
 
-  const updated = await prisma.payment.update({
-    where: { id: paymentId },
-    data: {
-      status: decision,
-      adminNote: note ?? null,
-      verifiedById: decision === 'VERIFIED' ? actorId : null,
-      verifiedAt: decision === 'VERIFIED' ? new Date() : null,
+  return prisma.$transaction(
+    async (tx) => {
+      const existing = await tx.payment.findUnique({
+        where: { id: paymentId },
+        select: { id: true, orderId: true, status: true, method: true, amount: true },
+      });
+      if (!existing) throw ApiError.notFound('Payment not found');
+      if (!isReviewablePaymentStatus(existing.status)) {
+        throw paymentNotReviewable(existing.status);
+      }
+
+      const now = new Date();
+      const data: Prisma.PaymentUncheckedUpdateManyInput =
+        decision === 'VERIFIED'
+          ? {
+              status: 'VERIFIED',
+              verifiedById: actorId,
+              verifiedAt: now,
+              adminNote: note?.trim() || null,
+              rejectedById: null,
+              rejectedAt: null,
+              rejectionReason: null,
+            }
+          : {
+              status: 'REJECTED',
+              rejectedById: actorId,
+              rejectedAt: now,
+              rejectionReason: rejectionReason!,
+              // Legacy customer-facing field; rejectionReason is the durable
+              // audit column. Both carry the customer-facing reason.
+              adminNote: rejectionReason!,
+              verifiedById: null,
+              verifiedAt: null,
+            };
+
+      const transition = await tx.payment.updateMany({
+        where: {
+          id: paymentId,
+          status: { in: [...REVIEWABLE_PAYMENT_STATUSES] },
+        },
+        data,
+      });
+      if (transition.count !== 1) throw paymentNotReviewable(existing.status);
+
+      const accounting =
+        decision === 'VERIFIED'
+          ? await recalculateOrderPaymentAccounting(tx, existing.orderId)
+          : null;
+
+      const payment = await tx.payment.findUniqueOrThrow({ where: { id: paymentId } });
+      const order = await tx.order.findUniqueOrThrow({
+        where: { id: existing.orderId },
+        select: {
+          id: true,
+          orderNumber: true,
+          title: true,
+          customerId: true,
+          totalAmount: true,
+          amountPaid: true,
+          paymentStatus: true,
+          customer: { select: { id: true, email: true, fullName: true } },
+        },
+      });
+
+      return { payment, order, previousStatus: existing.status, accounting };
     },
-  });
-  return { payment: updated, order: payment.order };
+    { maxWait: 10_000, timeout: 15_000 },
+  );
 }
 
 // ─── Deliverables ────────────────────────────────────────────

@@ -32,4 +32,22 @@ describe('config/env', () => {
     const { firebaseCredentialSource } = await import('../config/env.js');
     expect(firebaseCredentialSource).toBe('base64');
   });
+
+  it('feature flags default to off', async () => {
+    vi.stubEnv('NODE_ENV', 'test');
+    vi.stubEnv('DATABASE_URL', 'postgresql://placeholder');
+    const { serviceMarketplaceEnabled, walletEnabled } = await import('../config/env.js');
+    expect(serviceMarketplaceEnabled).toBe(false);
+    expect(walletEnabled).toBe(false);
+  });
+
+  it('feature flags enable only on the exact string "true"', async () => {
+    vi.stubEnv('NODE_ENV', 'test');
+    vi.stubEnv('DATABASE_URL', 'postgresql://placeholder');
+    vi.stubEnv('SERVICE_MARKETPLACE_ENABLED', 'true');
+    vi.stubEnv('WALLET_ENABLED', 'TRUE'); // legacy behaviour must be kept for non-exact values
+    const { serviceMarketplaceEnabled, walletEnabled } = await import('../config/env.js');
+    expect(serviceMarketplaceEnabled).toBe(true);
+    expect(walletEnabled).toBe(false);
+  });
 });

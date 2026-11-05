@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TechService Hub — PRD Addendum v1.1: Wallet-Based Payment System</title>
+<style>
+  @page { size: A4; margin: 2cm 1.8cm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5pt; line-height: 1.5; color: #1a2332; margin: 0;
+  }
+  h1 { font-size: 20pt; color: #0f2b5b; margin: 0 0 4pt 0; }
+  h2 {
+    font-size: 14pt; color: #0f2b5b; margin: 22pt 0 8pt 0;
+    border-bottom: 2.5pt solid #2563eb; padding-bottom: 4pt;
+  }
+  h3 { font-size: 11.5pt; color: #1d4ed8; margin: 14pt 0 6pt 0; }
+  p { margin: 5pt 0; }
+  ul, ol { margin: 5pt 0 5pt 16pt; padding: 0; }
+  li { margin: 2.5pt 0; }
+  table {
+    width: 100%; border-collapse: collapse; margin: 8pt 0; font-size: 9.5pt;
+    border: 0.5pt solid #b9c6dd;
+  }
+  th {
+    background: #0f2b5b; color: #ffffff; text-align: left;
+    padding: 5pt 7pt; font-weight: 600;
+    border: 0.5pt solid #0f2b5b;
+  }
+  td { border: 0.5pt solid #b9c6dd; padding: 4.5pt 7pt; vertical-align: top; }
+  tr:nth-child(even) td { background: #f2f6fc; }
+  code {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 8.8pt;
+    background: #eef2f9; padding: 0.5pt 3pt; border-radius: 2pt; color: #1d3a8f;
+  }
+  .cover { text-align: center; margin-top: 70pt; page-break-after: always; }
+  .cover .brand { font-size: 13pt; letter-spacing: 3pt; color: #2563eb; font-weight: 700; }
+  .cover h1 { font-size: 26pt; margin: 16pt 0 6pt 0; color: #0f2b5b; }
+  .cover .subtitle { font-size: 13pt; color: #47566e; margin-bottom: 28pt; }
+  .cover .docinfo { display: inline-block; text-align: left; margin-top: 24pt; }
+  .cover .docinfo table { font-size: 10.5pt; }
+  .cover .docinfo td { border: none; padding: 3pt 10pt; background: none !important; }
+  .cover .docinfo td:first-child { color: #64748b; font-weight: 600; }
+  .badge-amber {
+    display: inline-block; background: #d97706; color: #fff; font-size: 9pt;
+    padding: 2pt 10pt; border-radius: 8pt; font-weight: 700;
+  }
+  .pri { font-weight: 700; }
+  .pri-must { color: #b91c1c; }
+  .pri-should { color: #c2740a; }
+  .pri-could { color: #15803d; }
+  .pagebreak { page-break-before: always; }
+  .note {
+    background: #fff7ed; border-left: 3pt solid #f59e0b; padding: 6pt 10pt;
+    margin: 8pt 0; font-size: 9.5pt;
+  }
+  .warn {
+    background: #fef2f2; border-left: 3pt solid #dc2626; padding: 6pt 10pt;
+    margin: 8pt 0; font-size: 9.5pt;
+  }
+  .toc td { border: none !important; background: none !important; padding: 2pt 4pt; font-size: 10pt; }
+  .flow { background: #f2f6fc; border: 0.5pt solid #b9c6dd; padding: 6pt 12pt; margin: 6pt 0; }
+  .taka { font-family: "Bangla Sangam MN", "Bangla MN", "Noto Sans Bengali", "Vrinda", sans-serif; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ COVER ═══════════════ -->
+<div class="cover">
+  <div class="brand">TECHSERVICE HUB</div>
+  <h1>PRD Addendum v1.1</h1>
+  <div class="subtitle">Wallet-Based Payment System</div>
+  <div class="docinfo">
+    <table>
+      <tr><td>Version</td><td>1.1 — supersedes Section 5.4 and parts of Sections 6, 7, 8, 9 of PRD v1.0</td></tr>
+      <tr><td>Date</td><td>November 1, 2026</td></tr>
+      <tr><td>Status</td><td><span class="badge-amber">PROPOSED — PENDING FOUNDER SIGN-OFF</span></td></tr>
+      <tr><td>Authors</td><td>Founder A (Engineering) · Founder B (Design &amp; Docs)</td></tr>
+      <tr><td>Reference</td><td>ManagementEwallet reference screens</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════ TOC ═══════════════ -->
+<h2>Table of Contents</h2>
+<table class="toc">
+  <tr><td>1. Summary of the Change</td></tr>
+  <tr><td>2. Goals &amp; Success Metrics</td></tr>
+  <tr><td>3. Reference Screens Analysed</td></tr>
+  <tr><td>4. Scope</td></tr>
+  <tr><td>5. User Roles &amp; Permissions</td></tr>
+  <tr><td>6. Functional Requirements (6.1 Wallet · 6.2 Deposits · 6.3 Wallet Checkout · 6.4 Refunds · 6.5 Withdrawals · 6.6 Ledger · 6.7 Admin Panel · 6.8 Notifications)</td></tr>
+  <tr><td>7. Core Flows</td></tr>
+  <tr><td>8. Order Lifecycle Impact</td></tr>
+  <tr><td>9. Data Model Changes</td></tr>
+  <tr><td>10. API Changes</td></tr>
+  <tr><td>11. Page Map Changes</td></tr>
+  <tr><td>12. UX Requirements</td></tr>
+  <tr><td>13. Security, Fraud &amp; Compliance</td></tr>
+  <tr><td>14. Non-Functional Requirements</td></tr>
+  <tr><td>15. Migration Plan</td></tr>
+  <tr><td>16. Delivery Phases</td></tr>
+  <tr><td>17. Acceptance Criteria (Key Scenarios)</td></tr>
+  <tr><td>18. Analytics &amp; KPIs to Instrument</td></tr>
+  <tr><td>19. Open Questions for Founders</td></tr>
+  <tr><td>20. Changes to PRD v1.0 (Traceability)</td></tr>
+</table>
+
+<!-- ═══════════════ 1. SUMMARY ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>1. Summary of the Change</h2>
+<p>PRD v1.0 uses a per-order manual payment: the customer pays outside the platform and submits a transaction ID against each order, and an admin verifies it. v1.1 replaces this with a wallet-based system, based on the ManagementEwallet reference screens:</p>
+<ol>
+  <li>The customer <strong>deposits</strong> money into a personal TSH Wallet (bKash, Nagad, Rocket or Binance) by sending money to the platform's number/address, then submitting the amount + Transaction ID.</li>
+  <li>An admin <strong>approves or declines</strong> the deposit. On approval the wallet is credited.</li>
+  <li>At checkout the customer <strong>pays for the order from wallet balance</strong> instantly. No per-order TrxID submission.</li>
+  <li>The customer can request a <strong>withdrawal/refund</strong> of unused balance, which an admin reviews and pays out.</li>
+  <li>Every money movement is recorded in an <strong>immutable ledger</strong> shown in the customer's History page.</li>
+</ol>
+<p><strong>Why:</strong> one-time verification per deposit instead of per order, faster checkout, simpler refunds (credit back to wallet), clean accounting, and a path to automated gateways later.</p>
+
+<h2>2. Goals &amp; Success Metrics</h2>
+<table>
+  <tr><th>Goal</th><th>Metric</th><th>Target (launch + 90 days)</th></tr>
+  <tr><td>Faster checkout</td><td>Time from "Place order" to "Paid" for users with sufficient balance</td><td>&lt; 5 seconds</td></tr>
+  <tr><td>Fast deposit confirmation</td><td>Median time deposit submitted → approved/declined</td><td>&lt; 1 hour</td></tr>
+  <tr><td>Reduce admin workload</td><td>Payment verifications per paid order</td><td>≤ 0.6 (down from 1.0)</td></tr>
+  <tr><td>Financial accuracy</td><td>Wallet balance = sum of ledger entries (reconciliation mismatches)</td><td>0</td></tr>
+  <tr><td>Fraud control</td><td>Duplicate/fake TrxID deposits credited</td><td>0</td></tr>
+  <tr><td>Adoption</td><td>Share of paid orders funded from wallet</td><td>≥ 90%</td></tr>
+</table>
+
+<h2>3. Reference Screens Analysed</h2>
+<h3>Customer — "Deposit" page (sidebar: Overview, Deposit, Withdraw, History, Profile)</h3>
+<ul>
+  <li>Method tabs: <strong>bKash / Nagad / Binance</strong>.</li>
+  <li>Dashed box showing the platform receiving number (e.g. 01XXX-XXXXXX) with a <strong>Copy</strong> button.</li>
+  <li>3-step instructions: copy number → send from your bKash/Nagad/Binance app → confirm with amount and Transaction ID.</li>
+  <li>Fields: <strong>Amount (<span class="taka">৳</span>)</strong> and <strong>Transaction ID</strong>; button <strong>Confirm</strong>.</li>
+</ul>
+<h3>Admin panel</h3>
+<ul>
+  <li>KPI cards: Total Users, Total User Balances, Pending Deposits, Pending Withdrawals.</li>
+  <li>Tabs: <strong>Deposits, Withdrawals, Users, Settings</strong>.</li>
+  <li>Deposit table: Time (UTC), User, Method, Amount, TrxID, Action (Approve / Decline, or an Approved badge once processed).</li>
+</ul>
+<div class="note"><strong>Gaps in the reference to fix in TSH</strong> (all specified below): no decline reason, no duplicate-TrxID protection, no Binance currency conversion, no min/max limits, no ledger or reconciliation, no audit trail, no rejected/expired status badges, no screenshot proof, and the amount field has no validation rules.</div>
+
+<!-- ═══════════════ 4. SCOPE ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>4. Scope</h2>
+<h3>In scope (v1.1)</h3>
+<ul>
+  <li>TSH Wallet per user (single currency: BDT).</li>
+  <li>Deposits via bKash, Nagad, Rocket and Binance (USDT) with manual admin verification.</li>
+  <li>Pay for orders from wallet; wallet-funded checkout.</li>
+  <li>Withdrawals (refund payout) with admin processing.</li>
+  <li>Immutable wallet ledger, customer History page, CSV export.</li>
+  <li>Admin: deposits queue, withdrawals queue, user wallets, payment Settings, reconciliation report.</li>
+  <li>Notifications for every wallet event.</li>
+  <li>Migration of existing per-order payments.</li>
+</ul>
+<h3>Out of scope (v1.1)</h3>
+<ul>
+  <li>Automated gateway APIs (bKash/Nagad/Binance Pay) — design keeps provider/providerRef hooks.</li>
+  <li>Wallet-to-wallet transfers between customers.</li>
+  <li>Multi-currency balances (Binance deposits are converted to BDT on credit).</li>
+  <li>Interest, cashback or promo credit (reserved for a later release).</li>
+  <li>Mixed payment at checkout (part wallet / part external). Customer must top up the shortfall first.</li>
+</ul>
+
+<h2>5. User Roles &amp; Permissions</h2>
+<table>
+  <tr><th>Capability</th><th>CUSTOMER</th><th>ADMIN</th></tr>
+  <tr><td>View own wallet balance, history</td><td>Yes</td><td>Yes (any user)</td></tr>
+  <tr><td>Submit deposit request</td><td>Yes</td><td>Yes (own)</td></tr>
+  <tr><td>Approve / decline deposit</td><td>No</td><td>Yes</td></tr>
+  <tr><td>Pay order from wallet</td><td>Yes (own orders)</td><td>No (cannot spend a customer's balance)</td></tr>
+  <tr><td>Submit withdrawal request</td><td>Yes</td><td>Yes (own)</td></tr>
+  <tr><td>Approve / reject / mark paid withdrawal</td><td>No</td><td>Yes</td></tr>
+  <tr><td>Manual balance adjustment (credit/debit)</td><td>No</td><td>Yes — requires reason, audited, max per-action limit</td></tr>
+  <tr><td>Edit payment methods, limits, fees</td><td>No</td><td>Yes</td></tr>
+</table>
+<p>Roles remain server-authoritative; no wallet endpoint accepts a user ID, role, balance or status from the client.</p>
+
+<!-- ═══════════════ 6. FRs ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>6. Functional Requirements</h2>
+<p>Priority: MUST / SHOULD / COULD. These requirements replace FR‑16, FR‑17 and FR‑18 and extend FR‑24, FR‑26, FR‑29.</p>
+
+<h3>6.1 Wallet</h3>
+<table>
+  <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>WAL‑01</td><td>Every user gets exactly one wallet, created automatically at account provisioning (<code>/auth/sync</code>). Existing users are back-filled with a zero balance.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WAL‑02</td><td>Balance is stored as <code>Decimal(12,2)</code> in BDT and serialized as a string (no floats).</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WAL‑03</td><td>Balance can never go negative. Enforced by a database <code>CHECK</code> constraint and by application logic.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WAL‑04</td><td>Balance is changed only by creating a ledger entry inside the same database transaction (see 6.6). No code path may update the balance directly.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WAL‑05</td><td>Wallet shows <strong>Available balance</strong> and <strong>Pending (held) balance</strong> (funds reserved by pending withdrawals).</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WAL‑06</td><td>Wallet has status <code>ACTIVE</code>, <code>FROZEN</code>, <code>CLOSED</code>. A frozen wallet blocks spend and withdrawals but still allows viewing. Admin can freeze with a reason.</td><td class="pri pri-must">MUST</td></tr>
+</table>
+
+<h3>6.2 Deposits</h3>
+<table>
+  <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>DEP‑01</td><td>Customer selects a method (bKash, Nagad, Rocket, Binance). Only methods enabled in Settings are shown.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑02</td><td>The page shows the platform's receiving account for the chosen method (number or wallet address, account type e.g. Personal/Agent, QR for Binance) with a one-tap <strong>Copy</strong> button and a copied confirmation.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑03</td><td>Customer submits <strong>Amount</strong> and <strong>Transaction ID</strong>. A screenshot of the payment is optional (SHOULD for Binance and for amounts above the configured threshold).</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑04</td><td>Amount validation: numeric, 2 decimals max, within the method's min/max (defaults: min <span class="taka">৳</span>100, max <span class="taka">৳</span>50,000 per deposit; configurable).</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑05</td><td>TrxID uniqueness: a TrxID is unique per method across all non-declined deposits (case-insensitive, trimmed). A duplicate is rejected immediately with <code>DUPLICATE_TRX_ID</code>.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑06</td><td>New deposits are created with status <code>PENDING</code>. The customer sees them in History immediately.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑07</td><td>Admin sees all pending deposits oldest-first with: time (UTC), user, method, amount, TrxID, screenshot, and the user's prior approval history.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑08</td><td><strong>Approve:</strong> admin may confirm or correct the received amount (if the actual received amount differs, the corrected amount is credited and the difference is recorded). The wallet is credited via a <code>DEPOSIT</code> ledger entry.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑09</td><td><strong>Decline:</strong> admin must pick a reason (<code>TRX_NOT_FOUND</code>, <code>AMOUNT_MISMATCH</code>, <code>DUPLICATE</code>, <code>SUSPECTED_FRAUD</code>, <code>OTHER</code>) and may add a note. The customer sees the reason.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑10</td><td>A processed deposit is final. Approve/decline can be applied only once (idempotent; second click returns the current state).</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑11</td><td>Pending deposits not processed within 72 hours are flagged <code>STALE</code> in the admin queue and the customer is told they can contact support. They are not auto-declined.</td><td class="pri pri-should">SHOULD</td></tr>
+  <tr><td>DEP‑12</td><td>A customer may cancel their own deposit only while it is <code>PENDING</code>.</td><td class="pri pri-should">SHOULD</td></tr>
+  <tr><td>DEP‑13</td><td>Rate limit: maximum 5 pending deposits per user and 10 submissions per hour.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑14</td><td><strong>Binance (USDT):</strong> customer enters the USDT amount; the system shows the BDT equivalent using the admin-configured rate (Settings). The BDT value is frozen on the deposit at submission and credited on approval. The admin may adjust only with a recorded reason.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>DEP‑15</td><td>Optional deposit fee (percentage and/or flat) per method, configured in Settings, shown to the customer before confirming and recorded as a separate <code>FEE</code> ledger entry. Default: 0.</td><td class="pri pri-could">COULD</td></tr>
+</table>
+
+<h3>6.3 Paying for Orders from Wallet</h3>
+<table>
+  <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>PAY‑01</td><td>At checkout the customer sees wallet balance, order total, and remaining balance after payment.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>PAY‑02</td><td>If balance ≥ total, <strong>Pay with Wallet</strong> places the order and debits the wallet in one database transaction (order creation + <code>ORDER_PAYMENT</code> ledger entry + payment record <code>PAID</code>).</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>PAY‑03</td><td>If balance &lt; total, the checkout shows the shortfall and a <strong>Top up <span class="taka">৳</span>X</strong> shortcut that opens the Deposit page pre-filled, then returns to checkout. The cart is preserved.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>PAY‑04</td><td>The idempotency key (FR‑13) also protects the wallet debit: a retried request never charges twice.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>PAY‑05</td><td>The charged amount is computed server-side from the order snapshot. The client sends no price.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>PAY‑06</td><td>The customer-facing order page shows payment status <code>PAID</code> with the ledger reference and receipt.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>PAY‑07</td><td>Pricing is not tied to payment method. Wallet balance is BDT only.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>PAY‑08</td><td>Optional partial/milestone payment (e.g. 50% upfront, 50% on delivery): the order stores <code>amountPaid</code> and <code>amountDue</code>; the second charge happens automatically from wallet when the order reaches <code>COMPLETED</code>, or the customer pays manually.</td><td class="pri pri-could">COULD</td></tr>
+</table>
+
+<div class="pagebreak"></div>
+<h3>6.4 Refunds &amp; Cancellations</h3>
+<table>
+  <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>REF‑01</td><td>When an order is <code>CANCELLED</code> or <code>REJECTED</code>, the amount paid is automatically credited back to the wallet as a <code>REFUND</code> ledger entry.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>REF‑02</td><td>Customer cancellation remains allowed only in SUBMITTED / UNDER_REVIEW (per PRD v1.0 Section 6) and gives a full refund.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>REF‑03</td><td>Admin may issue a full or partial refund on any order with a reason. Capped at <code>amountPaid − amountAlreadyRefunded</code>.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>REF‑04</td><td>Refunds go to the wallet only. Cash-out to bKash/Nagad/Binance is done through a withdrawal request.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>REF‑05</td><td>Refund policy text is configurable in Settings and shown at checkout and on the Withdraw page.</td><td class="pri pri-should">SHOULD</td></tr>
+</table>
+
+<h3>6.5 Withdrawals</h3>
+<table>
+  <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>WDR‑01</td><td>Customer selects a payout method (bKash, Nagad, Rocket, Binance), enters the destination account/address, the amount and (for Binance) the network.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WDR‑02</td><td>Validation: amount ≤ available balance; within min/max (defaults: min <span class="taka">৳</span>200, max <span class="taka">৳</span>50,000 per request; configurable); destination format check (11-digit Bangladeshi mobile number for bKash/Nagad/Rocket; address format for Binance).</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WDR‑03</td><td>On submission the requested amount is <strong>held</strong>: available balance decreases and pending balance increases through a <code>WITHDRAWAL_HOLD</code> ledger entry.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WDR‑04</td><td>Statuses: <code>PENDING → APPROVED → PAID</code>, or <code>PENDING → REJECTED</code> (hold released), or customer-cancelled (hold released).</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WDR‑05</td><td>Admin marks a withdrawal <strong>PAID</strong> after sending the money, entering the outgoing TrxID (required) and optional proof. The hold is converted into a final <code>WITHDRAWAL</code> ledger entry.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WDR‑06</td><td>Admin rejection requires a reason; the hold is released with a <code>WITHDRAWAL_RELEASE</code> entry.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WDR‑07</td><td>A configurable processing fee (percentage/flat) and a daily withdrawal cap per user. Default fee 0.</td><td class="pri pri-should">SHOULD</td></tr>
+  <tr><td>WDR‑08</td><td>Security step: first withdrawal to a <strong>new destination</strong> requires re-authentication (Firebase recent-login or email OTP) and a 24-hour cooling period before it can be approved.</td><td class="pri pri-should">SHOULD</td></tr>
+  <tr><td>WDR‑09</td><td>Withdrawals are blocked if the user has an open dispute, a frozen wallet, or an unverified email.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>WDR‑10</td><td>Only balance from approved deposits and refunds is withdrawable. Funds that have never been used for a purchase can be withdrawn only after a configurable holding period (default 24h) to reduce money-laundering and chargeback-style abuse.</td><td class="pri pri-should">SHOULD</td></tr>
+</table>
+
+<h3>6.6 Ledger (Source of Truth)</h3>
+<table>
+  <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>LED‑01</td><td>Every balance change creates one immutable <code>WalletTransaction</code> row. Rows are never updated or deleted. Corrections are made by new compensating rows.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>LED‑02</td><td>Each row stores: type, amount (always positive), direction (CREDIT/DEBIT), <code>balanceBefore</code>, <code>balanceAfter</code>, reference type/ID (deposit, withdrawal, order), actor (user or admin), reason and timestamp.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>LED‑03</td><td>Entry types: <code>DEPOSIT</code>, <code>ORDER_PAYMENT</code>, <code>REFUND</code>, <code>WITHDRAWAL_HOLD</code>, <code>WITHDRAWAL_RELEASE</code>, <code>WITHDRAWAL</code>, <code>FEE</code>, <code>ADMIN_CREDIT</code>, <code>ADMIN_DEBIT</code>, <code>REVERSAL</code>.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>LED‑04</td><td>Invariant: <code>wallet.balance = Σ credits − Σ debits</code>. A nightly job recomputes this for every wallet and alerts on any mismatch.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>LED‑05</td><td>The customer's History page lists ledger entries and request statuses with filters (type, date range, status), pagination and CSV export.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>LED‑06</td><td>Every wallet mutation is written to AuditLog with actor, action, target and payload (extends FR‑29).</td><td class="pri pri-must">MUST</td></tr>
+</table>
+
+<div class="pagebreak"></div>
+<h3>6.7 Admin Panel</h3>
+<table>
+  <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>ADM‑01</td><td>Dashboard KPI cards: Total Users, Total Wallet Liability (sum of all balances), Pending Deposits (count + amount), Pending Withdrawals (count + amount), Today's Approved Deposits, Today's Paid Withdrawals.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>ADM‑02</td><td>Tabs: Deposits · Withdrawals · Users · Orders/Refunds · Settings · Reports.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>ADM‑03</td><td>Deposits tab: filter by status/method/date/user/TrxID search; row actions Approve / Decline (with reason modal); badges Pending, Approved, Declined, Stale; bulk-approve disabled by design to force a check on every TrxID.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>ADM‑04</td><td>Withdrawals tab: Approve, Reject, Mark as Paid (with outgoing TrxID).</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>ADM‑05</td><td>Users tab: balance, total deposited, total spent, total withdrawn, status, freeze/unfreeze, ledger view, manual adjustment (reason required, per-action cap, second-admin confirmation above a configurable threshold).</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>ADM‑06</td><td>Settings tab: per-method on/off, receiving account/number/address, QR image, account type, min/max, fee, USDT→BDT rate and its last-updated time, daily limits, stale-deposit hours, refund policy text, maintenance mode for the wallet.</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>ADM‑07</td><td>Reports: daily/monthly deposits, withdrawals, net inflow, per-method totals, reconciliation status, CSV export.</td><td class="pri pri-should">SHOULD</td></tr>
+  <tr><td>ADM‑08</td><td>Real-time or 30-second polling refresh of pending counts and a sound/visual alert for new deposits.</td><td class="pri pri-could">COULD</td></tr>
+</table>
+
+<h3>6.8 Notifications</h3>
+<table>
+  <tr><th>Event</th><th>Recipient</th><th>Channel</th></tr>
+  <tr><td>Deposit submitted</td><td>Customer, Admins</td><td>In-app (+ admin badge)</td></tr>
+  <tr><td>Deposit approved / declined (with reason)</td><td>Customer</td><td>In-app</td></tr>
+  <tr><td>Order paid from wallet</td><td>Customer</td><td>In-app</td></tr>
+  <tr><td>Refund credited</td><td>Customer</td><td>In-app</td></tr>
+  <tr><td>Withdrawal submitted / approved / paid / rejected</td><td>Customer (Admin on submit)</td><td>In-app</td></tr>
+  <tr><td>Low-balance warning when pending order needs top-up</td><td>Customer</td><td>In-app</td></tr>
+  <tr><td>Reconciliation mismatch</td><td>Admins</td><td>In-app</td></tr>
+</table>
+
+<!-- ═══════════════ 7. FLOWS ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>7. Core Flows</h2>
+<h3>7.1 Deposit</h3>
+<div class="flow">
+<ol>
+  <li>Customer opens Deposit, picks a method, copies the account number.</li>
+  <li>Sends money from the external app.</li>
+  <li>Enters amount + TrxID (+ optional screenshot) and presses Confirm.</li>
+  <li>Server validates limits and uniqueness and creates the DepositRequest as PENDING.</li>
+  <li>Admin verifies the money in the real bKash/Nagad/Binance account, then Approves or Declines.</li>
+  <li>On Approve, inside one transaction: lock wallet row → write DEPOSIT ledger entry → update balance → mark deposit APPROVED → write audit log → create notification.</li>
+  <li>Customer sees the new balance and the History entry.</li>
+</ol>
+</div>
+<h3>7.2 Checkout with Wallet</h3>
+<div class="flow">
+<ol>
+  <li>Customer reviews the cart and chooses the founder (unchanged from v1.0).</li>
+  <li>Checkout shows total and wallet balance.</li>
+  <li>Sufficient: Pay with Wallet → order created SUBMITTED + payment PAID + ledger debit, atomically.</li>
+  <li>Insufficient: Top up shortfall → deposit approved → return to checkout.</li>
+  <li>The order then follows the 7-stage pipeline.</li>
+</ol>
+</div>
+<h3>7.3 Withdrawal</h3>
+<div class="flow">
+<ol>
+  <li>Customer opens Withdraw, chooses method, destination and amount.</li>
+  <li>System holds the amount (WITHDRAWAL_HOLD).</li>
+  <li>Admin sends the money externally and marks Paid with the outgoing TrxID.</li>
+  <li>Ledger finalizes with WITHDRAWAL; customer is notified. If rejected, the hold is released.</li>
+</ol>
+</div>
+<h3>7.4 Cancellation Refund</h3>
+<div class="flow">Cancel/reject → server checks amountPaid → REFUND ledger entry → wallet credited → notification.</div>
+
+<h2>8. Order Lifecycle Impact</h2>
+<p>The 7-stage pipeline is unchanged. Payment now interacts with it as follows:</p>
+<table>
+  <tr><th>Stage</th><th>Payment rule in v1.1</th></tr>
+  <tr><td>SUBMITTED</td><td>Order exists only if payment succeeded. No unpaid orders are created.</td></tr>
+  <tr><td>UNDER_REVIEW</td><td>Funds are held as PAID. Customer cancel → full refund to wallet.</td></tr>
+  <tr><td>APPROVED → IN_PROGRESS</td><td>No payment step needed (previously "payment being confirmed"). Founder may start immediately.</td></tr>
+  <tr><td>QUALITY_REVIEW / COMPLETED / DELIVERED</td><td>No payment action. (With PAY‑08 enabled, the final instalment is charged at COMPLETED.)</td></tr>
+  <tr><td>REJECTED / CANCELLED</td><td>Automatic refund of the net paid amount.</td></tr>
+</table>
+<p><strong>Result:</strong> the old gating rule "payment status gates order progression" (FR‑17) is satisfied at order creation, which removes the payment-verification wait from the delivery timeline.</p>
+
+<!-- ═══════════════ 9. DATA MODEL ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>9. Data Model Changes</h2>
+<p>UUID primary keys, <code>Decimal(12,2)</code> money, all timestamps in UTC.</p>
+<table>
+  <tr><th>Model</th><th>Key fields</th><th>Notes</th></tr>
+  <tr><td><strong>Wallet</strong> (new)</td><td>id, userId (unique), balance, heldBalance, status, frozenReason, version</td><td><code>CHECK (balance &gt;= 0 AND heldBalance &gt;= 0)</code>; version for optimistic locking</td></tr>
+  <tr><td><strong>WalletTransaction</strong> (new)</td><td>id, walletId, type, direction, amount, balanceBefore, balanceAfter, refType, refId, actorId, reason, createdAt</td><td>Append-only; indexed on <code>(walletId, createdAt)</code> and <code>(refType, refId)</code></td></tr>
+  <tr><td><strong>DepositRequest</strong> (new)</td><td>id, userId, method, amountClaimed, amountCredited, currency, usdtAmount, fxRate, trxId, trxIdNormalized, screenshotUrl, status, declineReason, adminNote, reviewedBy, reviewedAt, createdAt</td><td>Unique index on <code>(method, trxIdNormalized)</code> where status ≠ DECLINED</td></tr>
+  <tr><td><strong>WithdrawalRequest</strong> (new)</td><td>id, userId, method, destination, network, amount, fee, status, rejectReason, outgoingTrxId, proofUrl, reviewedBy, paidAt, createdAt</td><td>Hold ledger entry referenced by refId</td></tr>
+  <tr><td><strong>PaymentMethodConfig</strong> (new)</td><td>method (PK), enabled, accountLabel, accountValue, accountType, qrUrl, minDeposit, maxDeposit, minWithdraw, maxWithdraw, feePercent, feeFlat, updatedBy, updatedAt</td><td>Editable from admin Settings</td></tr>
+  <tr><td><strong>WalletSetting</strong> (new)</td><td>key, value (JSON)</td><td>USDT→BDT rate, stale hours, daily caps, refund policy text, maintenance flag</td></tr>
+  <tr><td><strong>Payment</strong> (changed)</td><td>add <code>provider = WALLET</code>, walletTransactionId, amountPaid, amountRefunded</td><td>Replaces manual TrxID submission for orders; old rows kept as <code>provider = MANUAL</code></td></tr>
+  <tr><td><strong>Order</strong> (changed)</td><td>add amountPaid, amountRefunded, paymentStatus (<code>PAID</code>, <code>PARTIALLY_REFUNDED</code>, <code>REFUNDED</code>)</td><td>Order creation requires a successful wallet debit</td></tr>
+  <tr><td>AuditLog</td><td>unchanged structure</td><td>New action names for all wallet events</td></tr>
+  <tr><td>Notification</td><td>new types</td><td>Wallet event types</td></tr>
+</table>
+<h3>Required database guarantees</h3>
+<ul>
+  <li>All balance changes run in a serializable transaction or use <code>SELECT … FOR UPDATE</code> on the wallet row to prevent double-spend under concurrent requests.</li>
+  <li>Unique constraint on <code>(method, normalized TrxID)</code> to stop duplicate credits.</li>
+  <li><code>CHECK</code> constraints for non-negative balances.</li>
+  <li>Ledger tables have no UPDATE/DELETE privileges for the application role.</li>
+</ul>
+
+<!-- ═══════════════ 10. API ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>10. API Changes (Express, under <code>/api</code>, uniform envelope)</h2>
+<table>
+  <tr><th>Group</th><th>Endpoint</th><th>Auth</th></tr>
+  <tr><td>Wallet</td><td><code>GET /wallet</code> (balance, held, status) · <code>GET /wallet/transactions</code> (filters, pagination) · <code>GET /wallet/transactions/export</code> (CSV)</td><td>Authenticated</td></tr>
+  <tr><td>Payment methods</td><td><code>GET /payment-methods</code> (enabled methods, receiving account, limits, fees, rate)</td><td>Authenticated</td></tr>
+  <tr><td>Deposits</td><td><code>POST /deposits</code> · <code>GET /deposits</code> · <code>GET /deposits/:id</code> · <code>POST /deposits/:id/cancel</code></td><td>Authenticated + ownership</td></tr>
+  <tr><td>Withdrawals</td><td><code>POST /withdrawals</code> · <code>GET /withdrawals</code> · <code>POST /withdrawals/:id/cancel</code></td><td>Authenticated + ownership</td></tr>
+  <tr><td>Orders</td><td><code>POST /orders</code> now takes <code>paymentMode: "WALLET"</code> and the idempotency key; returns <code>INSUFFICIENT_BALANCE</code> with the shortfall when needed. <code>POST /orders/:id/payments</code> is deprecated (kept read-only for legacy orders).</td><td>Authenticated</td></tr>
+  <tr><td>Admin – deposits</td><td><code>GET /admin/deposits</code> · <code>POST /admin/deposits/:id/approve</code> · <code>POST /admin/deposits/:id/decline</code></td><td>ADMIN (audited)</td></tr>
+  <tr><td>Admin – withdrawals</td><td><code>GET /admin/withdrawals</code> · <code>POST /admin/withdrawals/:id/approve</code> · <code>…/reject</code> · <code>…/mark-paid</code></td><td>ADMIN (audited)</td></tr>
+  <tr><td>Admin – wallets</td><td><code>GET /admin/wallets</code> · <code>GET /admin/wallets/:userId</code> · <code>POST /admin/wallets/:userId/adjust</code> · <code>POST /admin/wallets/:userId/freeze</code></td><td>ADMIN (audited)</td></tr>
+  <tr><td>Admin – refunds</td><td><code>POST /admin/orders/:id/refund</code></td><td>ADMIN (audited)</td></tr>
+  <tr><td>Admin – settings</td><td><code>GET/PUT /admin/payment-methods</code> · <code>GET/PUT /admin/wallet-settings</code></td><td>ADMIN (audited)</td></tr>
+  <tr><td>Admin – reports</td><td><code>GET /admin/reports/wallet</code> · <code>GET /admin/reports/reconciliation</code></td><td>ADMIN</td></tr>
+</table>
+<p><strong>New error codes:</strong> <code>INSUFFICIENT_BALANCE</code>, <code>DUPLICATE_TRX_ID</code>, <code>AMOUNT_OUT_OF_RANGE</code>, <code>METHOD_DISABLED</code>, <code>WALLET_FROZEN</code>, <code>WITHDRAWAL_BLOCKED</code>, <code>ALREADY_PROCESSED</code>, <code>RATE_LIMITED</code>, <code>INVALID_DESTINATION</code>.</p>
+<p>Every request body is zod-validated. Money is always sent and returned as a string.</p>
+
+<h2>11. Page Map Changes</h2>
+<table>
+  <tr><th>Area</th><th>Route</th><th>Purpose</th></tr>
+  <tr><td>Customer</td><td><code>/wallet</code></td><td>Overview: balance, held amount, quick Deposit/Withdraw, recent activity</td></tr>
+  <tr><td>Customer</td><td><code>/wallet/deposit</code></td><td>Method tabs, copy-account box, steps, amount + TrxID + screenshot, status of pending deposits</td></tr>
+  <tr><td>Customer</td><td><code>/wallet/withdraw</code></td><td>Method, destination, amount, fee preview, refund policy</td></tr>
+  <tr><td>Customer</td><td><code>/wallet/history</code></td><td>Ledger and request history with filters and CSV export</td></tr>
+  <tr><td>Checkout</td><td><code>/checkout</code></td><td>Wallet balance panel, Pay with Wallet, Top-up shortcut</td></tr>
+  <tr><td>Customer</td><td><code>/orders/[id]</code></td><td>Payment section shows PAID, receipt, refund status (no TrxID form)</td></tr>
+  <tr><td>Admin</td><td><code>/admin</code></td><td>New KPI cards</td></tr>
+  <tr><td>Admin</td><td><code>/admin/deposits</code>, <code>/admin/withdrawals</code></td><td>Queues with actions</td></tr>
+  <tr><td>Admin</td><td><code>/admin/wallets</code>, <code>/admin/wallets/[userId]</code></td><td>User balances, ledger, adjust, freeze</td></tr>
+  <tr><td>Admin</td><td><code>/admin/settings/payments</code></td><td>Methods, limits, fees, rate, policy</td></tr>
+  <tr><td>Admin</td><td><code>/admin/reports</code></td><td>Financial and reconciliation reports</td></tr>
+</table>
+<p>The existing <code>/admin/payments</code> page is retired and replaced by deposits/withdrawals.</p>
+
+<!-- ═══════════════ 12. UX ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>12. UX Requirements</h2>
+<ul>
+  <li>Keep the visual language of the reference (dark green theme, yellow primary CTA, rounded cards, Bengali labels). Support Bangla and English with a language toggle; all money shown as <span class="taka">৳</span> 1,234.50.</li>
+  <li>Deposit page: selected method highlighted, copy button gives feedback, inline validation messages, submit button disabled until valid, and a clear "waiting for admin approval" state with an estimated time.</li>
+  <li>Status badges with consistent colors: <strong>Pending</strong> (amber), <strong>Approved/Paid</strong> (green), <strong>Declined/Rejected</strong> (red), <strong>Stale</strong> (orange), <strong>Held</strong> (blue).</li>
+  <li>Confirmation modal before any irreversible admin action; decline requires a reason.</li>
+  <li>Empty, loading and error states for every list; mobile-first layout (Bangladesh traffic is mostly mobile) with a bottom-sheet pattern for forms.</li>
+  <li>Accessibility: keyboard navigable, minimum 4.5:1 contrast, status shown by text as well as color.</li>
+</ul>
+
+<h2>13. Security, Fraud &amp; Compliance</h2>
+<table>
+  <tr><th>Risk</th><th>Control</th></tr>
+  <tr><td>Fake or reused TrxID</td><td>Unique normalized TrxID per method; admin must verify in the real merchant account before approving; screenshot required above a threshold</td></tr>
+  <tr><td>Double-spend / race conditions</td><td>Row locks or serializable transactions; idempotency keys; version column</td></tr>
+  <tr><td>Admin abuse or error</td><td>AuditLog on every action; manual adjustment needs a reason, a per-action cap and second-admin approval over a threshold; admins cannot spend customer balances; dual-control for changing receiving account numbers</td></tr>
+  <tr><td>Account takeover → withdrawal</td><td>Re-authentication, 24h cooling for new destinations, email notification on every withdrawal, daily caps</td></tr>
+  <tr><td>Money laundering / chargeback-style abuse</td><td>Holding period before withdrawing unused deposits, velocity limits, freeze capability, flagging of repeated deposit-then-withdraw behaviour</td></tr>
+  <tr><td>Receiving-account phishing</td><td>Receiving numbers come only from authenticated server settings, never from client input</td></tr>
+  <tr><td>Data exposure</td><td>Customers see only their own wallet; screenshots served by signed Cloudinary URLs; no stack traces in errors</td></tr>
+  <tr><td>Rate abuse</td><td>Per-user and per-IP limits on deposit/withdrawal endpoints; stricter limiter retained for auth/contact</td></tr>
+  <tr><td>Regulatory</td><td>Holding customer funds as stored value may require legal review in Bangladesh (e-money / payment service provider rules, Bangladesh Bank, and rules on crypto such as Binance). Legal and tax advice must be obtained before launch; this PRD is not legal advice. Keep wallet use limited to TSH services only (closed-loop).</td></tr>
+</table>
+
+<h2>14. Non-Functional Requirements</h2>
+<ul>
+  <li><strong>Consistency:</strong> zero tolerance for balance drift; nightly reconciliation job with alerts.</li>
+  <li><strong>Performance:</strong> wallet and history pages &lt; 500 ms p95; checkout payment &lt; 2 s p95.</li>
+  <li><strong>Availability:</strong> wallet maintenance-mode switch; deposits can still be queued when payments are paused.</li>
+  <li><strong>Backups &amp; recovery:</strong> point-in-time recovery on Neon; ledger exportable to CSV daily.</li>
+  <li><strong>Observability:</strong> structured logs with request ID, alerts for stale deposits, reconciliation mismatches, and error-rate spikes.</li>
+  <li><strong>Testing:</strong> Vitest suites for money math, ledger invariants, concurrency (parallel debits), idempotency, state transitions, permission checks, and migration scripts. Target ≥ 90% coverage on wallet domain code.</li>
+  <li><strong>Serverless note:</strong> because Express runs in Vercel functions, all multi-step wallet operations must be single database transactions; no in-memory state or background timers (use scheduled Vercel Cron for reconciliation and stale-deposit flags).</li>
+</ul>
+
+<!-- ═══════════════ 15. MIGRATION ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>15. Migration Plan</h2>
+<ol>
+  <li><strong>Schema:</strong> add new tables and columns (additive only; no destructive change).</li>
+  <li><strong>Back-fill:</strong> create zero-balance wallets for all users; mark existing payments <code>provider = MANUAL</code>.</li>
+  <li><strong>Open orders in flight:</strong> orders with PENDING manual payments continue through the old verification path (read-only admin queue) until resolved; new orders must use the wallet.</li>
+  <li><strong>Feature flag:</strong> <code>WALLET_ENABLED</code> per environment. Roll out to staging, then to the two founders' accounts, then to all users.</li>
+  <li><strong>Data check:</strong> compare totals before/after; run reconciliation; keep the old payments page available read-only for 30 days.</li>
+  <li><strong>Cut-over:</strong> disable <code>POST /orders/:id/payments</code> for new orders; announce to customers in-app.</li>
+  <li><strong>Rollback:</strong> feature flag off restores the legacy flow; wallet balances remain intact and can be refunded manually via the withdrawal process.</li>
+</ol>
+
+<h2>16. Delivery Phases</h2>
+<table>
+  <tr><th>Phase</th><th>Scope</th><th>Exit criteria</th></tr>
+  <tr><td>1 — Foundations</td><td>Schema, wallet creation, ledger service, settings, payment-method config</td><td>Ledger invariant tests pass</td></tr>
+  <tr><td>2 — Deposits</td><td>Customer deposit page, admin deposit queue, notifications</td><td>End-to-end approve/decline works; duplicate TrxID blocked</td></tr>
+  <tr><td>3 — Wallet checkout</td><td>Pay with Wallet, top-up shortcut, order page changes, refunds</td><td>Atomic order + debit proven under concurrency tests</td></tr>
+  <tr><td>4 — Withdrawals</td><td>Withdraw page, admin queue, holds, mark-paid</td><td>Hold/release/finalize reconciles to zero</td></tr>
+  <tr><td>5 — Admin &amp; reports</td><td>Users tab, adjustments, freeze, reports, reconciliation job</td><td>Nightly reconciliation green for 7 days</td></tr>
+  <tr><td>6 — Hardening &amp; launch</td><td>Security review, load test, legal check, migration, rollout</td><td>All acceptance criteria met</td></tr>
+</table>
+
+<h2>17. Acceptance Criteria (Key Scenarios)</h2>
+<ol>
+  <li>A customer submitting the same TrxID twice for the same method gets <code>DUPLICATE_TRX_ID</code> and no second request is created.</li>
+  <li>Approving a <span class="taka">৳</span>1,500 deposit increases the balance by exactly <span class="taka">৳</span>1,500.00, creates one ledger row with correct before/after balances, and cannot be approved a second time.</li>
+  <li>Declining a deposit requires a reason, leaves the balance unchanged, and the customer sees the reason.</li>
+  <li>Two simultaneous checkouts that together exceed the balance: exactly one succeeds, the other returns <code>INSUFFICIENT_BALANCE</code>.</li>
+  <li>Retrying the same checkout request with the same idempotency key charges once.</li>
+  <li>Cancelling an order in UNDER_REVIEW refunds the full paid amount to the wallet automatically.</li>
+  <li>A withdrawal request holds funds immediately; rejection releases them; marking paid finalizes with an outgoing TrxID.</li>
+  <li>A frozen wallet cannot pay or withdraw but can view history.</li>
+  <li>A customer cannot read or modify another user's wallet, deposits, or withdrawals (403/404).</li>
+  <li>The nightly reconciliation job reports zero mismatches on the seed and test datasets.</li>
+  <li>Every admin action appears in the AuditLog with actor, target and payload.</li>
+  <li>The Binance deposit stores the USDT amount, the exchange rate used, and the credited BDT amount.</li>
+</ol>
+
+<h2>18. Analytics &amp; KPIs to Instrument</h2>
+<p>Deposit funnel (opened → submitted → approved), median approval time, decline rate by reason, average deposit size, wallet-funded checkout rate, top-up-from-checkout conversion, withdrawal rate and average time to pay out, total wallet liability over time, and reconciliation mismatches.</p>
+
+<!-- ═══════════════ 19. OPEN QUESTIONS ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>19. Open Questions for Founders</h2>
+<table>
+  <tr><th style="width:26pt;">#</th><th>Question</th><th>Recommended default</th></tr>
+  <tr><td>1</td><td>Should unused balance be withdrawable in full, or only refunds?</td><td>Allow withdrawal of unused balance after a 24h holding period</td></tr>
+  <tr><td>2</td><td>Any fee on deposits or withdrawals?</td><td>0% at launch; fields exist in Settings</td></tr>
+  <tr><td>3</td><td>Binance: USDT only, which network (e.g. TRC20/BEP20), and who sets the USDT→BDT rate?</td><td>USDT-TRC20, rate set manually by admin and shown with timestamp</td></tr>
+  <tr><td>4</td><td>Add Rocket and bank transfer as in v1.0?</td><td>Add Rocket now; bank transfer later</td></tr>
+  <tr><td>5</td><td>Which founder(s) may approve deposits, and is a second approver needed above a threshold?</td><td>Either founder; second approver for adjustments above <span class="taka">৳</span>10,000</td></tr>
+  <tr><td>6</td><td>Enable partial/milestone payments (PAY‑08)?</td><td>Not in v1.1</td></tr>
+  <tr><td>7</td><td>Legal review of holding customer funds and accepting crypto in Bangladesh</td><td>Required before public launch</td></tr>
+  <tr><td>8</td><td>Minimum/maximum amounts and daily limits</td><td>Deposit <span class="taka">৳</span>100–<span class="taka">৳</span>50,000; withdrawal <span class="taka">৳</span>200–<span class="taka">৳</span>50,000; daily cap <span class="taka">৳</span>100,000</td></tr>
+</table>
+
+<h2>20. Changes to PRD v1.0 (Traceability)</h2>
+<table>
+  <tr><th>v1.0 item</th><th>v1.1 status</th></tr>
+  <tr><td>FR‑16 Manual TrxID submission per order</td><td>Replaced by DEP‑01 to DEP‑15 and PAY‑01 to PAY‑07</td></tr>
+  <tr><td>FR‑17 Admin verifies each order payment</td><td>Replaced by deposit approval (DEP‑07 to DEP‑10)</td></tr>
+  <tr><td>FR‑18 Gateway-ready schema</td><td>Kept, extended with the provider field and WALLET provider</td></tr>
+  <tr><td>FR‑24 Notifications</td><td>Extended with wallet events (6.8)</td></tr>
+  <tr><td>FR‑26 Admin dashboard stats</td><td>Extended with wallet KPIs (ADM‑01)</td></tr>
+  <tr><td>FR‑29 AuditLog</td><td>Extended to all wallet mutations (LED‑06)</td></tr>
+  <tr><td>Section 4 "Out of scope: automated gateways"</td><td>Unchanged; still post-v1.1</td></tr>
+  <tr><td>Section 6 pipeline</td><td>Unchanged; payment gating moved to order creation</td></tr>
+  <tr><td>Section 12 Known Gaps</td><td>Add: legal review, wallet reconciliation job, automated gateway integration</td></tr>
+</table>
+
+<div class="warn"><strong>Status:</strong> Proposed — pending founder sign-off. Section 19 open questions must be answered before Phase 1 begins; the regulatory item (Section 13, row 9) requires external legal advice before public launch.</div>
+
+</body>
+</html>

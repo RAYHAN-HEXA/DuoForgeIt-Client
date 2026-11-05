@@ -1,18 +1,19 @@
-import type { Request, Response, NextFunction } from 'express';
-import { ok } from '../utils/envelope.js';
-import { validated } from '../middleware/validate.js';
-import { signUpload } from '../utils/cloudinary.js';
+import { getSignedUploadUrl } from '../utils/blob.js';
+import { env } from '../config/env.js';
 
 /**
- * POST /api/uploads/sign — mint a short-lived Cloudinary signature so the
- * browser uploads directly (the API secret stays server-side). The client
- * then registers the file via POST /orders/:id/attachments (or checkout's
- * attachmentIds for staged files). Returns 503 when Cloudinary isn't wired.
+ * POST /api/uploads/sign — return a signed upload URL for Vercel Blob.
+ * The client will POST the file directly to the blob URL.
  */
 export async function sign(req: Request, res: Response, next: NextFunction) {
   try {
-    const { folder } = validated<{ folder: 'requirements' | 'deliveries' | 'misc' }>(req, 'body');
-    res.json(ok(signUpload(folder)));
+    await uploadRateLimiter(req, res, async () => {
+      const { folder } = validated<{ folder: string }>(req, 'body');
+      // Generate a unique file key using folder and a UUID.
+      const fileKey = `${folder}/${crypto.randomUUID()}`;
+      const { uploadUrl } = await getSignedUploadUrl(fileKey);
+      res.json(ok({ uploadUrl, fileKey }));
+    });
   } catch (err) {
     next(err);
   }

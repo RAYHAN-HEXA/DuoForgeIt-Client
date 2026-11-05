@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TechService Hub — PRD</title>
+<style>
+  @page { size: A4; margin: 2cm 1.8cm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5pt; line-height: 1.5; color: #1a2332; margin: 0;
+  }
+  h1 { font-size: 20pt; color: #0f2b5b; margin: 0 0 4pt 0; }
+  h2 {
+    font-size: 14pt; color: #0f2b5b; margin: 22pt 0 8pt 0;
+    border-bottom: 2.5pt solid #2563eb; padding-bottom: 4pt;
+  }
+  h3 { font-size: 11.5pt; color: #1d4ed8; margin: 14pt 0 6pt 0; }
+  p { margin: 5pt 0; }
+  ul, ol { margin: 5pt 0 5pt 16pt; padding: 0; }
+  li { margin: 2.5pt 0; }
+  table {
+    width: 100%; border-collapse: collapse; margin: 8pt 0; font-size: 9.5pt;
+    border: 0.5pt solid #b9c6dd;
+  }
+  th {
+    background: #0f2b5b; color: #ffffff; text-align: left;
+    padding: 5pt 7pt; font-weight: 600;
+    border: 0.5pt solid #0f2b5b;
+  }
+  td { border: 0.5pt solid #b9c6dd; padding: 4.5pt 7pt; vertical-align: top; }
+  tr:nth-child(even) td { background: #f2f6fc; }
+  code {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 8.8pt;
+    background: #eef2f9; padding: 0.5pt 3pt; border-radius: 2pt; color: #1d3a8f;
+  }
+  .cover { text-align: center; margin-top: 60pt; page-break-after: always; }
+  .cover .brand { font-size: 13pt; letter-spacing: 3pt; color: #2563eb; font-weight: 700; }
+  .cover h1 { font-size: 30pt; margin: 16pt 0 6pt 0; color: #0f2b5b; }
+  .cover .subtitle { font-size: 13pt; color: #47566e; margin-bottom: 40pt; }
+  .cover .docinfo { display: inline-block; text-align: left; margin-top: 30pt; }
+  .cover .docinfo table { font-size: 10.5pt; }
+  .cover .docinfo td { border: none; padding: 3pt 10pt; background: none !important; }
+  .cover .docinfo td:first-child { color: #64748b; font-weight: 600; }
+  .motto { font-style: italic; color: #2563eb; font-size: 11pt; }
+  .badge {
+    display: inline-block; background: #16a34a; color: #fff; font-size: 9pt;
+    padding: 2pt 10pt; border-radius: 8pt; font-weight: 700;
+  }
+  .pri { font-weight: 700; }
+  .pri-must { color: #b91c1c; }
+  .pri-should { color: #c2740a; }
+  .pri-could { color: #15803d; }
+  .pagebreak { page-break-before: always; }
+  .note {
+    background: #fff7ed; border-left: 3pt solid #f59e0b; padding: 6pt 10pt;
+    margin: 8pt 0; font-size: 9.5pt;
+  }
+  .toc td { border: none !important; background: none !important; padding: 2.5pt 4pt; }
+  .toc .num { text-align: right; color: #64748b; width: 40pt; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ COVER ═══════════════ -->
+<div class="cover">
+  <div class="brand">TECHSERVICE HUB</div>
+  <h1>Product Requirements Document</h1>
+  <div class="subtitle">Two-Founder Digital Services Marketplace</div>
+  <div class="motto">"Your Ideas. Our Expertise. One Digital Solution."</div>
+  <div class="docinfo">
+    <table>
+      <tr><td>Version</td><td>1.0</td></tr>
+      <tr><td>Date</td><td>November 1, 2026</td></tr>
+      <tr><td>Status</td><td><span class="badge">LIVE — IN PRODUCTION</span></td></tr>
+      <tr><td style="white-space:nowrap;">Authors</td><td>Founder A (Engineering) · Founder B (Design &amp; Docs)</td></tr>
+      <tr><td>Stack</td><td>Next.js · Express · Neon PostgreSQL · Prisma · Firebase Auth · Vercel</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════ TOC ═══════════════ -->
+<h2>Table of Contents</h2>
+<table class="toc">
+  <tr><td>1. Product Overview</td><td class="num">3</td></tr>
+  <tr><td>2. Goals &amp; Success Metrics</td><td class="num">3</td></tr>
+  <tr><td>3. Users &amp; Roles</td><td class="num">4</td></tr>
+  <tr><td>4. Scope — v1</td><td class="num">4</td></tr>
+  <tr><td>5. Functional Requirements</td><td class="num">5</td></tr>
+  <tr><td>6. Order Lifecycle (7-Stage Pipeline)</td><td class="num">8</td></tr>
+  <tr><td>7. Web Page Map</td><td class="num">9</td></tr>
+  <tr><td>8. Data Model Summary</td><td class="num">10</td></tr>
+  <tr><td>9. API Summary</td><td class="num">11</td></tr>
+  <tr><td>10. Integrations</td><td class="num">12</td></tr>
+  <tr><td>11. Non-Functional Requirements</td><td class="num">12</td></tr>
+  <tr><td>12. Known Gaps &amp; Future Work</td><td class="num">13</td></tr>
+  <tr><td>Appendix A — Environments &amp; Demo Accounts</td><td class="num">13</td></tr>
+</table>
+
+<!-- ═══════════════ 1. OVERVIEW ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>1. Product Overview</h2>
+<p><strong>TechService Hub (TSH)</strong> is a two-founder IT &amp; digital-services marketplace for the Bangladesh market. Customers browse a curated service catalog (websites, software projects, UI/UX, pitch decks, documentation, e-commerce, IT consulting), configure a service with priced options, choose which founder should lead the project, pay manually via local payment rails (bKash / Nagad / Rocket / bank transfer), and track the order through a transparent seven-stage delivery pipeline until files are delivered through the dashboard.</p>
+<p>The two founders fulfill all work and administer the platform: they review submissions, verify payments, execute projects, upload deliverables, handle revision requests, and manage site content — no third-party workforce.</p>
+
+<h3>Product Principles</h3>
+<ul>
+  <li><strong>Direct access to the experts</strong> — customers pick the founder whose expertise matches the project; no account managers.</li>
+  <li><strong>Transparent milestone tracking</strong> — every order exposes a seven-stage pipeline with a full status audit trail.</li>
+  <li><strong>Server-authoritative trust</strong> — roles, order state transitions, and pricing are computed and enforced exclusively server-side.</li>
+  <li><strong>Snapshot integrity</strong> — catalog edits never mutate historical orders; price/name/option snapshots are frozen at checkout.</li>
+</ul>
+
+<h2>2. Goals &amp; Success Metrics</h2>
+<table>
+  <tr><th>Goal</th><th>Metric</th><th>Target (launch + 90 days)</th></tr>
+  <tr><td>Convert catalog browsing into paid orders</td><td>Checkout conversion rate</td><td>≥ 2% of unique visitors</td></tr>
+  <tr><td>Fast payment confirmation</td><td>Median time: payment submitted → verified</td><td>&lt; 2 hours</td></tr>
+  <tr><td>Reliable delivery</td><td>Orders delivered by agreed deadline</td><td>≥ 90%</td></tr>
+  <tr><td>Customer satisfaction</td><td>Average review rating on delivered orders</td><td>≥ 4.5 / 5</td></tr>
+  <tr><td>Healthy revision load</td><td>Revision requests per delivered order</td><td>&lt; 1.5</td></tr>
+</table>
+
+<!-- ═══════════════ 3. USERS ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>3. Users &amp; Roles</h2>
+<table>
+  <tr><th>Role</th><th>Who</th><th>Capabilities</th></tr>
+  <tr><td><strong>CUSTOMER</strong></td><td>Buyers of services</td><td>Browse catalog, manage cart, checkout, submit payments, track orders, request revisions, download deliverables, review completed orders, contact support</td></tr>
+  <tr><td><strong>ADMIN</strong></td><td>The two co-founders</td><td>Everything a customer can do, plus: stats dashboard, order management &amp; assignment, deliverable uploads, payment verification, revision responses, customer management, message inbox, review curation, homepage CMS</td></tr>
+</table>
+<p>There are exactly two roles (<code>CUSTOMER</code> | <code>ADMIN</code>). Roles are written only by provisioning scripts / DB — never accepted from client traffic.</p>
+
+<h3>Founder Model</h3>
+<p>Admin users carry a <strong>FounderProfile</strong> — the public identity customers see. Each founder has a discipline that gates which catalog services they can lead:</p>
+<table>
+  <tr><th>Founder</th><th>Discipline</th><th>Covers</th></tr>
+  <tr><td>Founder A</td><td><code>WEB_SOFTWARE_ECOMMERCE</code></td><td>Website development, software projects, e-commerce, cloud deployment</td></tr>
+  <tr><td>Founder B</td><td><code>DESIGN_DOCS_UX</code></td><td>Presentation design, technical documentation, UI/UX</td></tr>
+  <tr><td>Either</td><td><code>BOTH</code></td><td>IT consulting &amp; cross-discipline services</td></tr>
+</table>
+<p>At checkout the customer picks <code>FOUNDER_A</code>, <code>FOUNDER_B</code>, or <code>AUTO_ASSIGN</code>. The chosen founder is resolved server-side and recorded with a preference source (<code>CUSTOMER_CHOICE</code> | <code>AUTO_ASSIGN</code> | <code>ADMIN_OVERRIDE</code>); admins may reassign internally — the customer is always notified.</p>
+
+<!-- ═══════════════ 4. SCOPE ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>4. Scope — v1</h2>
+<h3>In Scope</h3>
+<table>
+  <tr><th>Feature Area</th><th>Delivered in v1</th></tr>
+  <tr><td>Authentication</td><td>Firebase email/password + Google sign-in, email verification, password reset, profile sync</td></tr>
+  <tr><td>Service catalog</td><td>7 categories, option groups with price/time deltas, search, sort, featured flags</td></tr>
+  <tr><td>Cart &amp; checkout</td><td>Deduped cart items, option selection, founder picker, snapshot pricing, idempotent order creation</td></tr>
+  <tr><td>Payments</td><td>Manual transaction-ID submission (bKash, Nagad, Rocket, Bank Transfer) + admin verification</td></tr>
+  <tr><td>Order pipeline</td><td>7-stage status machine with enforced transitions and audit history</td></tr>
+  <tr><td>Files</td><td>Requirement attachments &amp; versioned deliverables via signed Cloudinary URLs</td></tr>
+  <tr><td>Revisions &amp; reviews</td><td>Customer revision requests, admin responses, 1–5★ order reviews curated into testimonials</td></tr>
+  <tr><td>Admin panel</td><td>Stats, orders, payments, customers, messages, review curation, homepage CMS</td></tr>
+  <tr><td>Content</td><td>DB-driven homepage (hero, why-us, how-it-works, FAQ), portfolio, testimonials</td></tr>
+  <tr><td>Notifications</td><td>In-app notification feed with read marking</td></tr>
+</table>
+<h3>Out of Scope (v1)</h3>
+<ul>
+  <li>Automated payment gateway integration (bKash/Nagad APIs) — schema reserves <code>providerRef</code> and <code>provider="MANUAL"</code> for a drop-in upgrade.</li>
+  <li>Multi-vendor marketplace — fulfillment is the two founders only.</li>
+  <li>Server-side email/SMTP — transactional email rides Firebase's built-in templates.</li>
+  <li>Mobile native apps — responsive web only.</li>
+</ul>
+
+<!-- ═══════════════ 5. FRs ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>5. Functional Requirements</h2>
+
+<h3>5.1 Authentication &amp; Accounts</h3>
+<table>
+  <tr><th style="width:48pt;">ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>FR‑01</td><td>Firebase email/password registration with verification email; first login lands in-app immediately for provisioned accounts</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑02</td><td>Google sign-in via popup; verified Google identities sync automatically</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑03</td><td><code>POST /auth/sync</code> exchanges a Firebase ID token for a Neon profile — provisions a <code>CUSTOMER</code> row on first sight, claims pre-seeded founder rows on verified-email match inside a transaction (no self-service role escalation)</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑04</td><td>Password reset &amp; email verification flow via Firebase templates (<code>/forgot-password</code>, <code>/reset-password</code>)</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑05</td><td>Profile view/update (<code>GET/PATCH /users/me</code>); roles and status are server-authoritative</td><td class="pri pri-must">MUST</td></tr>
+</table>
+
+<h3>5.2 Service Catalog</h3>
+<table>
+  <tr><th style="width:48pt;">ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>FR‑06</td><td>Hierarchical catalog: <code>ServiceCategory</code> → <code>Service</code> → <code>ServiceOption</code> groups (scope / urgency / extras / platform)</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑07</td><td>Each option carries a price delta and delivery-day delta; one default per group preselected</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑08</td><td>Listing endpoints support pagination, search, category filter, sort; services expose slug pages with tagline/description/base price/delivery estimate</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑09</td><td>Services are gated by founder discipline — only founders whose discipline matches (or <code>BOTH</code>) can be assigned</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑10</td><td>Homepage content (hero, why-us, how-it-works, FAQ), testimonials and portfolio render from DB (<code>SiteContent</code> JSON keys) — editable from admin without redeploy</td><td class="pri pri-should">SHOULD</td></tr>
+</table>
+
+<h3>5.3 Cart &amp; Checkout</h3>
+<table>
+  <tr><th style="width:48pt;">ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>FR‑11</td><td>Authenticated cart; one cart item per service (dedupe on re-add); option changes update price/time preview</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑12</td><td>Checkout creates the order in a <strong>single database transaction</strong>: name/price snapshots, option snapshots, founder preference resolution, attachment claiming</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑13</td><td>Idempotency key guards against double-submit / retry duplication of orders</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑14</td><td>Customers may attach requirement files at checkout; uploads are staged to Cloudinary client-side with signed params, then claimed by the order</td><td class="pri pri-should">SHOULD</td></tr>
+  <tr><td>FR‑15</td><td>Order numbers are human-readable: <code>TSH-YYYY-NNNNNN</code></td><td class="pri pri-must">MUST</td></tr>
+</table>
+
+<h3>5.4 Payments (Manual Verification)</h3>
+<table>
+  <tr><th style="width:48pt;">ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>FR‑16</td><td>Customer pays off-platform via <strong>bKash / Nagad / Rocket / Bank Transfer</strong> and submits transaction ID (+ optional screenshot) against the order</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑17</td><td>Admin verifies (<code>VERIFIED</code>) or rejects (<code>REJECTED</code>) each payment in the admin panel; payment status gates order progression</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑18</td><td>Schema reserves <code>provider</code> / <code>providerRef</code> so gateway integrations slot in without migration churn</td><td class="pri pri-could">COULD</td></tr>
+</table>
+
+<h3>5.5 Files &amp; Deliverables</h3>
+<table>
+  <tr><th style="width:48pt;">ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>FR‑19</td><td>All binary files live in Cloudinary (folders: requirements / deliveries / misc); Postgres stores references only — no blobs</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑20</td><td>Admin uploads versioned deliverables per order; customers download via short-lived signed URLs; download counts tracked</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑21</td><td>Platform degrades gracefully when Cloudinary env is absent (<code>FILE_STORAGE_UNCONFIGURED</code> error, not a crash)</td><td class="pri pri-should">SHOULD</td></tr>
+</table>
+
+<h3>5.6 Revisions, Reviews, Notifications, Contact</h3>
+<table>
+  <tr><th style="width:48pt;">ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>FR‑22</td><td>Customers open revision requests during active/late stages; admins respond <code>IN_PROGRESS</code> / <code>RESOLVED</code> / <code>DECLINED</code> with a plan</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑23</td><td>One 1–5★ review per delivered order; admins curate which reviews surface as public testimonials</td><td class="pri pri-should">SHOULD</td></tr>
+  <tr><td>FR‑24</td><td>In-app notification feed (order events, payment results, revision replies) with read-marking endpoint</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑25</td><td>Public contact form lands in the admin message inbox</td><td class="pri pri-must">MUST</td></tr>
+</table>
+
+<h3>5.7 Admin Operations</h3>
+<table>
+  <tr><th style="width:48pt;">ID</th><th>Requirement</th><th>Priority</th></tr>
+  <tr><td>FR‑26</td><td>Admin dashboard: platform stats (orders, revenue, pending payments, customers)</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑27</td><td>Order management: list/filter, detail view, status transitions, founder (re)assignment, deliverable uploads</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑28</td><td>Customer management and message inbox</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑29</td><td><strong>Every admin action is written to an AuditLog</strong> (actor, action, target, payload)</td><td class="pri pri-must">MUST</td></tr>
+  <tr><td>FR‑30</td><td>Homepage CMS: GET/PUT of <code>SiteContent</code> keys</td><td class="pri pri-should">SHOULD</td></tr>
+</table>
+
+<!-- ═══════════════ 6. PIPELINE ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>6. Order Lifecycle — Seven-Stage Pipeline</h2>
+<p><code>SUBMITTED → UNDER_REVIEW → APPROVED → IN_PROGRESS → QUALITY_REVIEW → COMPLETED → DELIVERED</code>, with terminal off-track states <code>REJECTED</code> and <code>CANCELLED</code>.</p>
+<table>
+  <tr><th>Stage</th><th>Meaning</th><th>May transition to</th></tr>
+  <tr><td>SUBMITTED</td><td>Order placed, awaiting founder review</td><td>UNDER_REVIEW, REJECTED, CANCELLED</td></tr>
+  <tr><td>UNDER_REVIEW</td><td>Requirements being assessed</td><td>APPROVED, REJECTED, CANCELLED</td></tr>
+  <tr><td>APPROVED</td><td>Accepted; payment being confirmed</td><td>IN_PROGRESS, REJECTED, CANCELLED</td></tr>
+  <tr><td>IN_PROGRESS</td><td>Work underway</td><td>QUALITY_REVIEW, CANCELLED</td></tr>
+  <tr><td>QUALITY_REVIEW</td><td>Founder QA before completion</td><td>COMPLETED, IN_PROGRESS (rework)</td></tr>
+  <tr><td>COMPLETED</td><td>Work finished, deliverables staged</td><td>DELIVERED</td></tr>
+  <tr><td>DELIVERED</td><td>Handed to customer (terminal, success)</td><td>—</td></tr>
+  <tr><td>REJECTED / CANCELLED</td><td>Terminal, off-track</td><td>—</td></tr>
+</table>
+<p><strong>Enforcement:</strong> transitions are validated server-side (<code>assertTransition</code> against the <code>ORDER_TRANSITIONS</code> matrix in <code>packages/shared</code>) — no client can push an illegal state. Every change appends to <code>OrderStatusHistory</code> (audit trail surfaced as the order tracker UI).</p>
+<ul>
+  <li><strong>Customer cancellation</strong> is permitted only while in SUBMITTED or UNDER_REVIEW.</li>
+  <li><strong>Revision requests</strong> are permitted in IN_PROGRESS, QUALITY_REVIEW and DELIVERED.</li>
+  <li>The customer-facing order tracker visualizes the seven stages with timestamps.</li>
+</ul>
+
+<!-- ═══════════════ 7. PAGE MAP ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>7. Web Page Map (Next.js)</h2>
+<table>
+  <tr><th>Group</th><th>Route</th><th>Purpose</th></tr>
+  <tr><td rowspan="4">Public site</td><td><code>/</code></td><td>Homepage — DB-driven hero, why-us, how-it-works, FAQ, testimonials, portfolio</td></tr>
+  <tr><td><code>/services</code>, <code>/services/[slug]</code></td><td>Catalog listing and configurable service detail</td></tr>
+  <tr><td><code>/cart</code>, <code>/checkout</code></td><td>Cart management; checkout with founder picker &amp; file staging</td></tr>
+  <tr><td><code>/contact</code></td><td>Contact form → admin inbox</td></tr>
+  <tr><td rowspan="4">Auth</td><td><code>/login</code></td><td>Email/password + Google sign-in</td></tr>
+  <tr><td><code>/register</code></td><td>Account creation with verification email</td></tr>
+  <tr><td><code>/forgot-password</code>, <code>/reset-password</code></td><td>Firebase-hosted reset flow completion</td></tr>
+  <tr><td>—</td><td>Email verification landing / resend</td></tr>
+  <tr><td rowspan="5">Customer</td><td><code>/orders</code>, <code>/orders/[id]</code></td><td>Order list; detail with 7-stage tracker, payments, revisions, deliverables</td></tr>
+  <tr><td><code>/dashboard</code></td><td>Customer overview</td></tr>
+  <tr><td><code>/profile</code></td><td>Profile &amp; password management</td></tr>
+  <tr><td><code>/notifications</code></td><td>Notification feed</td></tr>
+  <tr><td>—</td><td>Role guards protect customer &amp; admin areas (<code>guards.tsx</code>)</td></tr>
+  <tr><td rowspan="6">Admin</td><td><code>/admin</code></td><td>Stats dashboard</td></tr>
+  <tr><td><code>/admin/orders</code>, <code>/admin/orders/[id]</code></td><td>Order pipeline management, deliverables, status transitions</td></tr>
+  <tr><td><code>/admin/payments</code></td><td>Verify / reject submitted payments</td></tr>
+  <tr><td><code>/admin/customers</code></td><td>Customer accounts</td></tr>
+  <tr><td><code>/admin/messages</code></td><td>Contact-message inbox</td></tr>
+  <tr><td>—</td><td>Admin layout enforces <code>role === ADMIN</code> before render</td></tr>
+</table>
+
+<!-- ═══════════════ 8. DATA MODEL ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>8. Data Model Summary (Prisma / Neon PostgreSQL)</h2>
+<table>
+  <tr><th>Model</th><th>Purpose</th></tr>
+  <tr><td><code>User</code></td><td>Account joined to Firebase via <code>firebaseUid</code>; role &amp; status server-authoritative</td></tr>
+  <tr><td><code>FounderProfile</code></td><td>Public founder identity: display name, title, bio, discipline, skills, ordering, selectability</td></tr>
+  <tr><td><code>ServiceCategory</code> / <code>Service</code></td><td>Catalog tree; services carry base price (Decimal 12,2), delivery days, discipline gate, featured flag</td></tr>
+  <tr><td><code>ServiceOption</code></td><td>Priced options per service (group key, price/days delta, default flag, display order)</td></tr>
+  <tr><td><code>Cart</code> / <code>CartItem</code> / <code>CartItemOption</code></td><td>Authenticated cart; unique per (cart, service); selected option rows</td></tr>
+  <tr><td><code>Order</code></td><td>Order number TSH-YYYY-NNNNNN, assigned/preferred founder, preference source, idempotency key</td></tr>
+  <tr><td><code>OrderItem</code> / <code>OrderItemOptionSnapshot</code></td><td>Frozen price/name/option snapshots at checkout — immune to later catalog edits</td></tr>
+  <tr><td><code>OrderAttachment</code></td><td>Cloudinary reference rows; nullable orderId supports staged pre-checkout uploads</td></tr>
+  <tr><td><code>Deliverable</code></td><td>Versioned delivery files with download counts</td></tr>
+  <tr><td><code>RevisionRequest</code></td><td>Customer revision threads with admin responses</td></tr>
+  <tr><td><code>OrderStatusHistory</code></td><td>Full status audit trail powering the order tracker</td></tr>
+  <tr><td><code>Payment</code></td><td>Manual payment submissions (method, transaction ID, screenshot); provider field reserved for gateways</td></tr>
+  <tr><td><code>Notification</code></td><td>Per-user in-app notification feed</td></tr>
+  <tr><td><code>Review</code></td><td>One per order; curation flag controls public testimonial display</td></tr>
+  <tr><td><code>ContactMessage</code></td><td>Public contact-form inbox</td></tr>
+  <tr><td><code>AuditLog</code></td><td>Actor/action/target record of every admin mutation</td></tr>
+  <tr><td><code>SiteContent</code></td><td>JSON key/value homepage CMS blocks</td></tr>
+  <tr><td><code>PortfolioProject</code> / <code>Testimonial</code></td><td>Curated showcase content</td></tr>
+</table>
+<p><strong>Conventions:</strong> UUID primary keys; money as <code>Decimal</code> serialized to strings (no float drift); binary files never stored in Postgres; shared constants/types flow from <code>@tsh/shared</code> to both apps.</p>
+
+<!-- ═══════════════ 9. API ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>9. API Summary (Express, mounted under <code>/api</code>)</h2>
+<table>
+  <tr><th>Group</th><th>Endpoints</th><th>Auth</th></tr>
+  <tr><td>Health</td><td><code>GET /health</code> — DB + Firebase status probe</td><td>public</td></tr>
+  <tr><td>Auth</td><td><code>POST /auth/sync</code> (token → profile), <code>GET /auth/me</code></td><td>Firebase Bearer token</td></tr>
+  <tr><td>Catalog</td><td><code>GET /services</code>, <code>GET /services/:slug</code>, <code>GET /categories</code>, <code>GET /public/homepage</code></td><td>public</td></tr>
+  <tr><td>Users</td><td><code>GET /users/me</code>, <code>PATCH /users/me</code></td><td>authenticated</td></tr>
+  <tr><td>Cart</td><td><code>GET /cart</code>, <code>POST /cart/items</code>, <code>PATCH /cart/items/:id</code>, <code>DELETE /cart/items/:id</code></td><td>authenticated</td></tr>
+  <tr><td>Orders</td><td><code>POST /orders</code> (checkout), <code>GET /orders</code>, <code>GET /orders/:id</code>, <code>POST /orders/:id/cancel</code>, <code>POST /orders/:id/payments</code>, <code>POST /orders/:id/revisions</code>, <code>POST /orders/:id/review</code>, <code>POST /orders/:id/attachments</code></td><td>authenticated + ownership</td></tr>
+  <tr><td>Uploads</td><td><code>POST /uploads/sign</code> — signed Cloudinary upload params</td><td>authenticated</td></tr>
+  <tr><td>Contact</td><td><code>POST /contact</code></td><td>public (rate-limited)</td></tr>
+  <tr><td>Notifications</td><td><code>GET /notifications</code>, <code>POST /notifications/read</code></td><td>authenticated</td></tr>
+  <tr><td>Admin</td><td>stats · orders (list/detail/status/assign/deliverables) · payments (list/verify/reject) · revisions (respond) · customers · founders · messages · review curation · site-content GET/PUT</td><td>ADMIN (audited)</td></tr>
+</table>
+<p>Every response uses a uniform envelope (<code>{success, data | error}</code>) with machine-readable error codes; every route body is zod-validated.</p>
+
+<!-- ═══════════════ 10. INTEGRATIONS ═══════════════ -->
+<div class="pagebreak"></div>
+<h2>10. Integrations</h2>
+<table>
+  <tr><th>Service</th><th>Role</th><th>Notes</th></tr>
+  <tr><td><strong>Firebase Authentication</strong></td><td>Identity provider (email/password + Google)</td><td>API verifies ID tokens with Firebase Admin; <code>firebaseUid</code> joins to Postgres; email templates for verify/reset; credential via base64 service account</td></tr>
+  <tr><td><strong>Neon PostgreSQL</strong></td><td>Primary datastore</td><td>Pooled connection string for runtime + direct URL for migrations; Prisma engines bundled for Vercel's rhel-openssl-3.0.x</td></tr>
+  <tr><td><strong>Cloudinary</strong></td><td>File storage &amp; delivery</td><td>Signed client uploads + short-lived signed delivery URLs; graceful degrade when unconfigured</td></tr>
+  <tr><td><strong>Vercel</strong></td><td>Hosting (web + API)</td><td>Web: Next.js. API: Express in serverless function via catch-all rewrite</td></tr>
+</table>
+
+<h2>11. Non-Functional Requirements</h2>
+<h3>Security</h3>
+<ul>
+  <li>CORS allowlist (production origins only); Bearer-token auth — no cookies, <code>credentials: false</code>.</li>
+  <li>Server-side role gating (<code>authenticate</code> + <code>requireAdmin</code> middleware); roles never accepted from clients.</li>
+  <li>Per-order ownership checks — customers can only see their own orders/attachments.</li>
+  <li>zod validation on every route; separate stricter rate limiter on auth/contact endpoints.</li>
+  <li>AuditLog on all admin mutations; uniform error envelope without stack-trace leakage.</li>
+</ul>
+<h3>Architecture &amp; Deployment</h3>
+<ul>
+  <li>npm-workspaces monorepo: <code>apps/web</code>, <code>apps/api</code>, <code>packages/shared</code>; shared package is vendored into each app for serverless builds.</li>
+  <li>Node ≥ 24; TypeScript throughout; Prisma migrations with explicit binary targets for Vercel.</li>
+  <li>Web env: <code>NEXT_PUBLIC_API_URL</code> · API env: <code>CORS_ORIGINS</code> (mirrored pair).</li>
+  <li>Vitest suites for API (app, env, domain, money) and shared package.</li>
+</ul>
+
+<!-- ═══════════════ 12. GAPS ═══════════════ -->
+<h2>12. Known Gaps &amp; Future Work</h2>
+<table>
+  <tr><th>Item</th><th>Detail</th><th>Priority</th></tr>
+  <tr><td>Google provider enablement</td><td>Google sign-in provider must be toggled on in Firebase Console (API cannot enable it); web domains already authorized</td><td class="pri pri-must">HIGH</td></tr>
+  <td>Cloudinary credentials</td><td>Production env for <code>CLOUDINARY_*</code> keys must be set before file uploads work end-to-end</td><td class="pri pri-must">HIGH</td></tr>
+  <tr><td>Founder identity content</td><td>Placeholder names/photos/bios in seed — replace with real founder identities pre-launch</td><td class="pri pri-should">MEDIUM</td></tr>
+  <tr><td>Mobile Google sign-in</td><td><code>signInWithPopup</code> is blocked on some mobile browsers → add <code>signInWithRedirect</code> fallback</td><td class="pri pri-should">MEDIUM</td></tr>
+  <tr><td>Account linking UX</td><td>Same-email password + Google sign-in collision (<code>auth/account-exists-with-different-credential</code>) needs friendly handling</td><td class="pri pri-should">MEDIUM</td></tr>
+  <tr><td>Payment gateway</td><td>bKash/Nagad API integration to replace manual transaction-ID verification</td><td class="pri pri-could">POST-V1</td></tr>
+</table>
+
+<h2>Appendix A — Environments &amp; Demo Accounts</h2>
+<table>
+  <tr><th>Environment</th><th>URL</th></tr>
+  <tr><td>Web (production)</td><td><code>https://tsh-web-sandy.vercel.app</code> · <code>https://tsh-web-rahan-hexa.vercel.app</code></td></tr>
+  <tr><td>API (production)</td><td><code>https://tsh-api-nine.vercel.app/api</code> · <code>https://tsh-api-rahan-hexa.vercel.app/api</code></td></tr>
+</table>
+<table>
+  <tr><th>Account</th><th>Role</th><th>Purpose</th></tr>
+  <tr><td><code>founder.a@techservicehub.test</code></td><td>ADMIN</td><td>Founder A — engineering lead</td></tr>
+  <tr><td><code>founder.b@techservicehub.test</code></td><td>ADMIN</td><td>Founder B — design/docs lead</td></tr>
+  <tr><td><code>customer@techservicehub.test</code></td><td>CUSTOMER</td><td>Demo buyer journey</td></tr>
+</table>
+<div class="note">Provisioned via <code>apps/api/scripts/provision-accounts.ts</code> (Firebase user + Neon row, email-verified). Passwords are documented privately; rotate before public launch.</div>
+
+</body>
+</html>

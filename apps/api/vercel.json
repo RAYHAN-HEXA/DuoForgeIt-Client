@@ -5,5 +5,11 @@
     "api/[...path].js": {
       "includeFiles": "src/generated/prisma/**"
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/[...path]"
+    }
+  ]
 }
