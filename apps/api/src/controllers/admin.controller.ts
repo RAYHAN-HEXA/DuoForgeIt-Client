@@ -3,8 +3,8 @@ import { formatBDT, type OrderStatus } from '@tsh/shared';
 import { ok } from '../utils/envelope.js';
 import { validated } from '../middleware/validate.js';
 import { prisma } from '../config/prisma.js';
-import { hasCloudinary } from '../config/env.js';
-import { assertUploadAllowed, signUpload, signedDownloadUrl, generateAuthToken } from '../utils/cloudinary.js';
+import { hasBlobStorage } from '../config/env.js';
+import { assertOwnedPathname, assertStoredBlob, assertUploadAllowed, createUploadTicket, signedDownloadUrl } from '../utils/blob.js';
 import { toAdminOrderDto, toAdminPaymentAccountDto, toAdminPaymentDto } from '../utils/mappers.js';
 import { getAnyOrder } from '../services/order.service.js';
 import { notifyUser } from '../services/notification.service.js';
@@ -66,9 +66,20 @@ export async function getOrder(req: Request, res: Response, next: NextFunction) 
   try {
     const order = await getAnyOrder(paramId(req));
     const urls: { attachments?: Map<string, string | null>; deliverables?: Map<string, string | null> } = {};
-    if (hasCloudinary) {
-      urls.attachments = new Map(order.attachments.map((a) => [a.id, signedDownloadUrl(a.cloudinaryPublicId, 'auto')]));
-      urls.deliverables = new Map(order.deliverables.map((d) => [d.id, signedDownloadUrl(d.cloudinaryPublicId, 'auto')]));
+    if (hasBlobStorage) {
+      const attachmentEntries: [string, string | null][] = [];
+      for (const a of order.attachments) {
+        // Legacy rows reference Cloudinary assets that were never copied to
+        // Blob — null URL until the one-shot migration backfills blobPath.
+        attachmentEntries.push([a.id, a.blobPath ? await signedDownloadUrl(a.blobPath) : null]);
+      }
+      urls.attachments = new Map(attachmentEntries);
+
+      const deliverableEntries: [string, string | null][] = [];
+      for (const d of order.deliverables) {
+        deliverableEntries.push([d.id, d.blobPath ? await signedDownloadUrl(d.blobPath) : null]);
+      }
+      urls.deliverables = new Map(deliverableEntries);
     }
     res.json(ok(toAdminOrderDto(order, urls)));
   } catch (err) {
@@ -253,7 +264,7 @@ export async function reviewPayment(req: Request, res: Response, next: NextFunct
 export async function listPaymentAccounts(_req: Request, res: Response, next: NextFunction) {
   try {
     const rows = await paymentAccounts.listPaymentAccounts();
-    res.json(ok({ items: rows.map(toAdminPaymentAccountDto) }));
+    res.json(ok({ items: await Promise.all(rows.map(toAdminPaymentAccountDto)) }));
   } catch (err) {
     next(err);
   }
@@ -263,7 +274,7 @@ export async function listPaymentAccounts(_req: Request, res: Response, next: Ne
 export async function getPaymentAccount(req: Request, res: Response, next: NextFunction) {
   try {
     const account = await paymentAccounts.getPaymentAccount(paramId(req));
-    res.json(ok(toAdminPaymentAccountDto(account)));
+    res.json(ok(await toAdminPaymentAccountDto(account)));
   } catch (err) {
     next(err);
   }
@@ -289,7 +300,7 @@ export async function createPaymentAccount(req: Request, res: Response, next: Ne
       ip: req.ip,
     });
 
-    res.status(201).json(ok(toAdminPaymentAccountDto(account)));
+    res.status(201).json(ok(await toAdminPaymentAccountDto(account)));
   } catch (err) {
     next(err);
   }
@@ -325,14 +336,14 @@ export async function updatePaymentAccount(req: Request, res: Response, next: Ne
         changedFields,
         fromActive: previous.isActive,
         toActive: account.isActive,
-        ...(changedFields.includes('qrPublicId')
-          ? { qrChanged: true, hasQr: Boolean(account.qrPublicId) }
+        ...(changedFields.includes('qrPathname')
+          ? { qrChanged: true, hasQr: Boolean(account.blobPath || account.qrPublicId) }
           : {}),
       },
       ip: req.ip,
     });
 
-    res.json(ok(toAdminPaymentAccountDto(account)));
+    res.json(ok(await toAdminPaymentAccountDto(account)));
   } catch (err) {
     next(err);
   }
@@ -360,7 +371,7 @@ export async function setPaymentAccountStatus(req: Request, res: Response, next:
       });
     }
 
-    res.json(ok(toAdminPaymentAccountDto(account)));
+    res.json(ok(await toAdminPaymentAccountDto(account)));
   } catch (err) {
     next(err);
   }
@@ -381,7 +392,7 @@ export async function reorderPaymentAccounts(req: Request, res: Response, next: 
       ip: req.ip,
     });
 
-    res.json(ok({ items: rows.map(toAdminPaymentAccountDto) }));
+    res.json(ok({ items: await Promise.all(rows.map(toAdminPaymentAccountDto)) }));
   } catch (err) {
     next(err);
   }
@@ -417,13 +428,19 @@ export async function deletePaymentAccount(req: Request, res: Response, next: Ne
 }
 
 /**
- * POST /api/admin/payment-accounts/qr/sign — admin-only Cloudinary signature
- * for a receiving-account QR image. The public id is minted server-side in the
- * dedicated admin namespace; the secret never leaves the server.
+ * POST /api/admin/payment-accounts/qr/sign — admin-only upload ticket for a
+ * receiving-account QR image. The pathname is minted server-side in the
+ * dedicated per-admin namespace; the read-write token never leaves the server.
  */
 export async function signPaymentAccountQr(req: Request, res: Response, next: NextFunction) {
   try {
-    res.json(ok(signUpload('paymentAccounts', { userId: req.authUser!.id })));
+    const body = validated<{ fileName: string; mimeType: string; sizeBytes: number }>(req, 'body');
+    const ticket = await createUploadTicket('paymentAccounts', {
+      userId: req.authUser!.id,
+      mimeType: body.mimeType,
+      sizeBytes: body.sizeBytes,
+    });
+    res.json(ok(ticket));
   } catch (err) {
     next(err);
   }
@@ -436,12 +453,14 @@ export async function addDeliverable(req: Request, res: Response, next: NextFunc
     const body = validated<{
     title: string;
     description?: string;
-    cloudinaryPublicId: string;
+    pathname: string;
     fileName: string;
     mimeType: string;
     sizeBytes: number;
   }>(req, 'body');
     assertUploadAllowed(body.mimeType, body.sizeBytes);
+    assertOwnedPathname(body.pathname, 'deliveries', req.authUser!.id, 'deliverable');
+    await assertStoredBlob(body.pathname, { contentType: body.mimeType, sizeBytes: body.sizeBytes });
     const deliverable = await admin.addDeliverable(orderId, body, req.authUser!.id);
 
     const order = await getAnyOrder(orderId);

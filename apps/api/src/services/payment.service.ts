@@ -2,7 +2,7 @@ import type { Order, Payment, PaymentStatus, Prisma } from '../generated/prisma/
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { parseMoneyToCents, subtractMoney, sumMoney } from '../utils/money.js';
-import { PAYMENTS_UPLOAD_ROOT } from '../utils/cloudinary.js';
+import { assertOwnedPathname, assertStoredBlob } from '../utils/blob.js';
 import { toPaymentAccountOptionDto } from '../utils/mappers.js';
 import { PAYMENT_ERROR_CODES, type PaymentAccountOptionDto, type PaymentSubmissionDto } from '@tsh/shared';
 
@@ -53,7 +53,7 @@ export async function listActivePaymentAccounts(): Promise<PaymentAccountOptionD
     where: { isActive: true },
     orderBy: [{ displayOrder: 'asc' }, { label: 'asc' }, { id: 'asc' }],
   });
-  return rows.map(toPaymentAccountOptionDto);
+  return Promise.all(rows.map(toPaymentAccountOptionDto));
 }
 
 // ─── Order eligibility & exact outstanding ───────────────────
@@ -259,24 +259,15 @@ function paymentMethodForAccountKey(methodKey: string): 'BKASH' | 'NAGAD' | 'ROC
 
 // ─── Screenshot ownership ────────────────────────────────────
 
-const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 /**
- * A payment may only reference a screenshot minted by THIS user's signed
- * upload (`techservice-hub/payments/<userId>/<uuid>` — the API generates the
- * uuid server-side at signing time). This is namespace-ownership validation
- * of the public id; it does NOT verify the uploaded bytes. Declared MIME/size
- * metadata stays client-declared (Stage 1 trust-model note).
+ * A payment may only reference a screenshot minted by THIS user's upload
+ * ticket (`techservice-hub/payments/<userId>/<uuid>.<ext>` — the API mints
+ * the pathname server-side). The existence/metadata of the referenced blob
+ * is additionally verified at submission time via assertStoredBlob; this
+ * namespace-ownership check stays exported for defense-in-depth reuse.
  */
-export function assertPaymentScreenshotOwnership(publicId: string, userId: string): void {
-  const pattern = new RegExp(`^${PAYMENTS_UPLOAD_ROOT}/${escapeRegExp(userId)}/${UUID_PATTERN}$`);
-  if (!pattern.test(publicId)) {
-    throw ApiError.badRequest('The attached screenshot does not belong to your payment uploads');
-  }
+export function assertPaymentScreenshotOwnership(pathname: string, userId: string): void {
+  assertOwnedPathname(pathname, 'payments', userId, 'screenshot');
 }
 
 // ─── Submission ──────────────────────────────────────────────
@@ -288,7 +279,7 @@ export type PaymentSubmissionInput = {
   transactionId: string;
   senderNumber?: string;
   amount: string;
-  screenshotPublicId?: string;
+  screenshotPathname?: string;
   screenshotMimeType?: 'image/png' | 'image/jpeg' | 'image/webp';
   screenshotSizeBytes?: number;
 };
@@ -363,8 +354,14 @@ export async function createPaymentSubmission(
 
   const normalized = normalizeTransactionId(input.transactionId);
   if (!normalized) throw ApiError.badRequest('Transaction ID is required');
-  if (input.screenshotPublicId) {
-    assertPaymentScreenshotOwnership(input.screenshotPublicId, input.customerId);
+  if (input.screenshotPathname) {
+    assertPaymentScreenshotOwnership(input.screenshotPathname, input.customerId);
+    // Prove the referenced screenshot exists and matches the declared
+    // metadata before the payment row is persisted.
+    await assertStoredBlob(input.screenshotPathname, {
+      contentType: input.screenshotMimeType,
+      sizeBytes: input.screenshotSizeBytes,
+    });
   }
 
   let payment: Payment;
@@ -390,7 +387,7 @@ export async function createPaymentSubmission(
         accountHolderSnapshot: account!.accountHolder,
         instructionsSnapshot: account!.instructions,
         senderNumber: input.senderNumber ?? null,
-        screenshotPublicId: input.screenshotPublicId ?? null,
+        blobPath: input.screenshotPathname ?? null,
       },
     });
   } catch (err) {
@@ -428,7 +425,7 @@ export function toPaymentSubmissionDto(payment: Payment): PaymentSubmissionDto {
     // row that somehow predates it — this DTO never maps legacy rows.
     transactionId: payment.transactionId ?? '',
     status: payment.status,
-    hasScreenshot: Boolean(payment.screenshotPublicId),
+    hasScreenshot: Boolean(payment.blobPath || payment.screenshotPublicId),
     createdAt: payment.createdAt.toISOString(),
   };
 }

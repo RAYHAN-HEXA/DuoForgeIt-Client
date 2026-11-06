@@ -58,7 +58,17 @@ export declare const UPLOAD_LIMITS: {
     readonly maxFileSizeBytes: number;
     readonly maxFilesPerRequest: 5;
     readonly allowedMimeTypes: readonly ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "image/png", "image/jpeg", "image/webp", "application/zip", "application/x-zip-compressed"];
+    /**
+     * Extension allow-list for the general upload folders. The server maps the
+     * declared MIME type to its canonical extensions and stores the file with a
+     * server-generated name, so a client-supplied extension can never become a
+     * pathname component.
+     */
+    readonly allowedExtensions: readonly ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "png", "jpg", "jpeg", "webp", "zip"];
 };
+/** Remote storage namespaces. Pathnames are always minted server-side. */
+export declare const STORAGE_FOLDERS: readonly ["requirements", "deliveries", "misc", "payments", "paymentAccounts", "requests"];
+export type StorageFolder = (typeof STORAGE_FOLDERS)[number];
 export declare const ORDER_NUMBER_PATTERN: RegExp;
 export declare const API_PREFIX = "/api";
 /** Machine-readable service kinds. Thesis/academic-writing is deliberately absent. */

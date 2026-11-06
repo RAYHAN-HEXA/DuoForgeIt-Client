@@ -19652,6 +19652,7 @@ export namespace Prisma {
     uploadedById: string | null
     kind: string | null
     cloudinaryPublicId: string | null
+    blobPath: string | null
     fileName: string | null
     mimeType: string | null
     sizeBytes: number | null
@@ -19664,6 +19665,7 @@ export namespace Prisma {
     uploadedById: string | null
     kind: string | null
     cloudinaryPublicId: string | null
+    blobPath: string | null
     fileName: string | null
     mimeType: string | null
     sizeBytes: number | null
@@ -19676,6 +19678,7 @@ export namespace Prisma {
     uploadedById: number
     kind: number
     cloudinaryPublicId: number
+    blobPath: number
     fileName: number
     mimeType: number
     sizeBytes: number
@@ -19698,6 +19701,7 @@ export namespace Prisma {
     uploadedById?: true
     kind?: true
     cloudinaryPublicId?: true
+    blobPath?: true
     fileName?: true
     mimeType?: true
     sizeBytes?: true
@@ -19710,6 +19714,7 @@ export namespace Prisma {
     uploadedById?: true
     kind?: true
     cloudinaryPublicId?: true
+    blobPath?: true
     fileName?: true
     mimeType?: true
     sizeBytes?: true
@@ -19722,6 +19727,7 @@ export namespace Prisma {
     uploadedById?: true
     kind?: true
     cloudinaryPublicId?: true
+    blobPath?: true
     fileName?: true
     mimeType?: true
     sizeBytes?: true
@@ -19820,7 +19826,8 @@ export namespace Prisma {
     orderId: string | null
     uploadedById: string
     kind: string
-    cloudinaryPublicId: string
+    cloudinaryPublicId: string | null
+    blobPath: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -19852,6 +19859,7 @@ export namespace Prisma {
     uploadedById?: boolean
     kind?: boolean
     cloudinaryPublicId?: boolean
+    blobPath?: boolean
     fileName?: boolean
     mimeType?: boolean
     sizeBytes?: boolean
@@ -19866,6 +19874,7 @@ export namespace Prisma {
     uploadedById?: boolean
     kind?: boolean
     cloudinaryPublicId?: boolean
+    blobPath?: boolean
     fileName?: boolean
     mimeType?: boolean
     sizeBytes?: boolean
@@ -19880,6 +19889,7 @@ export namespace Prisma {
     uploadedById?: boolean
     kind?: boolean
     cloudinaryPublicId?: boolean
+    blobPath?: boolean
     fileName?: boolean
     mimeType?: boolean
     sizeBytes?: boolean
@@ -19894,13 +19904,14 @@ export namespace Prisma {
     uploadedById?: boolean
     kind?: boolean
     cloudinaryPublicId?: boolean
+    blobPath?: boolean
     fileName?: boolean
     mimeType?: boolean
     sizeBytes?: boolean
     createdAt?: boolean
   }
 
-  export type OrderAttachmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "uploadedById" | "kind" | "cloudinaryPublicId" | "fileName" | "mimeType" | "sizeBytes" | "createdAt", ExtArgs["result"]["orderAttachment"]>
+  export type OrderAttachmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "uploadedById" | "kind" | "cloudinaryPublicId" | "blobPath" | "fileName" | "mimeType" | "sizeBytes" | "createdAt", ExtArgs["result"]["orderAttachment"]>
   export type OrderAttachmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderAttachment$orderArgs<ExtArgs>
     uploadedBy?: boolean | UserDefaultArgs<ExtArgs>
@@ -19925,7 +19936,8 @@ export namespace Prisma {
       orderId: string | null
       uploadedById: string
       kind: string
-      cloudinaryPublicId: string
+      cloudinaryPublicId: string | null
+      blobPath: string | null
       fileName: string
       mimeType: string
       sizeBytes: number
@@ -20360,6 +20372,7 @@ export namespace Prisma {
     readonly uploadedById: FieldRef<"OrderAttachment", 'String'>
     readonly kind: FieldRef<"OrderAttachment", 'String'>
     readonly cloudinaryPublicId: FieldRef<"OrderAttachment", 'String'>
+    readonly blobPath: FieldRef<"OrderAttachment", 'String'>
     readonly fileName: FieldRef<"OrderAttachment", 'String'>
     readonly mimeType: FieldRef<"OrderAttachment", 'String'>
     readonly sizeBytes: FieldRef<"OrderAttachment", 'Int'>
@@ -20828,6 +20841,7 @@ export namespace Prisma {
     title: string | null
     description: string | null
     cloudinaryPublicId: string | null
+    blobPath: string | null
     fileName: string | null
     mimeType: string | null
     sizeBytes: number | null
@@ -20843,6 +20857,7 @@ export namespace Prisma {
     title: string | null
     description: string | null
     cloudinaryPublicId: string | null
+    blobPath: string | null
     fileName: string | null
     mimeType: string | null
     sizeBytes: number | null
@@ -20858,6 +20873,7 @@ export namespace Prisma {
     title: number
     description: number
     cloudinaryPublicId: number
+    blobPath: number
     fileName: number
     mimeType: number
     sizeBytes: number
@@ -20887,6 +20903,7 @@ export namespace Prisma {
     title?: true
     description?: true
     cloudinaryPublicId?: true
+    blobPath?: true
     fileName?: true
     mimeType?: true
     sizeBytes?: true
@@ -20902,6 +20919,7 @@ export namespace Prisma {
     title?: true
     description?: true
     cloudinaryPublicId?: true
+    blobPath?: true
     fileName?: true
     mimeType?: true
     sizeBytes?: true
@@ -20917,6 +20935,7 @@ export namespace Prisma {
     title?: true
     description?: true
     cloudinaryPublicId?: true
+    blobPath?: true
     fileName?: true
     mimeType?: true
     sizeBytes?: true
@@ -21018,7 +21037,8 @@ export namespace Prisma {
     uploadedById: string
     title: string
     description: string | null
-    cloudinaryPublicId: string
+    cloudinaryPublicId: string | null
+    blobPath: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -21053,6 +21073,7 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     cloudinaryPublicId?: boolean
+    blobPath?: boolean
     fileName?: boolean
     mimeType?: boolean
     sizeBytes?: boolean
@@ -21070,6 +21091,7 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     cloudinaryPublicId?: boolean
+    blobPath?: boolean
     fileName?: boolean
     mimeType?: boolean
     sizeBytes?: boolean
@@ -21087,6 +21109,7 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     cloudinaryPublicId?: boolean
+    blobPath?: boolean
     fileName?: boolean
     mimeType?: boolean
     sizeBytes?: boolean
@@ -21104,6 +21127,7 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     cloudinaryPublicId?: boolean
+    blobPath?: boolean
     fileName?: boolean
     mimeType?: boolean
     sizeBytes?: boolean
@@ -21112,7 +21136,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type DeliverableOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "uploadedById" | "title" | "description" | "cloudinaryPublicId" | "fileName" | "mimeType" | "sizeBytes" | "version" | "downloadCount" | "createdAt", ExtArgs["result"]["deliverable"]>
+  export type DeliverableOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "uploadedById" | "title" | "description" | "cloudinaryPublicId" | "blobPath" | "fileName" | "mimeType" | "sizeBytes" | "version" | "downloadCount" | "createdAt", ExtArgs["result"]["deliverable"]>
   export type DeliverableInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderDefaultArgs<ExtArgs>
     uploadedBy?: boolean | UserDefaultArgs<ExtArgs>
@@ -21138,7 +21162,8 @@ export namespace Prisma {
       uploadedById: string
       title: string
       description: string | null
-      cloudinaryPublicId: string
+      cloudinaryPublicId: string | null
+      blobPath: string | null
       fileName: string
       mimeType: string
       sizeBytes: number
@@ -21576,6 +21601,7 @@ export namespace Prisma {
     readonly title: FieldRef<"Deliverable", 'String'>
     readonly description: FieldRef<"Deliverable", 'String'>
     readonly cloudinaryPublicId: FieldRef<"Deliverable", 'String'>
+    readonly blobPath: FieldRef<"Deliverable", 'String'>
     readonly fileName: FieldRef<"Deliverable", 'String'>
     readonly mimeType: FieldRef<"Deliverable", 'String'>
     readonly sizeBytes: FieldRef<"Deliverable", 'Int'>
@@ -24253,6 +24279,7 @@ export namespace Prisma {
     amount: Decimal | null
     transactionId: string | null
     screenshotPublicId: string | null
+    blobPath: string | null
     adminNote: string | null
     verifiedById: string | null
     verifiedAt: Date | null
@@ -24282,6 +24309,7 @@ export namespace Prisma {
     amount: Decimal | null
     transactionId: string | null
     screenshotPublicId: string | null
+    blobPath: string | null
     adminNote: string | null
     verifiedById: string | null
     verifiedAt: Date | null
@@ -24311,6 +24339,7 @@ export namespace Prisma {
     amount: number
     transactionId: number
     screenshotPublicId: number
+    blobPath: number
     adminNote: number
     verifiedById: number
     verifiedAt: number
@@ -24350,6 +24379,7 @@ export namespace Prisma {
     amount?: true
     transactionId?: true
     screenshotPublicId?: true
+    blobPath?: true
     adminNote?: true
     verifiedById?: true
     verifiedAt?: true
@@ -24379,6 +24409,7 @@ export namespace Prisma {
     amount?: true
     transactionId?: true
     screenshotPublicId?: true
+    blobPath?: true
     adminNote?: true
     verifiedById?: true
     verifiedAt?: true
@@ -24408,6 +24439,7 @@ export namespace Prisma {
     amount?: true
     transactionId?: true
     screenshotPublicId?: true
+    blobPath?: true
     adminNote?: true
     verifiedById?: true
     verifiedAt?: true
@@ -24524,6 +24556,7 @@ export namespace Prisma {
     amount: Decimal
     transactionId: string | null
     screenshotPublicId: string | null
+    blobPath: string | null
     adminNote: string | null
     verifiedById: string | null
     verifiedAt: Date | null
@@ -24572,6 +24605,7 @@ export namespace Prisma {
     amount?: boolean
     transactionId?: boolean
     screenshotPublicId?: boolean
+    blobPath?: boolean
     adminNote?: boolean
     verifiedById?: boolean
     verifiedAt?: boolean
@@ -24605,6 +24639,7 @@ export namespace Prisma {
     amount?: boolean
     transactionId?: boolean
     screenshotPublicId?: boolean
+    blobPath?: boolean
     adminNote?: boolean
     verifiedById?: boolean
     verifiedAt?: boolean
@@ -24638,6 +24673,7 @@ export namespace Prisma {
     amount?: boolean
     transactionId?: boolean
     screenshotPublicId?: boolean
+    blobPath?: boolean
     adminNote?: boolean
     verifiedById?: boolean
     verifiedAt?: boolean
@@ -24671,6 +24707,7 @@ export namespace Prisma {
     amount?: boolean
     transactionId?: boolean
     screenshotPublicId?: boolean
+    blobPath?: boolean
     adminNote?: boolean
     verifiedById?: boolean
     verifiedAt?: boolean
@@ -24692,7 +24729,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type PaymentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "method" | "status" | "amount" | "transactionId" | "screenshotPublicId" | "adminNote" | "verifiedById" | "verifiedAt" | "provider" | "providerRef" | "paymentAccountId" | "methodKeySnapshot" | "methodLabelSnapshot" | "accountTypeSnapshot" | "accountNumberSnapshot" | "accountHolderSnapshot" | "instructionsSnapshot" | "senderNumber" | "transactionIdNormalized" | "rejectedById" | "rejectedAt" | "rejectionReason" | "createdAt" | "updatedAt", ExtArgs["result"]["payment"]>
+  export type PaymentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "method" | "status" | "amount" | "transactionId" | "screenshotPublicId" | "blobPath" | "adminNote" | "verifiedById" | "verifiedAt" | "provider" | "providerRef" | "paymentAccountId" | "methodKeySnapshot" | "methodLabelSnapshot" | "accountTypeSnapshot" | "accountNumberSnapshot" | "accountHolderSnapshot" | "instructionsSnapshot" | "senderNumber" | "transactionIdNormalized" | "rejectedById" | "rejectedAt" | "rejectionReason" | "createdAt" | "updatedAt", ExtArgs["result"]["payment"]>
   export type PaymentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     order?: boolean | OrderDefaultArgs<ExtArgs>
     verifiedBy?: boolean | Payment$verifiedByArgs<ExtArgs>
@@ -24728,6 +24765,7 @@ export namespace Prisma {
       amount: Prisma.Decimal
       transactionId: string | null
       screenshotPublicId: string | null
+      blobPath: string | null
       adminNote: string | null
       verifiedById: string | null
       verifiedAt: Date | null
@@ -25181,6 +25219,7 @@ export namespace Prisma {
     readonly amount: FieldRef<"Payment", 'Decimal'>
     readonly transactionId: FieldRef<"Payment", 'String'>
     readonly screenshotPublicId: FieldRef<"Payment", 'String'>
+    readonly blobPath: FieldRef<"Payment", 'String'>
     readonly adminNote: FieldRef<"Payment", 'String'>
     readonly verifiedById: FieldRef<"Payment", 'String'>
     readonly verifiedAt: FieldRef<"Payment", 'DateTime'>
@@ -25700,6 +25739,7 @@ export namespace Prisma {
     accountHolder: string | null
     instructions: string | null
     qrPublicId: string | null
+    blobPath: string | null
     isActive: boolean | null
     displayOrder: number | null
     createdById: string | null
@@ -25717,6 +25757,7 @@ export namespace Prisma {
     accountHolder: string | null
     instructions: string | null
     qrPublicId: string | null
+    blobPath: string | null
     isActive: boolean | null
     displayOrder: number | null
     createdById: string | null
@@ -25734,6 +25775,7 @@ export namespace Prisma {
     accountHolder: number
     instructions: number
     qrPublicId: number
+    blobPath: number
     isActive: number
     displayOrder: number
     createdById: number
@@ -25761,6 +25803,7 @@ export namespace Prisma {
     accountHolder?: true
     instructions?: true
     qrPublicId?: true
+    blobPath?: true
     isActive?: true
     displayOrder?: true
     createdById?: true
@@ -25778,6 +25821,7 @@ export namespace Prisma {
     accountHolder?: true
     instructions?: true
     qrPublicId?: true
+    blobPath?: true
     isActive?: true
     displayOrder?: true
     createdById?: true
@@ -25795,6 +25839,7 @@ export namespace Prisma {
     accountHolder?: true
     instructions?: true
     qrPublicId?: true
+    blobPath?: true
     isActive?: true
     displayOrder?: true
     createdById?: true
@@ -25899,6 +25944,7 @@ export namespace Prisma {
     accountHolder: string
     instructions: string | null
     qrPublicId: string | null
+    blobPath: string | null
     isActive: boolean
     displayOrder: number
     createdById: string | null
@@ -25935,6 +25981,7 @@ export namespace Prisma {
     accountHolder?: boolean
     instructions?: boolean
     qrPublicId?: boolean
+    blobPath?: boolean
     isActive?: boolean
     displayOrder?: boolean
     createdById?: boolean
@@ -25956,6 +26003,7 @@ export namespace Prisma {
     accountHolder?: boolean
     instructions?: boolean
     qrPublicId?: boolean
+    blobPath?: boolean
     isActive?: boolean
     displayOrder?: boolean
     createdById?: boolean
@@ -25975,6 +26023,7 @@ export namespace Prisma {
     accountHolder?: boolean
     instructions?: boolean
     qrPublicId?: boolean
+    blobPath?: boolean
     isActive?: boolean
     displayOrder?: boolean
     createdById?: boolean
@@ -25994,6 +26043,7 @@ export namespace Prisma {
     accountHolder?: boolean
     instructions?: boolean
     qrPublicId?: boolean
+    blobPath?: boolean
     isActive?: boolean
     displayOrder?: boolean
     createdById?: boolean
@@ -26002,7 +26052,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type PaymentAccountOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "methodKey" | "label" | "accountType" | "accountNumber" | "accountHolder" | "instructions" | "qrPublicId" | "isActive" | "displayOrder" | "createdById" | "updatedById" | "createdAt" | "updatedAt", ExtArgs["result"]["paymentAccount"]>
+  export type PaymentAccountOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "methodKey" | "label" | "accountType" | "accountNumber" | "accountHolder" | "instructions" | "qrPublicId" | "blobPath" | "isActive" | "displayOrder" | "createdById" | "updatedById" | "createdAt" | "updatedAt", ExtArgs["result"]["paymentAccount"]>
   export type PaymentAccountInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdBy?: boolean | PaymentAccount$createdByArgs<ExtArgs>
     updatedBy?: boolean | PaymentAccount$updatedByArgs<ExtArgs>
@@ -26034,6 +26084,7 @@ export namespace Prisma {
       accountHolder: string
       instructions: string | null
       qrPublicId: string | null
+      blobPath: string | null
       isActive: boolean
       displayOrder: number
       createdById: string | null
@@ -26474,6 +26525,7 @@ export namespace Prisma {
     readonly accountHolder: FieldRef<"PaymentAccount", 'String'>
     readonly instructions: FieldRef<"PaymentAccount", 'String'>
     readonly qrPublicId: FieldRef<"PaymentAccount", 'String'>
+    readonly blobPath: FieldRef<"PaymentAccount", 'String'>
     readonly isActive: FieldRef<"PaymentAccount", 'Boolean'>
     readonly displayOrder: FieldRef<"PaymentAccount", 'Int'>
     readonly createdById: FieldRef<"PaymentAccount", 'String'>
@@ -45340,6 +45392,7 @@ export namespace Prisma {
     trxId: string | null
     trxIdNormalized: string | null
     screenshotPublicId: string | null
+    blobPath: string | null
     status: $Enums.DepositStatus | null
     declineReason: $Enums.DepositDeclineReason | null
     adminNote: string | null
@@ -45361,6 +45414,7 @@ export namespace Prisma {
     trxId: string | null
     trxIdNormalized: string | null
     screenshotPublicId: string | null
+    blobPath: string | null
     status: $Enums.DepositStatus | null
     declineReason: $Enums.DepositDeclineReason | null
     adminNote: string | null
@@ -45382,6 +45436,7 @@ export namespace Prisma {
     trxId: number
     trxIdNormalized: number
     screenshotPublicId: number
+    blobPath: number
     status: number
     declineReason: number
     adminNote: number
@@ -45419,6 +45474,7 @@ export namespace Prisma {
     trxId?: true
     trxIdNormalized?: true
     screenshotPublicId?: true
+    blobPath?: true
     status?: true
     declineReason?: true
     adminNote?: true
@@ -45440,6 +45496,7 @@ export namespace Prisma {
     trxId?: true
     trxIdNormalized?: true
     screenshotPublicId?: true
+    blobPath?: true
     status?: true
     declineReason?: true
     adminNote?: true
@@ -45461,6 +45518,7 @@ export namespace Prisma {
     trxId?: true
     trxIdNormalized?: true
     screenshotPublicId?: true
+    blobPath?: true
     status?: true
     declineReason?: true
     adminNote?: true
@@ -45569,6 +45627,7 @@ export namespace Prisma {
     trxId: string
     trxIdNormalized: string
     screenshotPublicId: string | null
+    blobPath: string | null
     status: $Enums.DepositStatus
     declineReason: $Enums.DepositDeclineReason | null
     adminNote: string | null
@@ -45609,6 +45668,7 @@ export namespace Prisma {
     trxId?: boolean
     trxIdNormalized?: boolean
     screenshotPublicId?: boolean
+    blobPath?: boolean
     status?: boolean
     declineReason?: boolean
     adminNote?: boolean
@@ -45632,6 +45692,7 @@ export namespace Prisma {
     trxId?: boolean
     trxIdNormalized?: boolean
     screenshotPublicId?: boolean
+    blobPath?: boolean
     status?: boolean
     declineReason?: boolean
     adminNote?: boolean
@@ -45655,6 +45716,7 @@ export namespace Prisma {
     trxId?: boolean
     trxIdNormalized?: boolean
     screenshotPublicId?: boolean
+    blobPath?: boolean
     status?: boolean
     declineReason?: boolean
     adminNote?: boolean
@@ -45678,6 +45740,7 @@ export namespace Prisma {
     trxId?: boolean
     trxIdNormalized?: boolean
     screenshotPublicId?: boolean
+    blobPath?: boolean
     status?: boolean
     declineReason?: boolean
     adminNote?: boolean
@@ -45687,7 +45750,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type DepositRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "method" | "amountClaimed" | "amountCredited" | "currency" | "usdtAmount" | "fxRate" | "trxId" | "trxIdNormalized" | "screenshotPublicId" | "status" | "declineReason" | "adminNote" | "reviewedById" | "reviewedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["depositRequest"]>
+  export type DepositRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "method" | "amountClaimed" | "amountCredited" | "currency" | "usdtAmount" | "fxRate" | "trxId" | "trxIdNormalized" | "screenshotPublicId" | "blobPath" | "status" | "declineReason" | "adminNote" | "reviewedById" | "reviewedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["depositRequest"]>
   export type DepositRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     reviewedBy?: boolean | DepositRequest$reviewedByArgs<ExtArgs>
@@ -45719,6 +45782,7 @@ export namespace Prisma {
       trxId: string
       trxIdNormalized: string
       screenshotPublicId: string | null
+      blobPath: string | null
       status: $Enums.DepositStatus
       declineReason: $Enums.DepositDeclineReason | null
       adminNote: string | null
@@ -46162,6 +46226,7 @@ export namespace Prisma {
     readonly trxId: FieldRef<"DepositRequest", 'String'>
     readonly trxIdNormalized: FieldRef<"DepositRequest", 'String'>
     readonly screenshotPublicId: FieldRef<"DepositRequest", 'String'>
+    readonly blobPath: FieldRef<"DepositRequest", 'String'>
     readonly status: FieldRef<"DepositRequest", 'DepositStatus'>
     readonly declineReason: FieldRef<"DepositRequest", 'DepositDeclineReason'>
     readonly adminNote: FieldRef<"DepositRequest", 'String'>
@@ -46636,6 +46701,7 @@ export namespace Prisma {
     rejectReason: string | null
     outgoingTrxId: string | null
     proofPublicId: string | null
+    blobPath: string | null
     approvedAt: Date | null
     paidAt: Date | null
     reviewedById: string | null
@@ -46655,6 +46721,7 @@ export namespace Prisma {
     rejectReason: string | null
     outgoingTrxId: string | null
     proofPublicId: string | null
+    blobPath: string | null
     approvedAt: Date | null
     paidAt: Date | null
     reviewedById: string | null
@@ -46674,6 +46741,7 @@ export namespace Prisma {
     rejectReason: number
     outgoingTrxId: number
     proofPublicId: number
+    blobPath: number
     approvedAt: number
     paidAt: number
     reviewedById: number
@@ -46705,6 +46773,7 @@ export namespace Prisma {
     rejectReason?: true
     outgoingTrxId?: true
     proofPublicId?: true
+    blobPath?: true
     approvedAt?: true
     paidAt?: true
     reviewedById?: true
@@ -46724,6 +46793,7 @@ export namespace Prisma {
     rejectReason?: true
     outgoingTrxId?: true
     proofPublicId?: true
+    blobPath?: true
     approvedAt?: true
     paidAt?: true
     reviewedById?: true
@@ -46743,6 +46813,7 @@ export namespace Prisma {
     rejectReason?: true
     outgoingTrxId?: true
     proofPublicId?: true
+    blobPath?: true
     approvedAt?: true
     paidAt?: true
     reviewedById?: true
@@ -46849,6 +46920,7 @@ export namespace Prisma {
     rejectReason: string | null
     outgoingTrxId: string | null
     proofPublicId: string | null
+    blobPath: string | null
     approvedAt: Date | null
     paidAt: Date | null
     reviewedById: string | null
@@ -46887,6 +46959,7 @@ export namespace Prisma {
     rejectReason?: boolean
     outgoingTrxId?: boolean
     proofPublicId?: boolean
+    blobPath?: boolean
     approvedAt?: boolean
     paidAt?: boolean
     reviewedById?: boolean
@@ -46908,6 +46981,7 @@ export namespace Prisma {
     rejectReason?: boolean
     outgoingTrxId?: boolean
     proofPublicId?: boolean
+    blobPath?: boolean
     approvedAt?: boolean
     paidAt?: boolean
     reviewedById?: boolean
@@ -46929,6 +47003,7 @@ export namespace Prisma {
     rejectReason?: boolean
     outgoingTrxId?: boolean
     proofPublicId?: boolean
+    blobPath?: boolean
     approvedAt?: boolean
     paidAt?: boolean
     reviewedById?: boolean
@@ -46950,6 +47025,7 @@ export namespace Prisma {
     rejectReason?: boolean
     outgoingTrxId?: boolean
     proofPublicId?: boolean
+    blobPath?: boolean
     approvedAt?: boolean
     paidAt?: boolean
     reviewedById?: boolean
@@ -46957,7 +47033,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type WithdrawalRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "method" | "destination" | "network" | "amount" | "fee" | "status" | "rejectReason" | "outgoingTrxId" | "proofPublicId" | "approvedAt" | "paidAt" | "reviewedById" | "createdAt" | "updatedAt", ExtArgs["result"]["withdrawalRequest"]>
+  export type WithdrawalRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "method" | "destination" | "network" | "amount" | "fee" | "status" | "rejectReason" | "outgoingTrxId" | "proofPublicId" | "blobPath" | "approvedAt" | "paidAt" | "reviewedById" | "createdAt" | "updatedAt", ExtArgs["result"]["withdrawalRequest"]>
   export type WithdrawalRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     reviewedBy?: boolean | WithdrawalRequest$reviewedByArgs<ExtArgs>
@@ -46989,6 +47065,7 @@ export namespace Prisma {
       rejectReason: string | null
       outgoingTrxId: string | null
       proofPublicId: string | null
+      blobPath: string | null
       approvedAt: Date | null
       paidAt: Date | null
       reviewedById: string | null
@@ -47430,6 +47507,7 @@ export namespace Prisma {
     readonly rejectReason: FieldRef<"WithdrawalRequest", 'String'>
     readonly outgoingTrxId: FieldRef<"WithdrawalRequest", 'String'>
     readonly proofPublicId: FieldRef<"WithdrawalRequest", 'String'>
+    readonly blobPath: FieldRef<"WithdrawalRequest", 'String'>
     readonly approvedAt: FieldRef<"WithdrawalRequest", 'DateTime'>
     readonly paidAt: FieldRef<"WithdrawalRequest", 'DateTime'>
     readonly reviewedById: FieldRef<"WithdrawalRequest", 'String'>
@@ -47907,6 +47985,7 @@ export namespace Prisma {
     accountValue: string | null
     accountType: string | null
     qrPublicId: string | null
+    blobPath: string | null
     minDeposit: Decimal | null
     maxDeposit: Decimal | null
     minWithdraw: Decimal | null
@@ -47926,6 +48005,7 @@ export namespace Prisma {
     accountValue: string | null
     accountType: string | null
     qrPublicId: string | null
+    blobPath: string | null
     minDeposit: Decimal | null
     maxDeposit: Decimal | null
     minWithdraw: Decimal | null
@@ -47945,6 +48025,7 @@ export namespace Prisma {
     accountValue: number
     accountType: number
     qrPublicId: number
+    blobPath: number
     minDeposit: number
     maxDeposit: number
     minWithdraw: number
@@ -47984,6 +48065,7 @@ export namespace Prisma {
     accountValue?: true
     accountType?: true
     qrPublicId?: true
+    blobPath?: true
     minDeposit?: true
     maxDeposit?: true
     minWithdraw?: true
@@ -48003,6 +48085,7 @@ export namespace Prisma {
     accountValue?: true
     accountType?: true
     qrPublicId?: true
+    blobPath?: true
     minDeposit?: true
     maxDeposit?: true
     minWithdraw?: true
@@ -48022,6 +48105,7 @@ export namespace Prisma {
     accountValue?: true
     accountType?: true
     qrPublicId?: true
+    blobPath?: true
     minDeposit?: true
     maxDeposit?: true
     minWithdraw?: true
@@ -48128,6 +48212,7 @@ export namespace Prisma {
     accountValue: string | null
     accountType: string | null
     qrPublicId: string | null
+    blobPath: string | null
     minDeposit: Decimal
     maxDeposit: Decimal
     minWithdraw: Decimal
@@ -48166,6 +48251,7 @@ export namespace Prisma {
     accountValue?: boolean
     accountType?: boolean
     qrPublicId?: boolean
+    blobPath?: boolean
     minDeposit?: boolean
     maxDeposit?: boolean
     minWithdraw?: boolean
@@ -48185,6 +48271,7 @@ export namespace Prisma {
     accountValue?: boolean
     accountType?: boolean
     qrPublicId?: boolean
+    blobPath?: boolean
     minDeposit?: boolean
     maxDeposit?: boolean
     minWithdraw?: boolean
@@ -48204,6 +48291,7 @@ export namespace Prisma {
     accountValue?: boolean
     accountType?: boolean
     qrPublicId?: boolean
+    blobPath?: boolean
     minDeposit?: boolean
     maxDeposit?: boolean
     minWithdraw?: boolean
@@ -48223,6 +48311,7 @@ export namespace Prisma {
     accountValue?: boolean
     accountType?: boolean
     qrPublicId?: boolean
+    blobPath?: boolean
     minDeposit?: boolean
     maxDeposit?: boolean
     minWithdraw?: boolean
@@ -48233,7 +48322,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type PaymentMethodConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"method" | "enabled" | "depositEnabled" | "withdrawEnabled" | "accountLabel" | "accountValue" | "accountType" | "qrPublicId" | "minDeposit" | "maxDeposit" | "minWithdraw" | "maxWithdraw" | "feePercent" | "feeFlat" | "updatedById" | "updatedAt", ExtArgs["result"]["paymentMethodConfig"]>
+  export type PaymentMethodConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"method" | "enabled" | "depositEnabled" | "withdrawEnabled" | "accountLabel" | "accountValue" | "accountType" | "qrPublicId" | "blobPath" | "minDeposit" | "maxDeposit" | "minWithdraw" | "maxWithdraw" | "feePercent" | "feeFlat" | "updatedById" | "updatedAt", ExtArgs["result"]["paymentMethodConfig"]>
 
   export type $PaymentMethodConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "PaymentMethodConfig"
@@ -48247,6 +48336,7 @@ export namespace Prisma {
       accountValue: string | null
       accountType: string | null
       qrPublicId: string | null
+      blobPath: string | null
       minDeposit: Prisma.Decimal
       maxDeposit: Prisma.Decimal
       minWithdraw: Prisma.Decimal
@@ -48686,6 +48776,7 @@ export namespace Prisma {
     readonly accountValue: FieldRef<"PaymentMethodConfig", 'String'>
     readonly accountType: FieldRef<"PaymentMethodConfig", 'String'>
     readonly qrPublicId: FieldRef<"PaymentMethodConfig", 'String'>
+    readonly blobPath: FieldRef<"PaymentMethodConfig", 'String'>
     readonly minDeposit: FieldRef<"PaymentMethodConfig", 'Decimal'>
     readonly maxDeposit: FieldRef<"PaymentMethodConfig", 'Decimal'>
     readonly minWithdraw: FieldRef<"PaymentMethodConfig", 'Decimal'>
@@ -50243,6 +50334,7 @@ export namespace Prisma {
     uploadedById: 'uploadedById',
     kind: 'kind',
     cloudinaryPublicId: 'cloudinaryPublicId',
+    blobPath: 'blobPath',
     fileName: 'fileName',
     mimeType: 'mimeType',
     sizeBytes: 'sizeBytes',
@@ -50259,6 +50351,7 @@ export namespace Prisma {
     title: 'title',
     description: 'description',
     cloudinaryPublicId: 'cloudinaryPublicId',
+    blobPath: 'blobPath',
     fileName: 'fileName',
     mimeType: 'mimeType',
     sizeBytes: 'sizeBytes',
@@ -50306,6 +50399,7 @@ export namespace Prisma {
     amount: 'amount',
     transactionId: 'transactionId',
     screenshotPublicId: 'screenshotPublicId',
+    blobPath: 'blobPath',
     adminNote: 'adminNote',
     verifiedById: 'verifiedById',
     verifiedAt: 'verifiedAt',
@@ -50339,6 +50433,7 @@ export namespace Prisma {
     accountHolder: 'accountHolder',
     instructions: 'instructions',
     qrPublicId: 'qrPublicId',
+    blobPath: 'blobPath',
     isActive: 'isActive',
     displayOrder: 'displayOrder',
     createdById: 'createdById',
@@ -50609,6 +50704,7 @@ export namespace Prisma {
     trxId: 'trxId',
     trxIdNormalized: 'trxIdNormalized',
     screenshotPublicId: 'screenshotPublicId',
+    blobPath: 'blobPath',
     status: 'status',
     declineReason: 'declineReason',
     adminNote: 'adminNote',
@@ -50633,6 +50729,7 @@ export namespace Prisma {
     rejectReason: 'rejectReason',
     outgoingTrxId: 'outgoingTrxId',
     proofPublicId: 'proofPublicId',
+    blobPath: 'blobPath',
     approvedAt: 'approvedAt',
     paidAt: 'paidAt',
     reviewedById: 'reviewedById',
@@ -50652,6 +50749,7 @@ export namespace Prisma {
     accountValue: 'accountValue',
     accountType: 'accountType',
     qrPublicId: 'qrPublicId',
+    blobPath: 'blobPath',
     minDeposit: 'minDeposit',
     maxDeposit: 'maxDeposit',
     minWithdraw: 'minWithdraw',
@@ -52382,7 +52480,8 @@ export namespace Prisma {
     orderId?: StringNullableFilter<"OrderAttachment"> | string | null
     uploadedById?: StringFilter<"OrderAttachment"> | string
     kind?: StringFilter<"OrderAttachment"> | string
-    cloudinaryPublicId?: StringFilter<"OrderAttachment"> | string
+    cloudinaryPublicId?: StringNullableFilter<"OrderAttachment"> | string | null
+    blobPath?: StringNullableFilter<"OrderAttachment"> | string | null
     fileName?: StringFilter<"OrderAttachment"> | string
     mimeType?: StringFilter<"OrderAttachment"> | string
     sizeBytes?: IntFilter<"OrderAttachment"> | number
@@ -52396,7 +52495,8 @@ export namespace Prisma {
     orderId?: SortOrderInput | SortOrder
     uploadedById?: SortOrder
     kind?: SortOrder
-    cloudinaryPublicId?: SortOrder
+    cloudinaryPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     fileName?: SortOrder
     mimeType?: SortOrder
     sizeBytes?: SortOrder
@@ -52413,7 +52513,8 @@ export namespace Prisma {
     orderId?: StringNullableFilter<"OrderAttachment"> | string | null
     uploadedById?: StringFilter<"OrderAttachment"> | string
     kind?: StringFilter<"OrderAttachment"> | string
-    cloudinaryPublicId?: StringFilter<"OrderAttachment"> | string
+    cloudinaryPublicId?: StringNullableFilter<"OrderAttachment"> | string | null
+    blobPath?: StringNullableFilter<"OrderAttachment"> | string | null
     fileName?: StringFilter<"OrderAttachment"> | string
     mimeType?: StringFilter<"OrderAttachment"> | string
     sizeBytes?: IntFilter<"OrderAttachment"> | number
@@ -52427,7 +52528,8 @@ export namespace Prisma {
     orderId?: SortOrderInput | SortOrder
     uploadedById?: SortOrder
     kind?: SortOrder
-    cloudinaryPublicId?: SortOrder
+    cloudinaryPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     fileName?: SortOrder
     mimeType?: SortOrder
     sizeBytes?: SortOrder
@@ -52447,7 +52549,8 @@ export namespace Prisma {
     orderId?: StringNullableWithAggregatesFilter<"OrderAttachment"> | string | null
     uploadedById?: StringWithAggregatesFilter<"OrderAttachment"> | string
     kind?: StringWithAggregatesFilter<"OrderAttachment"> | string
-    cloudinaryPublicId?: StringWithAggregatesFilter<"OrderAttachment"> | string
+    cloudinaryPublicId?: StringNullableWithAggregatesFilter<"OrderAttachment"> | string | null
+    blobPath?: StringNullableWithAggregatesFilter<"OrderAttachment"> | string | null
     fileName?: StringWithAggregatesFilter<"OrderAttachment"> | string
     mimeType?: StringWithAggregatesFilter<"OrderAttachment"> | string
     sizeBytes?: IntWithAggregatesFilter<"OrderAttachment"> | number
@@ -52463,7 +52566,8 @@ export namespace Prisma {
     uploadedById?: StringFilter<"Deliverable"> | string
     title?: StringFilter<"Deliverable"> | string
     description?: StringNullableFilter<"Deliverable"> | string | null
-    cloudinaryPublicId?: StringFilter<"Deliverable"> | string
+    cloudinaryPublicId?: StringNullableFilter<"Deliverable"> | string | null
+    blobPath?: StringNullableFilter<"Deliverable"> | string | null
     fileName?: StringFilter<"Deliverable"> | string
     mimeType?: StringFilter<"Deliverable"> | string
     sizeBytes?: IntFilter<"Deliverable"> | number
@@ -52480,7 +52584,8 @@ export namespace Prisma {
     uploadedById?: SortOrder
     title?: SortOrder
     description?: SortOrderInput | SortOrder
-    cloudinaryPublicId?: SortOrder
+    cloudinaryPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     fileName?: SortOrder
     mimeType?: SortOrder
     sizeBytes?: SortOrder
@@ -52500,7 +52605,8 @@ export namespace Prisma {
     uploadedById?: StringFilter<"Deliverable"> | string
     title?: StringFilter<"Deliverable"> | string
     description?: StringNullableFilter<"Deliverable"> | string | null
-    cloudinaryPublicId?: StringFilter<"Deliverable"> | string
+    cloudinaryPublicId?: StringNullableFilter<"Deliverable"> | string | null
+    blobPath?: StringNullableFilter<"Deliverable"> | string | null
     fileName?: StringFilter<"Deliverable"> | string
     mimeType?: StringFilter<"Deliverable"> | string
     sizeBytes?: IntFilter<"Deliverable"> | number
@@ -52517,7 +52623,8 @@ export namespace Prisma {
     uploadedById?: SortOrder
     title?: SortOrder
     description?: SortOrderInput | SortOrder
-    cloudinaryPublicId?: SortOrder
+    cloudinaryPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     fileName?: SortOrder
     mimeType?: SortOrder
     sizeBytes?: SortOrder
@@ -52540,7 +52647,8 @@ export namespace Prisma {
     uploadedById?: StringWithAggregatesFilter<"Deliverable"> | string
     title?: StringWithAggregatesFilter<"Deliverable"> | string
     description?: StringNullableWithAggregatesFilter<"Deliverable"> | string | null
-    cloudinaryPublicId?: StringWithAggregatesFilter<"Deliverable"> | string
+    cloudinaryPublicId?: StringNullableWithAggregatesFilter<"Deliverable"> | string | null
+    blobPath?: StringNullableWithAggregatesFilter<"Deliverable"> | string | null
     fileName?: StringWithAggregatesFilter<"Deliverable"> | string
     mimeType?: StringWithAggregatesFilter<"Deliverable"> | string
     sizeBytes?: IntWithAggregatesFilter<"Deliverable"> | number
@@ -52706,6 +52814,7 @@ export namespace Prisma {
     amount?: DecimalFilter<"Payment"> | Decimal | DecimalJsLike | number | string
     transactionId?: StringNullableFilter<"Payment"> | string | null
     screenshotPublicId?: StringNullableFilter<"Payment"> | string | null
+    blobPath?: StringNullableFilter<"Payment"> | string | null
     adminNote?: StringNullableFilter<"Payment"> | string | null
     verifiedById?: StringNullableFilter<"Payment"> | string | null
     verifiedAt?: DateTimeNullableFilter<"Payment"> | Date | string | null
@@ -52739,6 +52848,7 @@ export namespace Prisma {
     amount?: SortOrder
     transactionId?: SortOrderInput | SortOrder
     screenshotPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     adminNote?: SortOrderInput | SortOrder
     verifiedById?: SortOrderInput | SortOrder
     verifiedAt?: SortOrderInput | SortOrder
@@ -52775,6 +52885,7 @@ export namespace Prisma {
     amount?: DecimalFilter<"Payment"> | Decimal | DecimalJsLike | number | string
     transactionId?: StringNullableFilter<"Payment"> | string | null
     screenshotPublicId?: StringNullableFilter<"Payment"> | string | null
+    blobPath?: StringNullableFilter<"Payment"> | string | null
     adminNote?: StringNullableFilter<"Payment"> | string | null
     verifiedById?: StringNullableFilter<"Payment"> | string | null
     verifiedAt?: DateTimeNullableFilter<"Payment"> | Date | string | null
@@ -52808,6 +52919,7 @@ export namespace Prisma {
     amount?: SortOrder
     transactionId?: SortOrderInput | SortOrder
     screenshotPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     adminNote?: SortOrderInput | SortOrder
     verifiedById?: SortOrderInput | SortOrder
     verifiedAt?: SortOrderInput | SortOrder
@@ -52845,6 +52957,7 @@ export namespace Prisma {
     amount?: DecimalWithAggregatesFilter<"Payment"> | Decimal | DecimalJsLike | number | string
     transactionId?: StringNullableWithAggregatesFilter<"Payment"> | string | null
     screenshotPublicId?: StringNullableWithAggregatesFilter<"Payment"> | string | null
+    blobPath?: StringNullableWithAggregatesFilter<"Payment"> | string | null
     adminNote?: StringNullableWithAggregatesFilter<"Payment"> | string | null
     verifiedById?: StringNullableWithAggregatesFilter<"Payment"> | string | null
     verifiedAt?: DateTimeNullableWithAggregatesFilter<"Payment"> | Date | string | null
@@ -52878,6 +52991,7 @@ export namespace Prisma {
     accountHolder?: StringFilter<"PaymentAccount"> | string
     instructions?: StringNullableFilter<"PaymentAccount"> | string | null
     qrPublicId?: StringNullableFilter<"PaymentAccount"> | string | null
+    blobPath?: StringNullableFilter<"PaymentAccount"> | string | null
     isActive?: BoolFilter<"PaymentAccount"> | boolean
     displayOrder?: IntFilter<"PaymentAccount"> | number
     createdById?: StringNullableFilter<"PaymentAccount"> | string | null
@@ -52898,6 +53012,7 @@ export namespace Prisma {
     accountHolder?: SortOrder
     instructions?: SortOrderInput | SortOrder
     qrPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     isActive?: SortOrder
     displayOrder?: SortOrder
     createdById?: SortOrderInput | SortOrder
@@ -52921,6 +53036,7 @@ export namespace Prisma {
     accountHolder?: StringFilter<"PaymentAccount"> | string
     instructions?: StringNullableFilter<"PaymentAccount"> | string | null
     qrPublicId?: StringNullableFilter<"PaymentAccount"> | string | null
+    blobPath?: StringNullableFilter<"PaymentAccount"> | string | null
     isActive?: BoolFilter<"PaymentAccount"> | boolean
     displayOrder?: IntFilter<"PaymentAccount"> | number
     createdById?: StringNullableFilter<"PaymentAccount"> | string | null
@@ -52941,6 +53057,7 @@ export namespace Prisma {
     accountHolder?: SortOrder
     instructions?: SortOrderInput | SortOrder
     qrPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     isActive?: SortOrder
     displayOrder?: SortOrder
     createdById?: SortOrderInput | SortOrder
@@ -52966,6 +53083,7 @@ export namespace Prisma {
     accountHolder?: StringWithAggregatesFilter<"PaymentAccount"> | string
     instructions?: StringNullableWithAggregatesFilter<"PaymentAccount"> | string | null
     qrPublicId?: StringNullableWithAggregatesFilter<"PaymentAccount"> | string | null
+    blobPath?: StringNullableWithAggregatesFilter<"PaymentAccount"> | string | null
     isActive?: BoolWithAggregatesFilter<"PaymentAccount"> | boolean
     displayOrder?: IntWithAggregatesFilter<"PaymentAccount"> | number
     createdById?: StringNullableWithAggregatesFilter<"PaymentAccount"> | string | null
@@ -54277,6 +54395,7 @@ export namespace Prisma {
     trxId?: StringFilter<"DepositRequest"> | string
     trxIdNormalized?: StringFilter<"DepositRequest"> | string
     screenshotPublicId?: StringNullableFilter<"DepositRequest"> | string | null
+    blobPath?: StringNullableFilter<"DepositRequest"> | string | null
     status?: EnumDepositStatusFilter<"DepositRequest"> | $Enums.DepositStatus
     declineReason?: EnumDepositDeclineReasonNullableFilter<"DepositRequest"> | $Enums.DepositDeclineReason | null
     adminNote?: StringNullableFilter<"DepositRequest"> | string | null
@@ -54300,6 +54419,7 @@ export namespace Prisma {
     trxId?: SortOrder
     trxIdNormalized?: SortOrder
     screenshotPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     status?: SortOrder
     declineReason?: SortOrderInput | SortOrder
     adminNote?: SortOrderInput | SortOrder
@@ -54326,6 +54446,7 @@ export namespace Prisma {
     trxId?: StringFilter<"DepositRequest"> | string
     trxIdNormalized?: StringFilter<"DepositRequest"> | string
     screenshotPublicId?: StringNullableFilter<"DepositRequest"> | string | null
+    blobPath?: StringNullableFilter<"DepositRequest"> | string | null
     status?: EnumDepositStatusFilter<"DepositRequest"> | $Enums.DepositStatus
     declineReason?: EnumDepositDeclineReasonNullableFilter<"DepositRequest"> | $Enums.DepositDeclineReason | null
     adminNote?: StringNullableFilter<"DepositRequest"> | string | null
@@ -54349,6 +54470,7 @@ export namespace Prisma {
     trxId?: SortOrder
     trxIdNormalized?: SortOrder
     screenshotPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     status?: SortOrder
     declineReason?: SortOrderInput | SortOrder
     adminNote?: SortOrderInput | SortOrder
@@ -54378,6 +54500,7 @@ export namespace Prisma {
     trxId?: StringWithAggregatesFilter<"DepositRequest"> | string
     trxIdNormalized?: StringWithAggregatesFilter<"DepositRequest"> | string
     screenshotPublicId?: StringNullableWithAggregatesFilter<"DepositRequest"> | string | null
+    blobPath?: StringNullableWithAggregatesFilter<"DepositRequest"> | string | null
     status?: EnumDepositStatusWithAggregatesFilter<"DepositRequest"> | $Enums.DepositStatus
     declineReason?: EnumDepositDeclineReasonNullableWithAggregatesFilter<"DepositRequest"> | $Enums.DepositDeclineReason | null
     adminNote?: StringNullableWithAggregatesFilter<"DepositRequest"> | string | null
@@ -54402,6 +54525,7 @@ export namespace Prisma {
     rejectReason?: StringNullableFilter<"WithdrawalRequest"> | string | null
     outgoingTrxId?: StringNullableFilter<"WithdrawalRequest"> | string | null
     proofPublicId?: StringNullableFilter<"WithdrawalRequest"> | string | null
+    blobPath?: StringNullableFilter<"WithdrawalRequest"> | string | null
     approvedAt?: DateTimeNullableFilter<"WithdrawalRequest"> | Date | string | null
     paidAt?: DateTimeNullableFilter<"WithdrawalRequest"> | Date | string | null
     reviewedById?: StringNullableFilter<"WithdrawalRequest"> | string | null
@@ -54423,6 +54547,7 @@ export namespace Prisma {
     rejectReason?: SortOrderInput | SortOrder
     outgoingTrxId?: SortOrderInput | SortOrder
     proofPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     approvedAt?: SortOrderInput | SortOrder
     paidAt?: SortOrderInput | SortOrder
     reviewedById?: SortOrderInput | SortOrder
@@ -54447,6 +54572,7 @@ export namespace Prisma {
     rejectReason?: StringNullableFilter<"WithdrawalRequest"> | string | null
     outgoingTrxId?: StringNullableFilter<"WithdrawalRequest"> | string | null
     proofPublicId?: StringNullableFilter<"WithdrawalRequest"> | string | null
+    blobPath?: StringNullableFilter<"WithdrawalRequest"> | string | null
     approvedAt?: DateTimeNullableFilter<"WithdrawalRequest"> | Date | string | null
     paidAt?: DateTimeNullableFilter<"WithdrawalRequest"> | Date | string | null
     reviewedById?: StringNullableFilter<"WithdrawalRequest"> | string | null
@@ -54468,6 +54594,7 @@ export namespace Prisma {
     rejectReason?: SortOrderInput | SortOrder
     outgoingTrxId?: SortOrderInput | SortOrder
     proofPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     approvedAt?: SortOrderInput | SortOrder
     paidAt?: SortOrderInput | SortOrder
     reviewedById?: SortOrderInput | SortOrder
@@ -54495,6 +54622,7 @@ export namespace Prisma {
     rejectReason?: StringNullableWithAggregatesFilter<"WithdrawalRequest"> | string | null
     outgoingTrxId?: StringNullableWithAggregatesFilter<"WithdrawalRequest"> | string | null
     proofPublicId?: StringNullableWithAggregatesFilter<"WithdrawalRequest"> | string | null
+    blobPath?: StringNullableWithAggregatesFilter<"WithdrawalRequest"> | string | null
     approvedAt?: DateTimeNullableWithAggregatesFilter<"WithdrawalRequest"> | Date | string | null
     paidAt?: DateTimeNullableWithAggregatesFilter<"WithdrawalRequest"> | Date | string | null
     reviewedById?: StringNullableWithAggregatesFilter<"WithdrawalRequest"> | string | null
@@ -54514,6 +54642,7 @@ export namespace Prisma {
     accountValue?: StringNullableFilter<"PaymentMethodConfig"> | string | null
     accountType?: StringNullableFilter<"PaymentMethodConfig"> | string | null
     qrPublicId?: StringNullableFilter<"PaymentMethodConfig"> | string | null
+    blobPath?: StringNullableFilter<"PaymentMethodConfig"> | string | null
     minDeposit?: DecimalFilter<"PaymentMethodConfig"> | Decimal | DecimalJsLike | number | string
     maxDeposit?: DecimalFilter<"PaymentMethodConfig"> | Decimal | DecimalJsLike | number | string
     minWithdraw?: DecimalFilter<"PaymentMethodConfig"> | Decimal | DecimalJsLike | number | string
@@ -54533,6 +54662,7 @@ export namespace Prisma {
     accountValue?: SortOrderInput | SortOrder
     accountType?: SortOrderInput | SortOrder
     qrPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     minDeposit?: SortOrder
     maxDeposit?: SortOrder
     minWithdraw?: SortOrder
@@ -54555,6 +54685,7 @@ export namespace Prisma {
     accountValue?: StringNullableFilter<"PaymentMethodConfig"> | string | null
     accountType?: StringNullableFilter<"PaymentMethodConfig"> | string | null
     qrPublicId?: StringNullableFilter<"PaymentMethodConfig"> | string | null
+    blobPath?: StringNullableFilter<"PaymentMethodConfig"> | string | null
     minDeposit?: DecimalFilter<"PaymentMethodConfig"> | Decimal | DecimalJsLike | number | string
     maxDeposit?: DecimalFilter<"PaymentMethodConfig"> | Decimal | DecimalJsLike | number | string
     minWithdraw?: DecimalFilter<"PaymentMethodConfig"> | Decimal | DecimalJsLike | number | string
@@ -54574,6 +54705,7 @@ export namespace Prisma {
     accountValue?: SortOrderInput | SortOrder
     accountType?: SortOrderInput | SortOrder
     qrPublicId?: SortOrderInput | SortOrder
+    blobPath?: SortOrderInput | SortOrder
     minDeposit?: SortOrder
     maxDeposit?: SortOrder
     minWithdraw?: SortOrder
@@ -54601,6 +54733,7 @@ export namespace Prisma {
     accountValue?: StringNullableWithAggregatesFilter<"PaymentMethodConfig"> | string | null
     accountType?: StringNullableWithAggregatesFilter<"PaymentMethodConfig"> | string | null
     qrPublicId?: StringNullableWithAggregatesFilter<"PaymentMethodConfig"> | string | null
+    blobPath?: StringNullableWithAggregatesFilter<"PaymentMethodConfig"> | string | null
     minDeposit?: DecimalWithAggregatesFilter<"PaymentMethodConfig"> | Decimal | DecimalJsLike | number | string
     maxDeposit?: DecimalWithAggregatesFilter<"PaymentMethodConfig"> | Decimal | DecimalJsLike | number | string
     minWithdraw?: DecimalWithAggregatesFilter<"PaymentMethodConfig"> | Decimal | DecimalJsLike | number | string
@@ -55980,7 +56113,8 @@ export namespace Prisma {
   export type OrderAttachmentCreateInput = {
     id?: string
     kind?: string
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -55994,7 +56128,8 @@ export namespace Prisma {
     orderId?: string | null
     uploadedById: string
     kind?: string
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -56004,7 +56139,8 @@ export namespace Prisma {
   export type OrderAttachmentUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -56018,7 +56154,8 @@ export namespace Prisma {
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedById?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -56030,7 +56167,8 @@ export namespace Prisma {
     orderId?: string | null
     uploadedById: string
     kind?: string
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -56040,7 +56178,8 @@ export namespace Prisma {
   export type OrderAttachmentUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -56052,7 +56191,8 @@ export namespace Prisma {
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     uploadedById?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -56063,7 +56203,8 @@ export namespace Prisma {
     id?: string
     title: string
     description?: string | null
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -56080,7 +56221,8 @@ export namespace Prisma {
     uploadedById: string
     title: string
     description?: string | null
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -56093,7 +56235,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -56110,7 +56253,8 @@ export namespace Prisma {
     uploadedById?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -56125,7 +56269,8 @@ export namespace Prisma {
     uploadedById: string
     title: string
     description?: string | null
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -56138,7 +56283,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -56153,7 +56299,8 @@ export namespace Prisma {
     uploadedById?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -56319,6 +56466,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedAt?: Date | string | null
     provider?: string
@@ -56349,6 +56497,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedById?: string | null
     verifiedAt?: Date | string | null
@@ -56377,6 +56526,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     provider?: StringFieldUpdateOperationsInput | string
@@ -56407,6 +56557,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedById?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -56436,6 +56587,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedById?: string | null
     verifiedAt?: Date | string | null
@@ -56464,6 +56616,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     provider?: StringFieldUpdateOperationsInput | string
@@ -56490,6 +56643,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedById?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -56520,6 +56674,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     createdAt?: Date | string
@@ -56538,6 +56693,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     createdById?: string | null
@@ -56556,6 +56712,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56574,6 +56731,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     createdById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -56592,6 +56750,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     createdById?: string | null
@@ -56609,6 +56768,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56624,6 +56784,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     createdById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58044,6 +58205,7 @@ export namespace Prisma {
     trxId: string
     trxIdNormalized: string
     screenshotPublicId?: string | null
+    blobPath?: string | null
     status?: $Enums.DepositStatus
     declineReason?: $Enums.DepositDeclineReason | null
     adminNote?: string | null
@@ -58066,6 +58228,7 @@ export namespace Prisma {
     trxId: string
     trxIdNormalized: string
     screenshotPublicId?: string | null
+    blobPath?: string | null
     status?: $Enums.DepositStatus
     declineReason?: $Enums.DepositDeclineReason | null
     adminNote?: string | null
@@ -58086,6 +58249,7 @@ export namespace Prisma {
     trxId?: StringFieldUpdateOperationsInput | string
     trxIdNormalized?: StringFieldUpdateOperationsInput | string
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumDepositStatusFieldUpdateOperationsInput | $Enums.DepositStatus
     declineReason?: NullableEnumDepositDeclineReasonFieldUpdateOperationsInput | $Enums.DepositDeclineReason | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58108,6 +58272,7 @@ export namespace Prisma {
     trxId?: StringFieldUpdateOperationsInput | string
     trxIdNormalized?: StringFieldUpdateOperationsInput | string
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumDepositStatusFieldUpdateOperationsInput | $Enums.DepositStatus
     declineReason?: NullableEnumDepositDeclineReasonFieldUpdateOperationsInput | $Enums.DepositDeclineReason | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58129,6 +58294,7 @@ export namespace Prisma {
     trxId: string
     trxIdNormalized: string
     screenshotPublicId?: string | null
+    blobPath?: string | null
     status?: $Enums.DepositStatus
     declineReason?: $Enums.DepositDeclineReason | null
     adminNote?: string | null
@@ -58149,6 +58315,7 @@ export namespace Prisma {
     trxId?: StringFieldUpdateOperationsInput | string
     trxIdNormalized?: StringFieldUpdateOperationsInput | string
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumDepositStatusFieldUpdateOperationsInput | $Enums.DepositStatus
     declineReason?: NullableEnumDepositDeclineReasonFieldUpdateOperationsInput | $Enums.DepositDeclineReason | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58169,6 +58336,7 @@ export namespace Prisma {
     trxId?: StringFieldUpdateOperationsInput | string
     trxIdNormalized?: StringFieldUpdateOperationsInput | string
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumDepositStatusFieldUpdateOperationsInput | $Enums.DepositStatus
     declineReason?: NullableEnumDepositDeclineReasonFieldUpdateOperationsInput | $Enums.DepositDeclineReason | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58189,6 +58357,7 @@ export namespace Prisma {
     rejectReason?: string | null
     outgoingTrxId?: string | null
     proofPublicId?: string | null
+    blobPath?: string | null
     approvedAt?: Date | string | null
     paidAt?: Date | string | null
     createdAt?: Date | string
@@ -58209,6 +58378,7 @@ export namespace Prisma {
     rejectReason?: string | null
     outgoingTrxId?: string | null
     proofPublicId?: string | null
+    blobPath?: string | null
     approvedAt?: Date | string | null
     paidAt?: Date | string | null
     reviewedById?: string | null
@@ -58227,6 +58397,7 @@ export namespace Prisma {
     rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
     outgoingTrxId?: NullableStringFieldUpdateOperationsInput | string | null
     proofPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58247,6 +58418,7 @@ export namespace Prisma {
     rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
     outgoingTrxId?: NullableStringFieldUpdateOperationsInput | string | null
     proofPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58266,6 +58438,7 @@ export namespace Prisma {
     rejectReason?: string | null
     outgoingTrxId?: string | null
     proofPublicId?: string | null
+    blobPath?: string | null
     approvedAt?: Date | string | null
     paidAt?: Date | string | null
     reviewedById?: string | null
@@ -58284,6 +58457,7 @@ export namespace Prisma {
     rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
     outgoingTrxId?: NullableStringFieldUpdateOperationsInput | string | null
     proofPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58302,6 +58476,7 @@ export namespace Prisma {
     rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
     outgoingTrxId?: NullableStringFieldUpdateOperationsInput | string | null
     proofPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58318,6 +58493,7 @@ export namespace Prisma {
     accountValue?: string | null
     accountType?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     minDeposit: Decimal | DecimalJsLike | number | string
     maxDeposit: Decimal | DecimalJsLike | number | string
     minWithdraw: Decimal | DecimalJsLike | number | string
@@ -58337,6 +58513,7 @@ export namespace Prisma {
     accountValue?: string | null
     accountType?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     minDeposit: Decimal | DecimalJsLike | number | string
     maxDeposit: Decimal | DecimalJsLike | number | string
     minWithdraw: Decimal | DecimalJsLike | number | string
@@ -58356,6 +58533,7 @@ export namespace Prisma {
     accountValue?: NullableStringFieldUpdateOperationsInput | string | null
     accountType?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     minDeposit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     maxDeposit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minWithdraw?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -58375,6 +58553,7 @@ export namespace Prisma {
     accountValue?: NullableStringFieldUpdateOperationsInput | string | null
     accountType?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     minDeposit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     maxDeposit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minWithdraw?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -58394,6 +58573,7 @@ export namespace Prisma {
     accountValue?: string | null
     accountType?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     minDeposit: Decimal | DecimalJsLike | number | string
     maxDeposit: Decimal | DecimalJsLike | number | string
     minWithdraw: Decimal | DecimalJsLike | number | string
@@ -58413,6 +58593,7 @@ export namespace Prisma {
     accountValue?: NullableStringFieldUpdateOperationsInput | string | null
     accountType?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     minDeposit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     maxDeposit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minWithdraw?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -58432,6 +58613,7 @@ export namespace Prisma {
     accountValue?: NullableStringFieldUpdateOperationsInput | string | null
     accountType?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     minDeposit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     maxDeposit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     minWithdraw?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -59850,6 +60032,7 @@ export namespace Prisma {
     uploadedById?: SortOrder
     kind?: SortOrder
     cloudinaryPublicId?: SortOrder
+    blobPath?: SortOrder
     fileName?: SortOrder
     mimeType?: SortOrder
     sizeBytes?: SortOrder
@@ -59866,6 +60049,7 @@ export namespace Prisma {
     uploadedById?: SortOrder
     kind?: SortOrder
     cloudinaryPublicId?: SortOrder
+    blobPath?: SortOrder
     fileName?: SortOrder
     mimeType?: SortOrder
     sizeBytes?: SortOrder
@@ -59878,6 +60062,7 @@ export namespace Prisma {
     uploadedById?: SortOrder
     kind?: SortOrder
     cloudinaryPublicId?: SortOrder
+    blobPath?: SortOrder
     fileName?: SortOrder
     mimeType?: SortOrder
     sizeBytes?: SortOrder
@@ -59895,6 +60080,7 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     cloudinaryPublicId?: SortOrder
+    blobPath?: SortOrder
     fileName?: SortOrder
     mimeType?: SortOrder
     sizeBytes?: SortOrder
@@ -59916,6 +60102,7 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     cloudinaryPublicId?: SortOrder
+    blobPath?: SortOrder
     fileName?: SortOrder
     mimeType?: SortOrder
     sizeBytes?: SortOrder
@@ -59931,6 +60118,7 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     cloudinaryPublicId?: SortOrder
+    blobPath?: SortOrder
     fileName?: SortOrder
     mimeType?: SortOrder
     sizeBytes?: SortOrder
@@ -60072,6 +60260,7 @@ export namespace Prisma {
     amount?: SortOrder
     transactionId?: SortOrder
     screenshotPublicId?: SortOrder
+    blobPath?: SortOrder
     adminNote?: SortOrder
     verifiedById?: SortOrder
     verifiedAt?: SortOrder
@@ -60105,6 +60294,7 @@ export namespace Prisma {
     amount?: SortOrder
     transactionId?: SortOrder
     screenshotPublicId?: SortOrder
+    blobPath?: SortOrder
     adminNote?: SortOrder
     verifiedById?: SortOrder
     verifiedAt?: SortOrder
@@ -60134,6 +60324,7 @@ export namespace Prisma {
     amount?: SortOrder
     transactionId?: SortOrder
     screenshotPublicId?: SortOrder
+    blobPath?: SortOrder
     adminNote?: SortOrder
     verifiedById?: SortOrder
     verifiedAt?: SortOrder
@@ -60188,6 +60379,7 @@ export namespace Prisma {
     accountHolder?: SortOrder
     instructions?: SortOrder
     qrPublicId?: SortOrder
+    blobPath?: SortOrder
     isActive?: SortOrder
     displayOrder?: SortOrder
     createdById?: SortOrder
@@ -60209,6 +60401,7 @@ export namespace Prisma {
     accountHolder?: SortOrder
     instructions?: SortOrder
     qrPublicId?: SortOrder
+    blobPath?: SortOrder
     isActive?: SortOrder
     displayOrder?: SortOrder
     createdById?: SortOrder
@@ -60226,6 +60419,7 @@ export namespace Prisma {
     accountHolder?: SortOrder
     instructions?: SortOrder
     qrPublicId?: SortOrder
+    blobPath?: SortOrder
     isActive?: SortOrder
     displayOrder?: SortOrder
     createdById?: SortOrder
@@ -61202,6 +61396,7 @@ export namespace Prisma {
     trxId?: SortOrder
     trxIdNormalized?: SortOrder
     screenshotPublicId?: SortOrder
+    blobPath?: SortOrder
     status?: SortOrder
     declineReason?: SortOrder
     adminNote?: SortOrder
@@ -61230,6 +61425,7 @@ export namespace Prisma {
     trxId?: SortOrder
     trxIdNormalized?: SortOrder
     screenshotPublicId?: SortOrder
+    blobPath?: SortOrder
     status?: SortOrder
     declineReason?: SortOrder
     adminNote?: SortOrder
@@ -61251,6 +61447,7 @@ export namespace Prisma {
     trxId?: SortOrder
     trxIdNormalized?: SortOrder
     screenshotPublicId?: SortOrder
+    blobPath?: SortOrder
     status?: SortOrder
     declineReason?: SortOrder
     adminNote?: SortOrder
@@ -61316,6 +61513,7 @@ export namespace Prisma {
     rejectReason?: SortOrder
     outgoingTrxId?: SortOrder
     proofPublicId?: SortOrder
+    blobPath?: SortOrder
     approvedAt?: SortOrder
     paidAt?: SortOrder
     reviewedById?: SortOrder
@@ -61340,6 +61538,7 @@ export namespace Prisma {
     rejectReason?: SortOrder
     outgoingTrxId?: SortOrder
     proofPublicId?: SortOrder
+    blobPath?: SortOrder
     approvedAt?: SortOrder
     paidAt?: SortOrder
     reviewedById?: SortOrder
@@ -61359,6 +61558,7 @@ export namespace Prisma {
     rejectReason?: SortOrder
     outgoingTrxId?: SortOrder
     proofPublicId?: SortOrder
+    blobPath?: SortOrder
     approvedAt?: SortOrder
     paidAt?: SortOrder
     reviewedById?: SortOrder
@@ -61390,6 +61590,7 @@ export namespace Prisma {
     accountValue?: SortOrder
     accountType?: SortOrder
     qrPublicId?: SortOrder
+    blobPath?: SortOrder
     minDeposit?: SortOrder
     maxDeposit?: SortOrder
     minWithdraw?: SortOrder
@@ -61418,6 +61619,7 @@ export namespace Prisma {
     accountValue?: SortOrder
     accountType?: SortOrder
     qrPublicId?: SortOrder
+    blobPath?: SortOrder
     minDeposit?: SortOrder
     maxDeposit?: SortOrder
     minWithdraw?: SortOrder
@@ -61437,6 +61639,7 @@ export namespace Prisma {
     accountValue?: SortOrder
     accountType?: SortOrder
     qrPublicId?: SortOrder
+    blobPath?: SortOrder
     minDeposit?: SortOrder
     maxDeposit?: SortOrder
     minWithdraw?: SortOrder
@@ -65649,7 +65852,8 @@ export namespace Prisma {
   export type OrderAttachmentCreateWithoutUploadedByInput = {
     id?: string
     kind?: string
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -65661,7 +65865,8 @@ export namespace Prisma {
     id?: string
     orderId?: string | null
     kind?: string
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -65682,7 +65887,8 @@ export namespace Prisma {
     id?: string
     title: string
     description?: string | null
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -65697,7 +65903,8 @@ export namespace Prisma {
     orderId: string
     title: string
     description?: string | null
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -65783,6 +65990,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedAt?: Date | string | null
     provider?: string
@@ -65812,6 +66020,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedAt?: Date | string | null
     provider?: string
@@ -65849,6 +66058,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedAt?: Date | string | null
     provider?: string
@@ -65878,6 +66088,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedById?: string | null
     verifiedAt?: Date | string | null
@@ -65917,6 +66128,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     createdAt?: Date | string
@@ -65934,6 +66146,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     updatedById?: string | null
@@ -65961,6 +66174,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     createdAt?: Date | string
@@ -65978,6 +66192,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     createdById?: string | null
@@ -66362,6 +66577,7 @@ export namespace Prisma {
     trxId: string
     trxIdNormalized: string
     screenshotPublicId?: string | null
+    blobPath?: string | null
     status?: $Enums.DepositStatus
     declineReason?: $Enums.DepositDeclineReason | null
     adminNote?: string | null
@@ -66382,6 +66598,7 @@ export namespace Prisma {
     trxId: string
     trxIdNormalized: string
     screenshotPublicId?: string | null
+    blobPath?: string | null
     status?: $Enums.DepositStatus
     declineReason?: $Enums.DepositDeclineReason | null
     adminNote?: string | null
@@ -66412,6 +66629,7 @@ export namespace Prisma {
     trxId: string
     trxIdNormalized: string
     screenshotPublicId?: string | null
+    blobPath?: string | null
     status?: $Enums.DepositStatus
     declineReason?: $Enums.DepositDeclineReason | null
     adminNote?: string | null
@@ -66433,6 +66651,7 @@ export namespace Prisma {
     trxId: string
     trxIdNormalized: string
     screenshotPublicId?: string | null
+    blobPath?: string | null
     status?: $Enums.DepositStatus
     declineReason?: $Enums.DepositDeclineReason | null
     adminNote?: string | null
@@ -66462,6 +66681,7 @@ export namespace Prisma {
     rejectReason?: string | null
     outgoingTrxId?: string | null
     proofPublicId?: string | null
+    blobPath?: string | null
     approvedAt?: Date | string | null
     paidAt?: Date | string | null
     createdAt?: Date | string
@@ -66480,6 +66700,7 @@ export namespace Prisma {
     rejectReason?: string | null
     outgoingTrxId?: string | null
     proofPublicId?: string | null
+    blobPath?: string | null
     approvedAt?: Date | string | null
     paidAt?: Date | string | null
     reviewedById?: string | null
@@ -66508,6 +66729,7 @@ export namespace Prisma {
     rejectReason?: string | null
     outgoingTrxId?: string | null
     proofPublicId?: string | null
+    blobPath?: string | null
     approvedAt?: Date | string | null
     paidAt?: Date | string | null
     createdAt?: Date | string
@@ -66527,6 +66749,7 @@ export namespace Prisma {
     rejectReason?: string | null
     outgoingTrxId?: string | null
     proofPublicId?: string | null
+    blobPath?: string | null
     approvedAt?: Date | string | null
     paidAt?: Date | string | null
     createdAt?: Date | string
@@ -66738,7 +66961,8 @@ export namespace Prisma {
     orderId?: StringNullableFilter<"OrderAttachment"> | string | null
     uploadedById?: StringFilter<"OrderAttachment"> | string
     kind?: StringFilter<"OrderAttachment"> | string
-    cloudinaryPublicId?: StringFilter<"OrderAttachment"> | string
+    cloudinaryPublicId?: StringNullableFilter<"OrderAttachment"> | string | null
+    blobPath?: StringNullableFilter<"OrderAttachment"> | string | null
     fileName?: StringFilter<"OrderAttachment"> | string
     mimeType?: StringFilter<"OrderAttachment"> | string
     sizeBytes?: IntFilter<"OrderAttachment"> | number
@@ -66770,7 +66994,8 @@ export namespace Prisma {
     uploadedById?: StringFilter<"Deliverable"> | string
     title?: StringFilter<"Deliverable"> | string
     description?: StringNullableFilter<"Deliverable"> | string | null
-    cloudinaryPublicId?: StringFilter<"Deliverable"> | string
+    cloudinaryPublicId?: StringNullableFilter<"Deliverable"> | string | null
+    blobPath?: StringNullableFilter<"Deliverable"> | string | null
     fileName?: StringFilter<"Deliverable"> | string
     mimeType?: StringFilter<"Deliverable"> | string
     sizeBytes?: IntFilter<"Deliverable"> | number
@@ -66866,6 +67091,7 @@ export namespace Prisma {
     amount?: DecimalFilter<"Payment"> | Decimal | DecimalJsLike | number | string
     transactionId?: StringNullableFilter<"Payment"> | string | null
     screenshotPublicId?: StringNullableFilter<"Payment"> | string | null
+    blobPath?: StringNullableFilter<"Payment"> | string | null
     adminNote?: StringNullableFilter<"Payment"> | string | null
     verifiedById?: StringNullableFilter<"Payment"> | string | null
     verifiedAt?: DateTimeNullableFilter<"Payment"> | Date | string | null
@@ -66931,6 +67157,7 @@ export namespace Prisma {
     accountHolder?: StringFilter<"PaymentAccount"> | string
     instructions?: StringNullableFilter<"PaymentAccount"> | string | null
     qrPublicId?: StringNullableFilter<"PaymentAccount"> | string | null
+    blobPath?: StringNullableFilter<"PaymentAccount"> | string | null
     isActive?: BoolFilter<"PaymentAccount"> | boolean
     displayOrder?: IntFilter<"PaymentAccount"> | number
     createdById?: StringNullableFilter<"PaymentAccount"> | string | null
@@ -67288,6 +67515,7 @@ export namespace Prisma {
     trxId?: StringFilter<"DepositRequest"> | string
     trxIdNormalized?: StringFilter<"DepositRequest"> | string
     screenshotPublicId?: StringNullableFilter<"DepositRequest"> | string | null
+    blobPath?: StringNullableFilter<"DepositRequest"> | string | null
     status?: EnumDepositStatusFilter<"DepositRequest"> | $Enums.DepositStatus
     declineReason?: EnumDepositDeclineReasonNullableFilter<"DepositRequest"> | $Enums.DepositDeclineReason | null
     adminNote?: StringNullableFilter<"DepositRequest"> | string | null
@@ -67344,6 +67572,7 @@ export namespace Prisma {
     rejectReason?: StringNullableFilter<"WithdrawalRequest"> | string | null
     outgoingTrxId?: StringNullableFilter<"WithdrawalRequest"> | string | null
     proofPublicId?: StringNullableFilter<"WithdrawalRequest"> | string | null
+    blobPath?: StringNullableFilter<"WithdrawalRequest"> | string | null
     approvedAt?: DateTimeNullableFilter<"WithdrawalRequest"> | Date | string | null
     paidAt?: DateTimeNullableFilter<"WithdrawalRequest"> | Date | string | null
     reviewedById?: StringNullableFilter<"WithdrawalRequest"> | string | null
@@ -69440,7 +69669,8 @@ export namespace Prisma {
   export type OrderAttachmentCreateWithoutOrderInput = {
     id?: string
     kind?: string
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -69452,7 +69682,8 @@ export namespace Prisma {
     id?: string
     uploadedById: string
     kind?: string
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -69476,6 +69707,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedAt?: Date | string | null
     provider?: string
@@ -69504,6 +69736,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedById?: string | null
     verifiedAt?: Date | string | null
@@ -69539,7 +69772,8 @@ export namespace Prisma {
     id?: string
     title: string
     description?: string | null
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -69554,7 +69788,8 @@ export namespace Prisma {
     uploadedById: string
     title: string
     description?: string | null
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -72016,6 +72251,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     createdAt?: Date | string
@@ -72033,6 +72269,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     createdById?: string | null
@@ -72321,6 +72558,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -72338,6 +72576,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     createdById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72614,6 +72853,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedAt?: Date | string | null
     provider?: string
@@ -72643,6 +72883,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedById?: string | null
     verifiedAt?: Date | string | null
@@ -77071,7 +77312,8 @@ export namespace Prisma {
     id?: string
     orderId?: string | null
     kind?: string
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -77083,7 +77325,8 @@ export namespace Prisma {
     orderId: string
     title: string
     description?: string | null
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -77120,6 +77363,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedAt?: Date | string | null
     provider?: string
@@ -77148,6 +77392,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedById?: string | null
     verifiedAt?: Date | string | null
@@ -77177,6 +77422,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     updatedById?: string | null
@@ -77193,6 +77439,7 @@ export namespace Prisma {
     accountHolder: string
     instructions?: string | null
     qrPublicId?: string | null
+    blobPath?: string | null
     isActive?: boolean
     displayOrder?: number
     createdById?: string | null
@@ -77318,6 +77565,7 @@ export namespace Prisma {
     trxId: string
     trxIdNormalized: string
     screenshotPublicId?: string | null
+    blobPath?: string | null
     status?: $Enums.DepositStatus
     declineReason?: $Enums.DepositDeclineReason | null
     adminNote?: string | null
@@ -77339,6 +77587,7 @@ export namespace Prisma {
     trxId: string
     trxIdNormalized: string
     screenshotPublicId?: string | null
+    blobPath?: string | null
     status?: $Enums.DepositStatus
     declineReason?: $Enums.DepositDeclineReason | null
     adminNote?: string | null
@@ -77358,6 +77607,7 @@ export namespace Prisma {
     rejectReason?: string | null
     outgoingTrxId?: string | null
     proofPublicId?: string | null
+    blobPath?: string | null
     approvedAt?: Date | string | null
     paidAt?: Date | string | null
     reviewedById?: string | null
@@ -77377,6 +77627,7 @@ export namespace Prisma {
     rejectReason?: string | null
     outgoingTrxId?: string | null
     proofPublicId?: string | null
+    blobPath?: string | null
     approvedAt?: Date | string | null
     paidAt?: Date | string | null
     createdAt?: Date | string
@@ -77590,7 +77841,8 @@ export namespace Prisma {
   export type OrderAttachmentUpdateWithoutUploadedByInput = {
     id?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -77602,7 +77854,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     kind?: StringFieldUpdateOperationsInput | string
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -77613,7 +77866,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: NullableStringFieldUpdateOperationsInput | string | null
     kind?: StringFieldUpdateOperationsInput | string
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -77624,7 +77878,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -77639,7 +77894,8 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -77653,7 +77909,8 @@ export namespace Prisma {
     orderId?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -77729,6 +77986,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     provider?: StringFieldUpdateOperationsInput | string
@@ -77758,6 +78016,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     provider?: StringFieldUpdateOperationsInput | string
@@ -77786,6 +78045,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     provider?: StringFieldUpdateOperationsInput | string
@@ -77813,6 +78073,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     provider?: StringFieldUpdateOperationsInput | string
@@ -77842,6 +78103,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedById?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -77870,6 +78132,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedById?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -77899,6 +78162,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -77916,6 +78180,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     updatedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -77933,6 +78198,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     updatedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -77949,6 +78215,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -77966,6 +78233,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     createdById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -77983,6 +78251,7 @@ export namespace Prisma {
     accountHolder?: StringFieldUpdateOperationsInput | string
     instructions?: NullableStringFieldUpdateOperationsInput | string | null
     qrPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
     createdById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -78344,6 +78613,7 @@ export namespace Prisma {
     trxId?: StringFieldUpdateOperationsInput | string
     trxIdNormalized?: StringFieldUpdateOperationsInput | string
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumDepositStatusFieldUpdateOperationsInput | $Enums.DepositStatus
     declineReason?: NullableEnumDepositDeclineReasonFieldUpdateOperationsInput | $Enums.DepositDeclineReason | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
@@ -78364,6 +78634,7 @@ export namespace Prisma {
     trxId?: StringFieldUpdateOperationsInput | string
     trxIdNormalized?: StringFieldUpdateOperationsInput | string
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumDepositStatusFieldUpdateOperationsInput | $Enums.DepositStatus
     declineReason?: NullableEnumDepositDeclineReasonFieldUpdateOperationsInput | $Enums.DepositDeclineReason | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
@@ -78384,6 +78655,7 @@ export namespace Prisma {
     trxId?: StringFieldUpdateOperationsInput | string
     trxIdNormalized?: StringFieldUpdateOperationsInput | string
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumDepositStatusFieldUpdateOperationsInput | $Enums.DepositStatus
     declineReason?: NullableEnumDepositDeclineReasonFieldUpdateOperationsInput | $Enums.DepositDeclineReason | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
@@ -78404,6 +78676,7 @@ export namespace Prisma {
     trxId?: StringFieldUpdateOperationsInput | string
     trxIdNormalized?: StringFieldUpdateOperationsInput | string
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumDepositStatusFieldUpdateOperationsInput | $Enums.DepositStatus
     declineReason?: NullableEnumDepositDeclineReasonFieldUpdateOperationsInput | $Enums.DepositDeclineReason | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
@@ -78425,6 +78698,7 @@ export namespace Prisma {
     trxId?: StringFieldUpdateOperationsInput | string
     trxIdNormalized?: StringFieldUpdateOperationsInput | string
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumDepositStatusFieldUpdateOperationsInput | $Enums.DepositStatus
     declineReason?: NullableEnumDepositDeclineReasonFieldUpdateOperationsInput | $Enums.DepositDeclineReason | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
@@ -78445,6 +78719,7 @@ export namespace Prisma {
     trxId?: StringFieldUpdateOperationsInput | string
     trxIdNormalized?: StringFieldUpdateOperationsInput | string
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumDepositStatusFieldUpdateOperationsInput | $Enums.DepositStatus
     declineReason?: NullableEnumDepositDeclineReasonFieldUpdateOperationsInput | $Enums.DepositDeclineReason | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
@@ -78464,6 +78739,7 @@ export namespace Prisma {
     rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
     outgoingTrxId?: NullableStringFieldUpdateOperationsInput | string | null
     proofPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -78482,6 +78758,7 @@ export namespace Prisma {
     rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
     outgoingTrxId?: NullableStringFieldUpdateOperationsInput | string | null
     proofPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -78500,6 +78777,7 @@ export namespace Prisma {
     rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
     outgoingTrxId?: NullableStringFieldUpdateOperationsInput | string | null
     proofPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     reviewedById?: NullableStringFieldUpdateOperationsInput | string | null
@@ -78518,6 +78796,7 @@ export namespace Prisma {
     rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
     outgoingTrxId?: NullableStringFieldUpdateOperationsInput | string | null
     proofPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -78537,6 +78816,7 @@ export namespace Prisma {
     rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
     outgoingTrxId?: NullableStringFieldUpdateOperationsInput | string | null
     proofPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -78555,6 +78835,7 @@ export namespace Prisma {
     rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
     outgoingTrxId?: NullableStringFieldUpdateOperationsInput | string | null
     proofPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -79272,7 +79553,8 @@ export namespace Prisma {
     id?: string
     uploadedById: string
     kind?: string
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -79286,6 +79568,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedById?: string | null
     verifiedAt?: Date | string | null
@@ -79312,7 +79595,8 @@ export namespace Prisma {
     uploadedById: string
     title: string
     description?: string | null
-    cloudinaryPublicId: string
+    cloudinaryPublicId?: string | null
+    blobPath?: string | null
     fileName: string
     mimeType: string
     sizeBytes: number
@@ -79388,7 +79672,8 @@ export namespace Prisma {
   export type OrderAttachmentUpdateWithoutOrderInput = {
     id?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -79400,7 +79685,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     uploadedById?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -79411,7 +79697,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     uploadedById?: StringFieldUpdateOperationsInput | string
     kind?: StringFieldUpdateOperationsInput | string
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -79425,6 +79712,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     provider?: StringFieldUpdateOperationsInput | string
@@ -79453,6 +79741,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedById?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -79481,6 +79770,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedById?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -79506,7 +79796,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -79521,7 +79812,8 @@ export namespace Prisma {
     uploadedById?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -79535,7 +79827,8 @@ export namespace Prisma {
     uploadedById?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
-    cloudinaryPublicId?: StringFieldUpdateOperationsInput | string
+    cloudinaryPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     fileName?: StringFieldUpdateOperationsInput | string
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
@@ -79667,6 +79960,7 @@ export namespace Prisma {
     amount: Decimal | DecimalJsLike | number | string
     transactionId?: string | null
     screenshotPublicId?: string | null
+    blobPath?: string | null
     adminNote?: string | null
     verifiedById?: string | null
     verifiedAt?: Date | string | null
@@ -79694,6 +79988,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     provider?: StringFieldUpdateOperationsInput | string
@@ -79723,6 +80018,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedById?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -79751,6 +80047,7 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     screenshotPublicId?: NullableStringFieldUpdateOperationsInput | string | null
+    blobPath?: NullableStringFieldUpdateOperationsInput | string | null
     adminNote?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedById?: NullableStringFieldUpdateOperationsInput | string | null
     verifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

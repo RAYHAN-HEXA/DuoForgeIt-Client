@@ -6,11 +6,12 @@ import { getFirebaseAuth } from '../config/firebase.js';
 import { prisma } from '../config/prisma.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { apiLimiter, authLimiter } from '../middleware/rate-limit.js';
+import { apiLimiter, authLimiter, uploadRateLimiter } from '../middleware/rate-limit.js';
 import { serviceMarketplaceEnabled } from '../config/env.js';
 import * as marketplaceController from '../controllers/marketplace.controller.js';
 import * as paymentController from '../controllers/payment.controller.js';
 import {
+  blobUploadTokenRequestSchema,
   marketplaceListQuerySchema,
   paymentAccountCreateSchema,
   paymentAccountReorderSchema,
@@ -203,7 +204,8 @@ orderRouter.post(
   validate({
     params: z.object({ id: z.uuid() }),
     body: z.object({
-      cloudinaryPublicId: z.string().trim().min(5).max(300),
+      /** Server-minted Blob pathname from the upload ticket (ownership-checked). */
+      pathname: z.string().trim().min(5).max(300),
       fileName: z.string().trim().min(1).max(255),
       mimeType: z.string().trim().min(3).max(120),
       sizeBytes: z.number().int().min(1),
@@ -214,9 +216,15 @@ orderRouter.post(
 );
 router.use('/orders', authenticate, orderRouter);
 
-// ─── Uploads (signed client-side uploads) ────────────────────
+// ─── Uploads (scoped client-upload tickets for Vercel Blob) ──
 
-router.post('/uploads/sign', authenticate, authLimiter, validate({ body: z.object({ folder: z.enum(['requirements', 'deliveries', 'misc', 'payments']) }) }), uploadController.sign);
+router.post(
+  '/uploads/blob/token',
+  authenticate,
+  uploadRateLimiter,
+  validate({ body: blobUploadTokenRequestSchema }),
+  uploadController.createTicket,
+);
 
 // ─── Payment accounts (manual-payments v2) ───────────────────
 
@@ -257,7 +265,8 @@ adminRouter.post(
     body: z.object({
       title: z.string().trim().min(2).max(160),
       description: z.string().trim().max(2000).optional(),
-      cloudinaryPublicId: z.string().trim().min(5).max(300),
+      /** Server-minted Blob pathname from the upload ticket (ownership-checked). */
+      pathname: z.string().trim().min(5).max(300),
       fileName: z.string().trim().min(1).max(255),
       mimeType: z.string().trim().min(3).max(120),
       sizeBytes: z.number().int().min(1),
@@ -288,7 +297,12 @@ adminRouter.patch(
 // account id can never swallow them. Every route is protected by the
 // adminRouter-level authenticate + requireAdmin middleware below.
 adminRouter.get('/payment-accounts', adminController.listPaymentAccounts);
-adminRouter.post('/payment-accounts/qr/sign', adminController.signPaymentAccountQr);
+adminRouter.post(
+  '/payment-accounts/qr/sign',
+  uploadRateLimiter,
+  validate({ body: blobUploadTokenRequestSchema.omit({ folder: true, kind: true }) }),
+  adminController.signPaymentAccountQr,
+);
 adminRouter.patch(
   '/payment-accounts/reorder',
   validate({ body: paymentAccountReorderSchema }),

@@ -1,7 +1,7 @@
 import type { PublicUser, AdminPaymentAccountDto, PaymentAccountOptionDto } from '@tsh/shared';
 import type { User, FounderProfile, Service, ServiceCategory, Testimonial, PortfolioProject, PaymentAccount } from '../generated/prisma/client.js';
-import { hasCloudinary } from '../config/env.js';
-import { signedDownloadUrl } from './cloudinary.js';
+import { hasBlobStorage } from '../config/env.js';
+import { signedDownloadUrl } from './blob.js';
 import { subtractMoney } from './money.js';
 
 /** Strip internal fields for API responses. */
@@ -132,6 +132,8 @@ type OrderFull = Order & {
     amount: Decimalish;
     transactionId: string | null;
     screenshotPublicId: string | null;
+    /** Private Blob pathname (new submissions); screenshotPublicId stays for legacy rows. */
+    blobPath?: string | null;
     adminNote: string | null;
     verifiedAt: Date | null;
     createdAt: Date;
@@ -172,6 +174,8 @@ export function toPaymentDto(
     amount: Decimalish;
     transactionId: string | null;
     screenshotPublicId: string | null;
+    /** Private Blob pathname (new submissions); screenshotPublicId stays for legacy rows. */
+    blobPath?: string | null;
     adminNote: string | null;
     verifiedAt: Date | null;
     createdAt: Date;
@@ -187,7 +191,7 @@ export function toPaymentDto(
     status: p.status,
     amount: p.amount.toString(),
     transactionId: p.transactionId,
-    hasScreenshot: Boolean(p.screenshotPublicId),
+    hasScreenshot: Boolean(p.blobPath || p.screenshotPublicId),
     // Staff-only notes stay hidden from customer responses. The legacy
     // `adminNote` remains populated for REJECTED rows because the customer
     // order page has always rendered it as the rejection reason; v2 also
@@ -336,6 +340,8 @@ export function toAdminPaymentDto(
     amount: Decimalish;
     transactionId: string | null;
     screenshotPublicId: string | null;
+    /** Private Blob pathname (new submissions); screenshotPublicId stays for legacy rows. */
+    blobPath?: string | null;
     adminNote: string | null;
     verifiedAt: Date | null;
     createdAt: Date;
@@ -370,7 +376,7 @@ export function toAdminPaymentDto(
     accountNumberSnapshot: p.accountNumberSnapshot ?? null,
     accountHolderSnapshot: p.accountHolderSnapshot ?? null,
     instructionsSnapshot: p.instructionsSnapshot ?? null,
-    hasScreenshot: Boolean(p.screenshotPublicId),
+    hasScreenshot: Boolean(p.blobPath || p.screenshotPublicId),
     verifiedByName: p.verifiedBy?.fullName ?? null,
     rejectedByName: p.rejectedBy?.fullName ?? null,
     order: {
@@ -401,10 +407,12 @@ export function toAdminPaymentDto(
 
 /**
  * Customer-safe receiving-account DTO. Deliberately excludes isActive,
- * displayOrder, usage counts, audit ids and the raw Cloudinary public id.
- * QR images are exposed only as short-lived signed URLs.
+ * displayOrder, usage counts, audit ids and the raw storage pathname.
+ * QR images are exposed only as short-lived presigned URLs minted from the
+ * private blobPath; accounts still referencing never-migrated Cloudinary
+ * assets get qrUrl: null until the one-shot migration backfills blobPath.
  */
-export function toPaymentAccountOptionDto(a: PaymentAccount): PaymentAccountOptionDto {
+export async function toPaymentAccountOptionDto(a: PaymentAccount): Promise<PaymentAccountOptionDto> {
   return {
     id: a.id,
     methodKey: a.methodKey,
@@ -413,7 +421,7 @@ export function toPaymentAccountOptionDto(a: PaymentAccount): PaymentAccountOpti
     accountNumber: a.accountNumber,
     accountHolder: a.accountHolder,
     instructions: a.instructions,
-    qrUrl: a.qrPublicId && hasCloudinary ? signedDownloadUrl(a.qrPublicId, 'image') : null,
+    qrUrl: a.blobPath && hasBlobStorage ? await signedDownloadUrl(a.blobPath) : null,
   };
 }
 
@@ -424,12 +432,12 @@ type PaymentAccountWithMeta = PaymentAccount & {
 };
 
 /** Admin DTO — management view with usage and safe audit display fields. */
-export function toAdminPaymentAccountDto(a: PaymentAccountWithMeta): AdminPaymentAccountDto {
+export async function toAdminPaymentAccountDto(a: PaymentAccountWithMeta): Promise<AdminPaymentAccountDto> {
   return {
-    ...toPaymentAccountOptionDto(a),
+    ...(await toPaymentAccountOptionDto(a)),
     isActive: a.isActive,
     displayOrder: a.displayOrder,
-    hasQr: Boolean(a.qrPublicId),
+    hasQr: Boolean(a.blobPath || a.qrPublicId),
     usageCount: a._count.payments,
     createdById: a.createdById,
     updatedById: a.updatedById,

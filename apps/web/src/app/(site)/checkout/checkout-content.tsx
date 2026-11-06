@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import type { FounderDto, OrderDto } from '@tsh/shared';
 import { formatBDT } from '@tsh/shared';
-import { api, errorMessage, uploadToCloudinary, ApiClientError } from '@/lib/api';
+import { api, errorMessage, uploadToBlob, BlobUploadTicket, ApiClientError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,7 +40,7 @@ import { useCart } from '@/hooks/use-cart';
 const STEPS = ['Review', 'Requirements', 'Files', 'Deadline', 'Your lead', 'Pricing', 'Payment', 'Submit'] as const;
 
 type StagedFile = {
-  publicId: string;
+  pathname: string;
   fileName: string;
   mimeType: string;
   sizeBytes: number;
@@ -117,18 +117,18 @@ export function CheckoutContent() {
     setUploading(true);
     try {
       for (const file of Array.from(files).slice(0, 5 - staged.length)) {
-        const sign = await api.post<{
-          uploadUrl: string;
-          publicId: string;
-          apiKey: string;
-          timestamp: number;
-          signature: string;
-          folder: string;
-        }>('/uploads/sign', { folder: 'requirements' });
-        const publicId = await uploadToCloudinary(file, sign);
+        // Scoped ticket: the server mints the pathname and constrains the
+        // token to this file's MIME type and size.
+        const ticket = await api.post<BlobUploadTicket>('/uploads/blob/token', {
+          folder: 'requirements',
+          fileName: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          sizeBytes: file.size,
+        });
+        const pathname = await uploadToBlob(file, ticket);
         setStaged((prev) => [
           ...prev,
-          { publicId, fileName: file.name, mimeType: file.type || 'application/octet-stream', sizeBytes: file.size },
+          { pathname, fileName: file.name, mimeType: file.type || 'application/octet-stream', sizeBytes: file.size },
         ]);
       }
       toast.success('File uploaded');
@@ -271,7 +271,7 @@ export function CheckoutContent() {
               {staged.length > 0 && (
                 <ul className="space-y-2">
                   {staged.map((f) => (
-                    <li key={f.publicId} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
+                    <li key={f.pathname} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
                       <span className="flex items-center gap-2">
                         <Paperclip className="h-4 w-4 text-muted-foreground" />
                         {f.fileName}
@@ -280,7 +280,7 @@ export function CheckoutContent() {
                       <Button
                         variant="ghost"
                         size="icon-xs"
-                        onClick={() => setStaged((prev) => prev.filter((x) => x.publicId !== f.publicId))}
+                        onClick={() => setStaged((prev) => prev.filter((x) => x.pathname !== f.pathname))}
                         aria-label={`Remove ${f.fileName}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

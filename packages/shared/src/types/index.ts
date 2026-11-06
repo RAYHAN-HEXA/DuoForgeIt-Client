@@ -138,7 +138,7 @@ export type OrderAttachmentDto = {
   mimeType: string;
   sizeBytes: number;
   createdAt: string;
-  /** Short-lived signed URL, minted per request. Never persisted. */
+  /** Short-lived signed URL for the private blob; minted per request. */
   downloadUrl: string | null;
 };
 
@@ -278,17 +278,19 @@ export type NotificationsResponseDto = {
   unread: number;
 };
 
-/** Response of POST /api/uploads/sign — client uploads directly to Cloudinary. */
-export type UploadSignatureDto = {
-  cloudName: string;
-  apiKey: string;
-  timestamp: number;
-  /** Signature over folder + public_id + timestamp. */
-  signature: string;
-  folder: string;
-  /** Pre-assigned public id the client MUST use (it is part of the signature). */
-  publicId: string;
-  uploadUrl: string;
+/**
+ * Short-lived, pathname-scoped client-upload ticket minted by
+ * `POST /api/uploads/blob/token`. The browser uploads directly to Vercel Blob
+ * with the scoped token; `BLOB_READ_WRITE_TOKEN` never leaves the server.
+ */
+export type BlobUploadTicketDto = {
+  /** Server-minted pathname the client MUST upload to. */
+  pathname: string;
+  /** Scoped client token (pathname/content-type/size/expiry constrained). */
+  token: string;
+  access: 'private';
+  /** ISO timestamp after which the token is rejected. */
+  expiresAt: string;
 };
 
 export type AdminStatsDto = {
@@ -351,7 +353,7 @@ export type PaymentAccountOptionDto = {
   accountNumber: string;
   accountHolder: string;
   instructions: string | null;
-  /** Short-lived signed URL for the QR image; null when absent/unconfigured. */
+  /** Short-lived signed URL for the private QR image; null when absent/unconfigured. */
   qrUrl?: string | null;
 };
 
@@ -359,7 +361,7 @@ export type PaymentAccountOptionDto = {
 export type AdminPaymentAccountDto = PaymentAccountOptionDto & {
   isActive: boolean;
   displayOrder: number;
-  /** Whether a QR identifier is stored, even when Cloudinary is unconfigured. */
+  /** Whether a QR identifier is stored, even when blob storage is unconfigured. */
   hasQr: boolean;
   /** Number of historical payments referencing this account. */
   usageCount: number;
@@ -380,7 +382,7 @@ export type AdminPaymentMethodBreakdownDto = {
 /**
  * Customer-facing result of a v2 manual payment submission (manual-payments
  * v2, Stage 2). Snapshots reflect the receiving account AT SUBMISSION TIME —
- * later admin edits never rewrite them. Raw Cloudinary references and admin
+ * later admin edits never rewrite them. Raw storage pathnames and admin
  * audit fields deliberately stay server-side.
  */
 export type PaymentSubmissionDto = {
@@ -399,7 +401,7 @@ export type PaymentSubmissionDto = {
   /** Original customer-submitted transaction ID (normalized copy stays server-side). */
   transactionId: string;
   status: PaymentStatus;
-  /** True when screenshot metadata was attached; never exposes the public ID. */
+  /** True when screenshot metadata was attached; never exposes the storage pathname. */
   hasScreenshot: boolean;
   createdAt: string;
 };

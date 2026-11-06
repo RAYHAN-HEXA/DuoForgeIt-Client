@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import type { AdminPaymentAccountDto } from '@tsh/shared';
 import { paymentAccountCreateSchema, paymentAccountUpdateSchema } from '@tsh/shared';
-import { api, errorMessage, uploadToCloudinary } from '@/lib/api';
+import { api, errorMessage, uploadToBlob, BlobUploadTicket } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -23,14 +23,6 @@ import { Textarea } from '@/components/ui/textarea';
 const QR_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
 const QR_MAX_BYTES = 5 * 1024 * 1024;
 
-type Signature = {
-  uploadUrl: string;
-  publicId: string;
-  apiKey: string;
-  timestamp: number;
-  signature: string;
-  folder: string;
-};
 
 type FormState = {
   methodKey: string;
@@ -95,7 +87,7 @@ export function PaymentAccountForm({
   const [saving, setSaving] = useState(false);
   const [qrUploading, setQrUploading] = useState(false);
   // undefined = leave existing QR unchanged; null = remove; string = replace.
-  const [qrPublicId, setQrPublicId] = useState<string | null | undefined>(undefined);
+  const [qrPathname, setQrPathname] = useState<string | null | undefined>(undefined);
   const [qrPreview, setQrPreview] = useState<string | null>(account?.qrUrl ?? null);
   const objectUrlRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -129,12 +121,16 @@ export function PaymentAccountForm({
 
     setQrUploading(true);
     try {
-      const signature = await api.post<Signature>('/admin/payment-accounts/qr/sign');
-      const publicId = await uploadToCloudinary(file, signature);
+      const ticket = await api.post<BlobUploadTicket>('/admin/payment-accounts/qr/sign', {
+        fileName: file.name,
+        mimeType: file.type,
+        sizeBytes: file.size,
+      });
+      const pathname = await uploadToBlob(file, ticket);
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
       const preview = URL.createObjectURL(file);
       objectUrlRef.current = preview;
-      setQrPublicId(publicId);
+      setQrPathname(pathname);
       setQrPreview(preview);
       toast.success('QR image uploaded — save to apply it');
     } catch (err) {
@@ -147,7 +143,7 @@ export function PaymentAccountForm({
   }
 
   function removeQr() {
-    setQrPublicId(null);
+    setQrPathname(null);
     setQrPreview(null);
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
@@ -181,7 +177,7 @@ export function PaymentAccountForm({
         isActive: trimmed.isActive,
         ...(trimmed.displayOrder ? { displayOrder: Number(trimmed.displayOrder) } : {}),
       };
-      if (qrPublicId !== undefined) payload.qrPublicId = qrPublicId;
+      if (qrPathname !== undefined) payload.qrPathname = qrPathname;
 
       const parsed = paymentAccountUpdateSchema.safeParse(payload);
       if (!parsed.success) {
@@ -212,7 +208,7 @@ export function PaymentAccountForm({
       ...(trimmed.instructions ? { instructions: trimmed.instructions } : {}),
       ...(trimmed.displayOrder ? { displayOrder: Number(trimmed.displayOrder) } : {}),
       isActive: trimmed.isActive,
-      ...(typeof qrPublicId === 'string' ? { qrPublicId } : {}),
+      ...(typeof qrPathname === 'string' ? { qrPathname } : {}),
     };
 
     const parsed = paymentAccountCreateSchema.safeParse(payload);
@@ -420,7 +416,7 @@ export function PaymentAccountForm({
             ) : (
               <p className="text-xs text-muted-foreground">No QR image attached.</p>
             )}
-            {qrPublicId === null && (
+            {qrPathname === null && (
               <p className="text-xs text-amber-600 dark:text-amber-400">
                 The current QR image will be removed when you save.
               </p>

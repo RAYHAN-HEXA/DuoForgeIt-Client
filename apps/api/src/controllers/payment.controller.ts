@@ -44,7 +44,7 @@ export async function submitPaymentV2(req: Request, res: Response, next: NextFun
       transactionId: body.transactionId,
       senderNumber: body.senderNumber,
       amount: body.amount,
-      screenshotPublicId: body.screenshotPublicId,
+      screenshotPathname: body.screenshotPathname,
       screenshotMimeType: body.screenshotMimeType,
       screenshotSizeBytes: body.screenshotSizeBytes,
     });
@@ -69,7 +69,7 @@ export async function submitPaymentV2(req: Request, res: Response, next: NextFun
           ['Amount', formatBDT(created.amount.toString())],
           ['Account', created.methodLabelSnapshot ?? created.methodKeySnapshot ?? created.method],
           ['Transaction ID', created.transactionId ?? '—'],
-          ['Screenshot', created.screenshotPublicId ? 'Attached' : 'None'],
+          ['Screenshot', created.blobPath || created.screenshotPublicId ? 'Attached' : 'None'],
           ['Customer', `${user.fullName} (${user.email})`],
         ],
         'Verify payment',

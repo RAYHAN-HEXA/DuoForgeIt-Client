@@ -6,8 +6,8 @@ import { ok } from '../utils/envelope.js';
 import { ApiError } from '../utils/ApiError.js';
 import { validated } from '../middleware/validate.js';
 import { prisma } from '../config/prisma.js';
-import { env, hasCloudinary } from '../config/env.js';
-import { assertUploadAllowed, signedDownloadUrl } from '../utils/cloudinary.js';
+import { env, hasBlobStorage } from '../config/env.js';
+import { assertOwnedPathname, assertStoredBlob, assertUploadAllowed, signedDownloadUrl } from '../utils/blob.js';
 import { toOrderDto, toOrderSummaryDto } from '../utils/mappers.js';
 import { checkout, customerCancel, getOwnOrder } from '../services/order.service.js';
 import { clearServices } from '../services/cart.service.js';
@@ -97,22 +97,33 @@ export async function list(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-/** Mint download URLs when Cloudinary is configured; null URLs otherwise. */
-function mintUrls(order: { attachments: Array<{ id: string; cloudinaryPublicId: string; mimeType: string }>; deliverables: Array<{ id: string; cloudinaryPublicId: string }> }) {
-  if (!hasCloudinary) return {};
+/** Mint download URLs when Blob storage is configured; empty otherwise. */
+async function mintUrls(order: {
+  attachments: Array<{ id: string; blobPath: string | null; mimeType: string }>;
+  deliverables: Array<{ id: string; blobPath: string | null }>;
+}) {
+  if (!hasBlobStorage) return {};
   const attachments = new Map<string, string | null>();
-  for (const a of order.attachments) attachments.set(a.id, signedDownloadUrl(a.cloudinaryPublicId, 'auto'));
+  for (const a of order.attachments) {
+    // Legacy rows reference Cloudinary assets that were never copied to
+    // Blob — they get a null URL (admin UI shows "not yet migrated") rather
+    // than a dead link.
+    attachments.set(a.id, a.blobPath ? await signedDownloadUrl(a.blobPath) : null);
+  }
   const deliverables = new Map<string, string | null>();
-  for (const d of order.deliverables) deliverables.set(d.id, signedDownloadUrl(d.cloudinaryPublicId, 'auto'));
+  for (const d of order.deliverables) {
+    deliverables.set(d.id, d.blobPath ? await signedDownloadUrl(d.blobPath) : null);
+  }
   return { attachments, deliverables };
 }
+
 
 /** GET /api/orders/:id — full detail for the owning customer. */
 export async function detail(req: Request, res: Response, next: NextFunction) {
   try {
     const orderId = validated<{ id: string }>(req, 'params').id;
     const order = await getOwnOrder(req.authUser!.id, orderId);
-    res.json(ok(toOrderDto(order, mintUrls(order))));
+    res.json(ok(toOrderDto(order, await mintUrls(order))));
   } catch (err) {
     next(err);
   }
@@ -282,22 +293,25 @@ export async function submitReview(req: Request, res: Response, next: NextFuncti
 }
 
 /**
- * POST /api/orders/:id/attachments — register a client-side Cloudinary upload
- * against the order. Ownership of the order is checked; file metadata limits
- * are enforced server-side.
+ * POST /api/orders/:id/attachments — register a completed Blob upload against
+ * the order. The pathname must be a server-minted path under THIS customer's
+ * namespace, the referenced object must exist with matching metadata, and
+ * file metadata limits are enforced server-side.
  */
 export async function addAttachment(req: Request, res: Response, next: NextFunction) {
   try {
     const orderId = validated<{ id: string }>(req, 'params').id;
-    const body = validated<{ cloudinaryPublicId: string; fileName: string; mimeType: string; sizeBytes: number; kind: 'REQUIREMENT' | 'DELIVERABLE_FEEDBACK' | 'OTHER' }>(req, 'body');
+    const body = validated<{ pathname: string; fileName: string; mimeType: string; sizeBytes: number; kind: 'REQUIREMENT' | 'DELIVERABLE_FEEDBACK' | 'OTHER' }>(req, 'body');
     const order = await getOwnOrder(req.authUser!.id, orderId);
     assertUploadAllowed(body.mimeType, body.sizeBytes);
+    assertOwnedPathname(body.pathname, 'requirements', req.authUser!.id, 'attachment');
+    await assertStoredBlob(body.pathname, { contentType: body.mimeType, sizeBytes: body.sizeBytes });
     const attachment = await prisma.orderAttachment.create({
       data: {
         orderId: order.id,
         uploadedById: req.authUser!.id,
         kind: body.kind,
-        cloudinaryPublicId: body.cloudinaryPublicId,
+        blobPath: body.pathname,
         fileName: body.fileName,
         mimeType: body.mimeType,
         sizeBytes: body.sizeBytes,

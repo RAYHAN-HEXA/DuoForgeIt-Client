@@ -25,16 +25,14 @@ import type { AdminPaymentAccountDto } from '@tsh/shared';
 
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
 const run = randomUUID().slice(0, 8);
-const CLOUD_SECRET = `stage4-cloud-secret-${run}`;
+const TOKEN = 'vercel_blob_rw_stage4_test';
 
 if (TEST_DATABASE_URL) {
   process.env.NODE_ENV = 'test';
   process.env.DATABASE_URL = TEST_DATABASE_URL;
   process.env.DIRECT_URL = TEST_DATABASE_URL;
   process.env.STAGE4_RUN_ID = run;
-  process.env.CLOUDINARY_CLOUD_NAME = 'stage4-test-cloud';
-  process.env.CLOUDINARY_API_KEY = 'stage4-test-key';
-  process.env.CLOUDINARY_API_SECRET = CLOUD_SECRET;
+  process.env.BLOB_READ_WRITE_TOKEN = TOKEN;
   // Never send real email from an integration test.
   delete process.env.RESEND_API_KEY;
   delete process.env.SMTP_HOST;
@@ -63,6 +61,17 @@ vi.mock('../services/token.service.js', () => ({
       aud: 'stage4-test',
     } as never;
   },
+}));
+
+// The Blob SDK is mocked — QR existence checks (head) and URL minting
+// (issueSignedToken/presignUrl) must not hit the network. head() returns
+// metadata matching the declared QR upload (1024 bytes, image/png).
+vi.mock('@vercel/blob', () => ({
+  head: vi.fn().mockResolvedValue({ size: 1024, contentType: 'image/png' }),
+  issueSignedToken: vi.fn().mockResolvedValue({ delegationToken: 'd', clientSigningToken: 'c', validUntil: Date.now() + 60_000 }),
+  presignUrl: vi.fn().mockImplementation((_t: unknown, opts: { pathname: string }) =>
+    Promise.resolve({ presignedUrl: `https://blob.stage4.test/${opts.pathname}?sig=fake` })),
+  del: vi.fn(),
 }));
 
 const d = TEST_DATABASE_URL ? describe : describe.skip;
@@ -516,70 +525,78 @@ d('Stage 4 — admin payment accounts (real PostgreSQL)', () => {
       .set(auth('customer'));
     expect(customerSign.status).toBe(403);
 
+    const signBody = { fileName: 'qr.png', mimeType: 'image/png', sizeBytes: 1024 };
     const signed = await request(app)
       .post('/api/admin/payment-accounts/qr/sign')
-      .set(auth('admin'));
+      .set(auth('admin'))
+      .send(signBody);
     expect(signed.status).toBe(200);
-    const publicId = signed.body.data.publicId as string;
-    expect(publicId).toMatch(
-      new RegExp(`^techservice-hub/payment-accounts/${admin.id}/[0-9a-f-]{36}$`),
+    const pathname = signed.body.data.pathname as string;
+    expect(pathname).toMatch(
+      new RegExp(`^techservice-hub/payment-accounts/${admin.id}/[0-9a-f-]{36}\\.png$`),
     );
-    expect(JSON.stringify(signed.body)).not.toContain(CLOUD_SECRET);
+    expect(signed.body.data.access).toBe('private');
+    // The read-write token must never leave the server.
+    expect(JSON.stringify(signed.body)).not.toContain(TOKEN);
 
     const signedByAdmin2 = await request(app)
       .post('/api/admin/payment-accounts/qr/sign')
-      .set(auth('admin2'));
+      .set(auth('admin2'))
+      .send(signBody);
     expect(signedByAdmin2.status).toBe(200);
-    expect(signedByAdmin2.body.data.publicId).toContain(`/payment-accounts/${admin2.id}/`);
+    expect(signedByAdmin2.body.data.pathname).toContain(`/payment-accounts/${admin2.id}/`);
 
     const withQr = await adminCreate({
       label: `STAGE4-${run}-qr`,
-      qrPublicId: publicId,
+      qrPathname: pathname,
     });
     expect(withQr).toMatchObject({ hasQr: true });
-    expect(String(withQr.qrUrl)).toContain(publicId);
-    expect(JSON.stringify(withQr)).not.toContain(CLOUD_SECRET);
+    expect(String(withQr.qrUrl)).toContain(pathname);
+    expect(JSON.stringify(withQr)).not.toContain(TOKEN);
+    expect(JSON.stringify(withQr)).not.toHaveProperty('qrPathname');
 
     const customerView = await customerAccountLabels();
     const customerQr = customerView.find((item) => item.label === `STAGE4-${run}-qr`);
-    expect(customerQr?.qrUrl).toContain(publicId);
+    expect(customerQr?.qrUrl).toContain(pathname);
 
-    const customerNamespace = `techservice-hub/payments/${admin.id}/${uuid()}`;
-    for (const badPublicId of [
+    const customerNamespace = `techservice-hub/payments/${admin.id}/${uuid()}.png`;
+    for (const badPathname of [
       customerNamespace,
-      qrNamespace(admin2.id, uuid()),
+      qrNamespace(admin2.id, `${uuid()}.png`),
       `https://evil.example/qr.png`,
       'techservice-hub/payment-accounts/../escape',
+      // legacy Cloudinary id shape (no extension) is not a valid Blob pathname
+      qrNamespace(admin.id, uuid()),
     ]) {
       const res = await request(app)
         .post('/api/admin/payment-accounts')
         .set(auth('admin'))
-        .send({ ...baseCreate(), qrPublicId: badPublicId });
-      expect(res.status, badPublicId).toBe(400);
+        .send({ ...baseCreate(), qrPathname: badPathname });
+      expect(res.status, badPathname).toBe(400);
     }
 
     // A failed replacement must not clear the existing reference.
     const failedReplace = await request(app)
       .patch(`/api/admin/payment-accounts/${withQr.id}`)
       .set(auth('admin'))
-      .send({ qrPublicId: customerNamespace });
+      .send({ qrPathname: customerNamespace });
     expect(failedReplace.status).toBe(400);
     const afterFailure = await request(app)
       .get(`/api/admin/payment-accounts/${withQr.id}`)
       .set(auth('admin'));
     expect(afterFailure.body.data.hasQr).toBe(true);
-    expect(afterFailure.body.data.qrUrl).toContain(publicId);
+    expect(afterFailure.body.data.qrUrl).toContain(pathname);
 
     const removed = await request(app)
       .patch(`/api/admin/payment-accounts/${withQr.id}`)
       .set(auth('admin'))
-      .send({ qrPublicId: null });
+      .send({ qrPathname: null });
     expect(removed.status).toBe(200);
     expect(removed.body.data.hasQr).toBe(false);
     expect(removed.body.data.qrUrl).toBeNull();
 
     const adminList = await request(app).get('/api/admin/payment-accounts').set(auth('admin'));
-    expect(JSON.stringify(adminList.body)).not.toContain(CLOUD_SECRET);
+    expect(JSON.stringify(adminList.body)).not.toContain(TOKEN);
   });
 
   // ─── Test 8 — Customer endpoint regression ──────────────────
@@ -640,7 +657,7 @@ d('Stage 4 — admin payment accounts (real PostgreSQL)', () => {
     expect(raw).not.toContain('displayOrder');
     expect(raw).not.toContain('usageCount');
     expect(raw).not.toContain('qrPublicId');
-    expect(raw).not.toContain(CLOUD_SECRET);
+    expect(raw).not.toContain(TOKEN);
     expect(items.some((item) => item.label === `STAGE4-${run}-customer-off`)).toBe(false);
   });
 

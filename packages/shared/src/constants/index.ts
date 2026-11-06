@@ -156,7 +156,38 @@ export const UPLOAD_LIMITS = {
     'application/zip',
     'application/x-zip-compressed',
   ],
+  /**
+   * Extension allow-list for the general upload folders. The server maps the
+   * declared MIME type to its canonical extensions and stores the file with a
+   * server-generated name, so a client-supplied extension can never become a
+   * pathname component.
+   */
+  allowedExtensions: [
+    'pdf',
+    'doc',
+    'docx',
+    'xls',
+    'xlsx',
+    'ppt',
+    'pptx',
+    'png',
+    'jpg',
+    'jpeg',
+    'webp',
+    'zip',
+  ],
 } as const;
+
+/** Remote storage namespaces. Pathnames are always minted server-side. */
+export const STORAGE_FOLDERS = [
+  'requirements',
+  'deliveries',
+  'misc',
+  'payments',
+  'paymentAccounts',
+  'requests',
+] as const;
+export type StorageFolder = (typeof STORAGE_FOLDERS)[number];
 
 export const ORDER_NUMBER_PATTERN = /^TSH-\d{4}-\d{6}$/;
 

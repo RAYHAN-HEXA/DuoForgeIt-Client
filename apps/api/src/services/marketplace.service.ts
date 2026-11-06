@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
 import { logger } from '../utils/logger.js';
+import { assertOwnedPathname, assertStoredBlob } from '../utils/blob.js';
 import {
   buildRequestAnswersSchema,
   formFieldValidationSchema,
@@ -294,9 +295,13 @@ export function validateMarketplaceFile(
   }
 }
 
-/** Register a Cloudinary-uploaded file as a staged RequestFile (no request yet). */
+/** Register a completed Blob upload as a staged RequestFile (no request yet). */
 export async function registerRequestFile(input: RequestFileRegister & { userId: string }) {
   validateMarketplaceFile(input.fileName, input.mimeType, input.sizeBytes, input.kind);
+  // The storage path must be a server-minted path under THIS user's namespace
+  // and the referenced blob must exist with matching metadata.
+  assertOwnedPathname(input.storagePath, 'requests', input.userId, 'file');
+  await assertStoredBlob(input.storagePath, { contentType: input.mimeType, sizeBytes: input.sizeBytes });
   const file = await prisma.requestFile.create({
     data: {
       uploadedById: input.userId,
@@ -312,8 +317,6 @@ export async function registerRequestFile(input: RequestFileRegister & { userId:
 }
 
 // ─── Request submission (R1: pre-order, no money involved) ───
-
-const MAX_REFERENCE_ATTEMPTS = 4;
 
 async function nextRequestNumber(): Promise<string> {
   const year = new Date().getFullYear();

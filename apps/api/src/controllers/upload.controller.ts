@@ -1,21 +1,35 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ok } from '../utils/envelope.js';
+import { ApiError } from '../utils/ApiError.js';
 import { validated } from '../middleware/validate.js';
-import { signUpload } from '../utils/cloudinary.js';
+import { createUploadTicket } from '../utils/blob.js';
+import type { BlobUploadTokenRequest } from '@tsh/shared';
 
 /**
- * POST /api/uploads/sign — mint a short-lived Cloudinary signature so the
- * browser uploads directly (the API secret stays server-side). The client
- * then registers the file via POST /orders/:id/attachments (or checkout's
- * attachmentIds for staged files). Payment screenshots are user-scoped
- * (<root>/<userId>/<uuid>) so server-side ownership checks can prove the
- * referenced asset belongs to that uploader. Returns 503 when Cloudinary
- * isn't wired.
+ * POST /api/uploads/blob/token — mint a short-lived, pathname-scoped client
+ * upload ticket. The server derives the pathname
+ * (techservice-hub/<folder>/<userId>/<uuid>.<ext>) — the client can never
+ * choose its own namespace — and constrains the token to the declared MIME
+ * type and size. The browser uploads with the @vercel/blob SDK:
+ * `upload(pathname, file, { access: 'private', token, contentType })`.
+ *
+ * The read-write token never leaves the server. Returns 503 when Blob
+ * storage isn't configured (FILE_STORAGE_UNCONFIGURED).
  */
-export async function sign(req: Request, res: Response, next: NextFunction) {
+export async function createTicket(req: Request, res: Response, next: NextFunction) {
   try {
-    const { folder } = validated<{ folder: 'requirements' | 'deliveries' | 'misc' | 'payments' }>(req, 'body');
-    res.json(ok(signUpload(folder, { userId: folder === 'payments' ? req.authUser!.id : undefined })));
+    const body = validated<BlobUploadTokenRequest>(req, 'body');
+    // The QR namespace is admin-only — administrators mint their tickets via
+    // POST /api/admin/payment-accounts/qr/sign (requireAdmin-protected).
+    if (body.folder === 'paymentAccounts') {
+      throw ApiError.forbidden('This storage folder is reserved for administrators');
+    }
+    const ticket = await createUploadTicket(body.folder, {
+      userId: req.authUser!.id,
+      mimeType: body.mimeType,
+      sizeBytes: body.sizeBytes,
+    });
+    res.json(ok(ticket));
   } catch (err) {
     next(err);
   }

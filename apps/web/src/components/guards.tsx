@@ -51,7 +51,7 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
             <div>
               <p className="font-medium">Admin access only</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                You're signed in as {user.email}. Switch to a founder account to open the admin console.
+                You&apos;re signed in as {user.email}. Switch to a founder account to open the admin console.
               </p>
             </div>
             <div className="flex gap-2">

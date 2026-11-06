@@ -87,20 +87,27 @@ export function validationDetails(err: unknown): Record<string, string> {
   return {};
 }
 
-/** Client-side Cloudinary upload using a signature minted by the API. */
-export async function uploadToCloudinary(
-  file: File,
-  signature: { uploadUrl: string; publicId: string; apiKey: string; timestamp: number; signature: string; folder: string },
-): Promise<string> {
-  const form = new FormData();
-  form.append('file', file);
-  form.append('api_key', signature.apiKey);
-  form.append('timestamp', String(signature.timestamp));
-  form.append('signature', signature.signature);
-  form.append('folder', signature.folder);
-  form.append('public_id', signature.publicId);
-  const res = await fetch(signature.uploadUrl, { method: 'POST', body: form });
-  if (!res.ok) throw new ApiClientError(res.status, 'UPLOAD_FAILED', 'File upload failed — try again');
-  const data = (await res.json()) as { public_id: string };
-  return data.public_id;
+/**
+ * Scoped upload ticket minted by POST /api/uploads/blob/token (or the admin
+ * QR variant). The pathname is server-minted and ownership-scoped; the token
+ * is constrained to this pathname, MIME type and size.
+ */
+export type BlobUploadTicket = {
+  pathname: string;
+  token: string;
+  access: 'private';
+  expiresAt: string;
+};
+
+/** Client-side upload to Vercel Blob using a scoped ticket minted by the API. */
+export async function uploadToBlob(file: File, ticket: BlobUploadTicket): Promise<string> {
+  // Client subpath; `put` consumes the server-minted ticket token directly
+  // (unlike `upload`, which expects a handleUpload route to mint tokens).
+  const { put } = await import('@vercel/blob/client');
+  const result = await put(ticket.pathname, file, {
+    access: 'private',
+    token: ticket.token,
+    contentType: file.type || 'application/octet-stream',
+  });
+  return result.pathname;
 }

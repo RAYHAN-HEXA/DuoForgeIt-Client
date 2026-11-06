@@ -116,16 +116,15 @@ export declare const paymentSubmitSchema: z.ZodObject<{
  *
  * Trust-model note (accepted, same as every existing upload path): screenshot
  * MIME/size are client-DECLARED metadata — the server validates the declared
- * values and the namespace, but does not verify the uploaded bytes here.
- * Signature-level `allowed_formats` enforcement is a separately reviewed
- * future hardening.
+ * values, the server-minted Blob namespace, and (when Blob is configured)
+ * the stored blob's real size/content-type before accepting the reference.
  */
 export declare const paymentSubmitV2Schema: z.ZodObject<{
     accountId: z.ZodUUID;
     transactionId: z.ZodString;
     senderNumber: z.ZodOptional<z.ZodString>;
     amount: z.ZodString;
-    screenshotPublicId: z.ZodOptional<z.ZodString>;
+    screenshotPathname: z.ZodOptional<z.ZodString>;
     screenshotMimeType: z.ZodOptional<z.ZodEnum<{
         "image/png": "image/png";
         "image/jpeg": "image/jpeg";
@@ -153,13 +152,13 @@ export declare const paymentAccountCreateSchema: z.ZodObject<{
     accountNumber: z.ZodString;
     accountHolder: z.ZodString;
     instructions: z.ZodOptional<z.ZodString>;
-    qrPublicId: z.ZodOptional<z.ZodString>;
+    qrPathname: z.ZodOptional<z.ZodString>;
     isActive: z.ZodDefault<z.ZodBoolean>;
     displayOrder: z.ZodOptional<z.ZodNumber>;
 }, z.core.$strip>;
 /**
  * Admin edit contract. Nullable optional fields allow an administrator to
- * explicitly clear a value (e.g. `qrPublicId: null` removes the QR image);
+ * explicitly clear a value (e.g. `qrPathname: null` removes the QR image);
  * omitting the field leaves it unchanged.
  */
 export declare const paymentAccountUpdateSchema: z.ZodObject<{
@@ -171,7 +170,7 @@ export declare const paymentAccountUpdateSchema: z.ZodObject<{
     displayOrder: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
     accountType: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     instructions: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    qrPublicId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    qrPathname: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, z.core.$strip>;
 /**
  * Atomic display-order update. Every entry must reference a distinct account
@@ -270,15 +269,36 @@ export declare const serviceRequestCreateSchema: z.ZodObject<{
     answers: z.ZodDefault<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
     deadline: z.ZodOptional<z.ZodCoercedDate<unknown>>;
     contactPreference: z.ZodOptional<z.ZodEnum<{
-        WHATSAPP: "WHATSAPP";
         PHONE: "PHONE";
+        WHATSAPP: "WHATSAPP";
         EMAIL: "EMAIL";
         IN_APP: "IN_APP";
     }>>;
     notes: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
 export type ServiceRequestCreate = z.infer<typeof serviceRequestCreateSchema>;
-/** POST /api/marketplace/files — register a Cloudinary-uploaded file as a
+/** POST /api/uploads/blob/token — request a scoped client-upload ticket.
+ *  The server derives the pathname and upload constraints; the client cannot
+ *  choose its own storage namespace. */
+export declare const blobUploadTokenRequestSchema: z.ZodObject<{
+    folder: z.ZodEnum<{
+        requirements: "requirements";
+        deliveries: "deliveries";
+        misc: "misc";
+        payments: "payments";
+        paymentAccounts: "paymentAccounts";
+        requests: "requests";
+    }>;
+    fileName: z.ZodString;
+    mimeType: z.ZodString;
+    sizeBytes: z.ZodNumber;
+    kind: z.ZodOptional<z.ZodEnum<{
+        ATTACHMENT: "ATTACHMENT";
+        PHOTO: "PHOTO";
+    }>>;
+}, z.core.$strip>;
+export type BlobUploadTokenRequest = z.infer<typeof blobUploadTokenRequestSchema>;
+/** POST /api/marketplace/files — register a Blob-uploaded file as a
  *  staged RequestFile (requestId null until a request claims it). Type/size
  *  are re-validated server-side against MARKETPLACE_UPLOAD_LIMITS. */
 export declare const requestFileRegisterSchema: z.ZodObject<{

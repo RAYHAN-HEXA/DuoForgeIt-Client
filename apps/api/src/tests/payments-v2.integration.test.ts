@@ -28,7 +28,21 @@ if (TEST_DATABASE_URL) {
   process.env.NODE_ENV = 'test';
   process.env.DATABASE_URL = TEST_DATABASE_URL;
   process.env.DIRECT_URL = TEST_DATABASE_URL;
+  // Blob storage "configured" so screenshot registration can exercise the
+  // head() existence check (the SDK itself is mocked below — no network).
+  process.env.BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_stage2_test';
 }
+
+// The Blob SDK is mocked: registration endpoints call head() to verify the
+// referenced object exists; the happy-path screenshot declares exactly this
+// metadata. Ownership/namespace logic runs for real in blob.ts.
+vi.mock('@vercel/blob', () => ({
+  head: vi.fn().mockResolvedValue({ size: 1024, contentType: 'image/png' }),
+  issueSignedToken: vi.fn().mockResolvedValue({ delegationToken: 'd', clientSigningToken: 'c', validUntil: Date.now() + 60_000 }),
+  presignUrl: vi.fn().mockImplementation((_t: unknown, opts: { pathname: string }) =>
+    Promise.resolve({ presignedUrl: `https://blob.stage2.test/${opts.pathname}?sig=fake` })),
+  del: vi.fn(),
+}));
 
 // Firebase token verification is stubbed; everything downstream (profile
 // lookup, ownership, constraints) runs against the real database.
@@ -429,22 +443,23 @@ d('manual-payments v2 (real PostgreSQL)', () => {
 
   it('accepts only screenshots minted in the authenticated user’s payments namespace', async () => {
     const order = await createOrder({ customerId: customer.id });
-    const own = `techservice-hub/payments/${customer.id}/${uuid()}`;
+    const own = `techservice-hub/payments/${customer.id}/${uuid()}.png`;
     const good = await request(app)
       .post(v2(order.id))
       .set(auth('customer'))
-      .send(submission(order.id, { screenshotPublicId: own, screenshotMimeType: 'image/png', screenshotSizeBytes: 1024 }));
+      .send(submission(order.id, { screenshotPathname: own, screenshotMimeType: 'image/png', screenshotSizeBytes: 1024 }));
     expect(good.status).toBe(201);
     expect(good.body.data.hasScreenshot).toBe(true);
     expect(JSON.stringify(good.body)).not.toContain(own); // raw public id never echoed
 
     const order2 = await createOrder({ customerId: customer.id });
-    for (const screenshotPublicId of [
-      `techservice-hub/payments/${other.id}/${uuid()}`, // foreign user's namespace
-      `techservice-hub/requirements/${customer.id}/${uuid()}`, // arbitrary folder
-      `techservice-hub/payments/${customer.id}/not-a-uuid`,
+    for (const screenshotPathname of [
+      `techservice-hub/payments/${other.id}/${uuid()}.png`, // foreign user's namespace
+      `techservice-hub/requirements/${customer.id}/${uuid()}.png`, // arbitrary folder
+      `techservice-hub/payments/${customer.id}/not-a-uuid`, // bad basename
+      `techservice-hub/payments/${customer.id}/${uuid()}`, // legacy no-extension shape
     ]) {
-      const res = await request(app).post(v2(order2.id)).set(auth('customer')).send(submission(order2.id, { screenshotPublicId }));
+      const res = await request(app).post(v2(order2.id)).set(auth('customer')).send(submission(order2.id, { screenshotPathname }));
       expect(res.status).toBe(400);
     }
 
@@ -452,12 +467,12 @@ d('manual-payments v2 (real PostgreSQL)', () => {
     const tooBig = await request(app)
       .post(v2(order3.id))
       .set(auth('customer'))
-      .send(submission(order3.id, { screenshotPublicId: `techservice-hub/payments/${customer.id}/${uuid()}`, screenshotMimeType: 'image/jpeg', screenshotSizeBytes: 5 * 1024 * 1024 + 1 }));
+      .send(submission(order3.id, { screenshotPathname: `techservice-hub/payments/${customer.id}/${uuid()}.jpg`, screenshotMimeType: 'image/jpeg', screenshotSizeBytes: 5 * 1024 * 1024 + 1 }));
     expect(tooBig.status).toBe(422);
     const badMime = await request(app)
       .post(v2(order3.id))
       .set(auth('customer'))
-      .send(submission(order3.id, { screenshotPublicId: `techservice-hub/payments/${customer.id}/${uuid()}`, screenshotMimeType: 'image/gif', screenshotSizeBytes: 1024 }));
+      .send(submission(order3.id, { screenshotPathname: `techservice-hub/payments/${customer.id}/${uuid()}.png`, screenshotMimeType: 'image/gif', screenshotSizeBytes: 1024 }));
     expect(badMime.status).toBe(422);
   });
 

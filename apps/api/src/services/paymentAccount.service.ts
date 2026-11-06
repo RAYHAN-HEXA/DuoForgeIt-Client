@@ -4,7 +4,8 @@ import type { paymentAccountCreateSchema, paymentAccountUpdateSchema } from '@ts
 import type { PaymentAccount, Prisma } from '../generated/prisma/client.js';
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
-import { assertPaymentAccountQrOwnership } from '../utils/cloudinary.js';
+import { assertPaymentAccountQrOwnership, assertStoredBlob } from '../utils/blob.js';
+
 
 /**
  * Admin payment-account management (Stage 4).
@@ -66,7 +67,12 @@ export async function createPaymentAccount(
   input: CreatePaymentAccountInput,
   actorId: string,
 ): Promise<PaymentAccountWithMeta> {
-  if (input.qrPublicId) assertPaymentAccountQrOwnership(input.qrPublicId, actorId);
+  if (input.qrPathname) {
+    assertPaymentAccountQrOwnership(input.qrPathname, actorId);
+    // Prove the QR image was actually uploaded before persisting the
+    // reference (size/type were constrained by the upload ticket itself).
+    await assertStoredBlob(input.qrPathname);
+  }
 
   return prisma.$transaction(async (tx) => {
     let displayOrder = input.displayOrder;
@@ -86,7 +92,7 @@ export async function createPaymentAccount(
         accountNumber: input.accountNumber,
         accountHolder: input.accountHolder,
         instructions: input.instructions ?? null,
-        qrPublicId: input.qrPublicId ?? null,
+        blobPath: input.qrPathname ?? null,
         isActive: input.isActive ?? true,
         displayOrder,
         createdById: actorId,
@@ -140,12 +146,15 @@ export async function updatePaymentAccount(
     data.instructions = input.instructions;
     changedFields.push('instructions');
   }
-  if (input.qrPublicId !== undefined) {
+  if (input.qrPathname !== undefined) {
     // null means "remove the current image"; any other value must be an
     // admin-namespace upload minted for THIS administrator.
-    if (input.qrPublicId !== null) assertPaymentAccountQrOwnership(input.qrPublicId, actorId);
-    data.qrPublicId = input.qrPublicId;
-    changedFields.push('qrPublicId');
+    if (input.qrPathname !== null) {
+      assertPaymentAccountQrOwnership(input.qrPathname, actorId);
+      await assertStoredBlob(input.qrPathname);
+    }
+    data.blobPath = input.qrPathname;
+    changedFields.push('qrPathname');
   }
   if (input.isActive !== undefined) {
     data.isActive = input.isActive;

@@ -4,6 +4,8 @@ import {
   MARKETPLACE_UPLOAD_LIMITS,
   PRICING_MODELS,
   SERVICE_TYPES,
+  STORAGE_FOLDERS,
+  UPLOAD_LIMITS,
   type FormFieldType,
 } from '../constants/index.js';
 
@@ -159,9 +161,8 @@ export const paymentSubmitSchema = z.object({
  *
  * Trust-model note (accepted, same as every existing upload path): screenshot
  * MIME/size are client-DECLARED metadata — the server validates the declared
- * values and the namespace, but does not verify the uploaded bytes here.
- * Signature-level `allowed_formats` enforcement is a separately reviewed
- * future hardening.
+ * values, the server-minted Blob namespace, and (when Blob is configured)
+ * the stored blob's real size/content-type before accepting the reference.
  */
 export const paymentSubmitV2Schema = z.object({
   accountId: z.uuid(),
@@ -170,7 +171,7 @@ export const paymentSubmitV2Schema = z.object({
   senderNumber: z.string().trim().max(32).optional(),
   /** Customer-declared amount (money string); must equal the outstanding. */
   amount: z.string().regex(/^\d+(\.\d{1,2})?$/),
-  screenshotPublicId: z.string().trim().min(5).max(300).optional(),
+  screenshotPathname: z.string().trim().min(5).max(300).optional(),
   screenshotMimeType: z.enum(['image/png', 'image/jpeg', 'image/webp']).optional(),
   screenshotSizeBytes: z.number().int().positive().max(5 * 1024 * 1024).optional(),
 });
@@ -205,11 +206,11 @@ export const paymentAccountCreateSchema = z.object({
   accountHolder: z.string().trim().min(2).max(120),
   instructions: z.string().trim().max(1000).optional(),
   /**
-   * Cloudinary public id minted by POST /api/admin/payment-accounts/qr/sign.
-   * The server additionally enforces the admin-only QR namespace — a client
-   * can never attach an arbitrary id or URL.
+   * Private Blob pathname minted by POST /api/uploads/blob/token with
+   * folder=paymentAccounts. The server additionally enforces the admin-only QR
+   * namespace — a client can never attach an arbitrary id or URL.
    */
-  qrPublicId: z.string().trim().min(5).max(300).optional(),
+  qrPathname: z.string().trim().min(5).max(300).optional(),
   isActive: z.boolean().default(true),
   /** Omit to append after the current highest position (server-derived). */
   displayOrder: z.number().int().min(0).max(100_000).optional(),
@@ -217,13 +218,13 @@ export const paymentAccountCreateSchema = z.object({
 
 /**
  * Admin edit contract. Nullable optional fields allow an administrator to
- * explicitly clear a value (e.g. `qrPublicId: null` removes the QR image);
+ * explicitly clear a value (e.g. `qrPathname: null` removes the QR image);
  * omitting the field leaves it unchanged.
  */
 export const paymentAccountUpdateSchema = paymentAccountCreateSchema.partial().extend({
   accountType: z.string().trim().max(40).nullable().optional(),
   instructions: z.string().trim().max(1000).nullable().optional(),
-  qrPublicId: z.string().trim().min(5).max(300).nullable().optional(),
+  qrPathname: z.string().trim().min(5).max(300).nullable().optional(),
 });
 
 /**
@@ -438,11 +439,23 @@ export const serviceRequestCreateSchema = z.object({
 });
 export type ServiceRequestCreate = z.infer<typeof serviceRequestCreateSchema>;
 
-/** POST /api/marketplace/files — register a Cloudinary-uploaded file as a
+/** POST /api/uploads/blob/token — request a scoped client-upload ticket.
+ *  The server derives the pathname and upload constraints; the client cannot
+ *  choose its own storage namespace. */
+export const blobUploadTokenRequestSchema = z.object({
+  folder: z.enum(STORAGE_FOLDERS),
+  fileName: z.string().trim().min(1).max(255),
+  mimeType: z.string().trim().min(3).max(120),
+  sizeBytes: z.number().int().positive().max(UPLOAD_LIMITS.maxFileSizeBytes),
+  kind: z.enum(['ATTACHMENT', 'PHOTO']).optional(),
+});
+export type BlobUploadTokenRequest = z.infer<typeof blobUploadTokenRequestSchema>;
+
+/** POST /api/marketplace/files — register a Blob-uploaded file as a
  *  staged RequestFile (requestId null until a request claims it). Type/size
  *  are re-validated server-side against MARKETPLACE_UPLOAD_LIMITS. */
 export const requestFileRegisterSchema = z.object({
-  /** Cloudinary public_id returned by the signed upload. */
+  /** Blob pathname returned by the scoped upload ticket. */
   storagePath: z.string().trim().min(5).max(300),
   fileName: z.string().trim().min(1).max(255),
   mimeType: z.string().trim().min(3).max(120),

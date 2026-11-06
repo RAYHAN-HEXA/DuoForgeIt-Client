@@ -218,18 +218,21 @@ describe('assertPaymentScreenshotOwnership', () => {
   const userId = '3f2504e0-4f89-11d3-9a0c-0305e82c3301';
   const uuid = 'c9bf9e57-1685-4c89-bafb-ff5af830be8a';
 
-  it('accepts the exact user namespace with a server-minted uuid', () => {
-    expect(() => assertPaymentScreenshotOwnership(`techservice-hub/payments/${userId}/${uuid}`, userId)).not.toThrow();
+  it('accepts the exact user namespace with a server-minted pathname', () => {
+    expect(() => assertPaymentScreenshotOwnership(`techservice-hub/payments/${userId}/${uuid}.png`, userId)).not.toThrow();
+    expect(() => assertPaymentScreenshotOwnership(`techservice-hub/payments/${userId}/${uuid}.jpg`, userId)).not.toThrow();
   });
 
   it('rejects another user’s namespace', () => {
     const foreign = '99999999-9999-9999-9999-999999999999';
-    expect(() => assertPaymentScreenshotOwnership(`techservice-hub/payments/${foreign}/${uuid}`, userId)).toThrow(ApiError);
+    expect(() => assertPaymentScreenshotOwnership(`techservice-hub/payments/${foreign}/${uuid}.png`, userId)).toThrow(ApiError);
   });
 
-  it('rejects arbitrary folders and malformed ids', () => {
-    expect(() => assertPaymentScreenshotOwnership(`techservice-hub/requirements/${userId}/${uuid}`, userId)).toThrow(ApiError);
+  it('rejects arbitrary folders, malformed ids and the legacy no-extension shape', () => {
+    expect(() => assertPaymentScreenshotOwnership(`techservice-hub/requirements/${userId}/${uuid}.png`, userId)).toThrow(ApiError);
     expect(() => assertPaymentScreenshotOwnership(`techservice-hub/payments/${userId}/not-a-uuid`, userId)).toThrow(ApiError);
+    // legacy Cloudinary id shape (no extension) — never a valid Blob pathname
+    expect(() => assertPaymentScreenshotOwnership(`techservice-hub/payments/${userId}/${uuid}`, userId)).toThrow(ApiError);
     expect(() => assertPaymentScreenshotOwnership(`techservice-hub/payments/${userId}/${uuid}/../secret`, userId)).toThrow(ApiError);
     expect(() => assertPaymentScreenshotOwnership('', userId)).toThrow(ApiError);
   });

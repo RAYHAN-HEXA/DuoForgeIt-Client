@@ -22,7 +22,7 @@ import {
   formatBDT,
   paymentSubmitV2Schema,
 } from '@tsh/shared';
-import { api, ApiClientError, errorMessage, uploadToCloudinary, validationDetails } from '@/lib/api';
+import { api, ApiClientError, errorMessage, uploadToBlob, BlobUploadTicket, validationDetails } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -46,14 +46,6 @@ import { cn } from '@/lib/utils';
 const SCREENSHOT_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
 const SCREENSHOT_MAX_BYTES = 5 * 1024 * 1024;
 
-type Signature = {
-  uploadUrl: string;
-  publicId: string;
-  apiKey: string;
-  timestamp: number;
-  signature: string;
-  folder: string;
-};
 
 // ── Exact money helpers (string decimals → BigInt cents; never floats).
 // BigInt(...) constructor calls instead of literals — the web tsconfig
@@ -86,7 +78,7 @@ export function orderOutstanding(order: Pick<OrderDto, 'totalAmount' | 'payments
 
 type AccountList = { items: PaymentAccountOptionDto[] };
 
-type Screenshot = { publicId: string; mimeType: string; sizeBytes: number; previewUrl: string };
+type Screenshot = { pathname: string; mimeType: string; sizeBytes: number; previewUrl: string };
 
 export function OrderPaymentSection({
   order,
@@ -167,12 +159,17 @@ export function OrderPaymentSection({
 
     setScreenshotUploading(true);
     try {
-      const signature = await api.post<Signature>('/uploads/sign', { folder: 'payments' });
-      const publicId = await uploadToCloudinary(file, signature);
+      const ticket = await api.post<BlobUploadTicket>('/uploads/blob/token', {
+        folder: 'payments',
+        fileName: file.name,
+        mimeType: file.type,
+        sizeBytes: file.size,
+      });
+      const pathname = await uploadToBlob(file, ticket);
       if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
       const previewUrl = URL.createObjectURL(file);
       previewUrlRef.current = previewUrl;
-      setScreenshot({ publicId, mimeType: file.type, sizeBytes: file.size, previewUrl });
+      setScreenshot({ pathname, mimeType: file.type, sizeBytes: file.size, previewUrl });
       toast.success('Screenshot uploaded — submit your payment to finish');
     } catch (err) {
       toast.error('Screenshot upload failed', { description: errorMessage(err) });
@@ -205,7 +202,7 @@ export function OrderPaymentSection({
       amount: outstanding,
       ...(screenshot
         ? {
-            screenshotPublicId: screenshot.publicId,
+            screenshotPathname: screenshot.pathname,
             screenshotMimeType: screenshot.mimeType,
             screenshotSizeBytes: screenshot.sizeBytes,
           }

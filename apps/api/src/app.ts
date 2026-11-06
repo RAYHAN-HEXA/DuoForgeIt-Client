@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { createRequire } from 'node:module';
+import type { RequestHandler } from 'express';
 import { randomUUID } from 'node:crypto';
 import { corsOrigins } from './config/env.js';
 import { logger } from './utils/logger.js';
@@ -14,7 +15,7 @@ const require = createRequire(import.meta.url);
 
 // Imported via createRequire — helmet's dual CJS/ESM types resolve
 // differently under serverless build diagnostics; this keeps one callable shape.
-type HelmetFactory = (options?: Record<string, unknown>) => import('express').RequestHandler;
+type HelmetFactory = (options?: Record<string, unknown>) => RequestHandler;
 const helmetModule = require('helmet') as HelmetFactory & { default?: HelmetFactory };
 const helmet = helmetModule.default ?? helmetModule;
 const pinoHttp = require('pino-http') as typeof pinoHttpType;

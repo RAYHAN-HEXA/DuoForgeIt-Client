@@ -5,10 +5,6 @@ import { z } from 'zod';
  * Loaded from apps/api/.env by server.ts (`import 'dotenv/config'`).
  */
 const envSchema = z.object({
-  // Cloudinary security feature flags
-  ENABLE_CLOUDINARY_AUTH: z.string().default('false'),
-  CLOUDINARY_AUTH_GRACE: z.string().default('false'),
-  CLOUDINARY_AUTH_UPLOAD_PRESET: z.string().optional(),
   // Upstash Redis placeholders for development
   UPSTASH_REDIS_REST_URL: z.string().optional(),
   UPSTASH_REDIS_TOKEN: z.string().optional(),
@@ -29,9 +25,9 @@ const envSchema = z.object({
   FIREBASE_PRIVATE_KEY: z.string().min(1).optional(),
   GOOGLE_APPLICATION_CREDENTIALS: z.string().min(1).optional(),
 
-  CLOUDINARY_CLOUD_NAME: z.string().min(1).optional(),
-  CLOUDINARY_API_KEY: z.string().min(1).optional(),
-  CLOUDINARY_API_SECRET: z.string().min(1).optional(),
+  // Vercel Blob (server-side only). Optional so the API can boot before the
+  // store is attached; upload/download endpoints then return FILE_STORAGE_UNCONFIGURED.
+  BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
 
   RESEND_API_KEY: z.string().min(1).optional(),
   MAIL_FROM: z.string().min(1).optional(),
@@ -58,13 +54,7 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 
-// Feature flag to enable Cloudinary authenticated delivery (default: false)
-export const ENABLE_CLOUDINARY_AUTH = env.ENABLE_CLOUDINARY_AUTH === 'true';
-
-// Grace period flag – when true, both legacy and authenticated URLs are accepted during migration.
-export const CLOUDINARY_AUTH_GRACE = env.CLOUDINARY_AUTH_GRACE === 'true';
-
-// Upstash Redis (optional) — used by the upload rate limiter when auth mode is on.
+// Upstash Redis (optional) — shared store for the upload rate limiter.
 export const UPSTASH_REDIS_REST_URL = env.UPSTASH_REDIS_REST_URL;
 export const UPSTASH_REDIS_TOKEN = env.UPSTASH_REDIS_TOKEN;
 
@@ -84,9 +74,7 @@ export const firebaseCredentialSource: FirebaseCredentialSource =
         ? 'adc'
         : 'none';
 
-export const hasCloudinary = Boolean(
-  env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET,
-);
+export const hasBlobStorage = Boolean(env.BLOB_READ_WRITE_TOKEN);
 
 export const serviceMarketplaceEnabled = env.SERVICE_MARKETPLACE_ENABLED === 'true';
 export const walletEnabled = env.WALLET_ENABLED === 'true';

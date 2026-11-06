@@ -27,15 +27,14 @@ import type { AdminPaymentQueueDto, AdminPaymentStatsDto } from '@tsh/shared';
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL;
 const run = randomUUID().slice(0, 8);
 const CLOUD_SECRET = `stage6-cloud-secret-${run}`;
+const TOKEN = 'vercel_blob_rw_stage6_test';
 
 if (TEST_DATABASE_URL) {
   process.env.NODE_ENV = 'test';
   process.env.DATABASE_URL = TEST_DATABASE_URL;
   process.env.DIRECT_URL = TEST_DATABASE_URL;
   process.env.STAGE6_RUN_ID = run;
-  process.env.CLOUDINARY_CLOUD_NAME = 'stage6-test-cloud';
-  process.env.CLOUDINARY_API_KEY = 'stage6-test-key';
-  process.env.CLOUDINARY_API_SECRET = CLOUD_SECRET;
+  process.env.BLOB_READ_WRITE_TOKEN = TOKEN;
   delete process.env.RESEND_API_KEY;
   delete process.env.SMTP_HOST;
   delete process.env.SMTP_USER;
@@ -63,6 +62,15 @@ vi.mock('../services/token.service.js', () => ({
       aud: 'stage6-test',
     } as never;
   },
+}));
+
+// The Blob SDK is mocked — screenshot URL minting must not hit the network.
+vi.mock('@vercel/blob', () => ({
+  head: vi.fn().mockResolvedValue({ size: 1024, contentType: 'image/png' }),
+  issueSignedToken: vi.fn().mockResolvedValue({ delegationToken: 'd', clientSigningToken: 'c', validUntil: Date.now() + 60_000 }),
+  presignUrl: vi.fn().mockImplementation((_t: unknown, opts: { pathname: string }) =>
+    Promise.resolve({ presignedUrl: `https://blob.stage6.test/${opts.pathname}?sig=fake` })),
+  del: vi.fn(),
 }));
 
 const d = TEST_DATABASE_URL ? describe : describe.skip;
@@ -198,7 +206,7 @@ d('Stage 6 — admin payment dashboard (real PostgreSQL)', () => {
         accountHolderSnapshot: 'Stage 6 Holder',
         accountTypeSnapshot: 'Personal',
         instructionsSnapshot: 'Send money, then submit the TrxID.',
-        screenshotPublicId: `techservice-hub/payments/${customer.id}/${randomUUID()}`,
+        blobPath: `techservice-hub/payments/${customer.id}/${randomUUID()}.png`,
       },
     });
     // Custom rail (UPAY) — method OTHER + methodKeySnapshot.
@@ -249,7 +257,7 @@ d('Stage 6 — admin payment dashboard (real PostgreSQL)', () => {
         ...basePayment,
         orderId: order5.id,
         transactionId: `TRX6BAD-${run.slice(0, 4)}444`,
-        screenshotPublicId: `techservice-hub/requirements/${randomUUID()}`,
+        blobPath: `techservice-hub/requirements/${randomUUID()}.pdf`,
       },
     });
   });
@@ -442,9 +450,8 @@ d('Stage 6 — admin payment dashboard (real PostgreSQL)', () => {
     expect(okRes.status).toBe(200);
     const url = okRes.body.data.screenshotUrl as string;
     expect(url).toContain('techservice-hub/payments/');
-    expect(url).toContain('/image/upload');
-    expect(url).not.toContain(CLOUD_SECRET);
-    expect(url).not.toContain('api_secret');
+    expect(url).toContain('blob.stage6.test');
+    expect(url).not.toContain(TOKEN);
 
     // The namespace guard: a stored id outside the payments folder is refused.
     const badNs = await request(app)

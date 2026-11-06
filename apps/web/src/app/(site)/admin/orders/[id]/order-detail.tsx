@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import type { AdminOrderDto, OrderStatus } from '@tsh/shared';
 import { ORDER_TRANSITIONS, formatBDT } from '@tsh/shared';
-import { api, errorMessage, uploadToCloudinary, ApiClientError } from '@/lib/api';
+import { api, errorMessage, uploadToBlob, BlobUploadTicket, ApiClientError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -307,15 +307,17 @@ function DeliverablesCard({ orderId, deliverables, onChanged }: { orderId: strin
     if (!file || title.trim().length < 2) return;
     setUploading(true);
     try {
-      const sign = await api.post<{ uploadUrl: string; publicId: string; apiKey: string; timestamp: number; signature: string; folder: string }>(
-        '/uploads/sign',
-        { folder: 'deliveries' },
-      );
-      const publicId = await uploadToCloudinary(file, sign);
+      const ticket = await api.post<BlobUploadTicket>('/uploads/blob/token', {
+        folder: 'deliveries',
+        fileName: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        sizeBytes: file.size,
+      });
+      const pathname = await uploadToBlob(file, ticket);
       await api.post(`/admin/orders/${orderId}/deliverables`, {
         title: title.trim(),
         description: description.trim() || undefined,
-        cloudinaryPublicId: publicId,
+        pathname,
         fileName: file.name,
         mimeType: file.type || 'application/octet-stream',
         sizeBytes: file.size,
@@ -327,7 +329,7 @@ function DeliverablesCard({ orderId, deliverables, onChanged }: { orderId: strin
       onChanged();
     } catch (err) {
       if (err instanceof ApiClientError && err.code === 'FILE_STORAGE_UNCONFIGURED') {
-        toast.warning('File storage not configured', { description: 'Set Cloudinary credentials on the API to upload deliverables.' });
+        toast.warning('File storage not configured', { description: 'Set the Blob storage token on the API to upload deliverables.' });
       } else {
         toast.error('Upload failed', { description: errorMessage(err) });
       }

@@ -3,7 +3,7 @@ import { PAYMENT_ERROR_CODES, PAYMENT_METHODS } from '@tsh/shared';
 import type { Prisma, PaymentMethod } from '../generated/prisma/client.js';
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../utils/ApiError.js';
-import { signedDownloadUrl, PAYMENTS_UPLOAD_ROOT } from '../utils/cloudinary.js';
+import { signedDownloadUrl, PAYMENTS_UPLOAD_ROOT } from '../utils/blob.js';
 import { assertTransition } from './order.service.js';
 import {
   REVIEWABLE_PAYMENT_STATUSES,
@@ -332,22 +332,23 @@ export async function getPaymentQueueStats(): Promise<AdminPaymentStatsDto> {
 }
 
 /**
- * Short-lived signed URL for one payment's screenshot (Stage 6). The public
- * id is loaded from the authorized payment row — the client never supplies
- * a signing target. The namespace check is defense-in-depth: v2 submission
- * already rejects foreign namespaces at upload time.
+ * Short-lived presigned URL for one payment's screenshot (Stage 6). The blob
+ * pathname is loaded from the authorized payment row — the client never
+ * supplies a signing target. The namespace check is defense-in-depth: v2
+ * submission already rejects foreign namespaces at upload time. Legacy rows
+ * referencing never-migrated Cloudinary assets return a null URL.
  */
 export async function getPaymentScreenshotUrl(paymentId: string): Promise<{ screenshotUrl: string | null }> {
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },
-    select: { screenshotPublicId: true },
+    select: { blobPath: true },
   });
   if (!payment) throw ApiError.notFound('Payment not found');
-  if (!payment.screenshotPublicId) return { screenshotUrl: null };
-  if (!payment.screenshotPublicId.startsWith(PAYMENTS_UPLOAD_ROOT)) {
+  if (!payment.blobPath) return { screenshotUrl: null };
+  if (!payment.blobPath.startsWith(PAYMENTS_UPLOAD_ROOT)) {
     throw ApiError.badRequest('The stored screenshot reference is outside the payments namespace');
   }
-  return { screenshotUrl: signedDownloadUrl(payment.screenshotPublicId, 'image') };
+  return { screenshotUrl: await signedDownloadUrl(payment.blobPath) };
 }
 
 function paymentNotReviewable(status: PaymentStatus): ApiError {
@@ -460,7 +461,7 @@ export async function addDeliverable(
   input: {
     title: string;
     description?: string;
-    cloudinaryPublicId: string;
+    pathname: string;
     fileName: string;
     mimeType: string;
     sizeBytes: number;
@@ -480,7 +481,7 @@ export async function addDeliverable(
       uploadedById: uploaderId,
       title: input.title,
       description: input.description ?? null,
-      cloudinaryPublicId: input.cloudinaryPublicId,
+      blobPath: input.pathname,
       fileName: input.fileName,
       mimeType: input.mimeType,
       sizeBytes: input.sizeBytes,

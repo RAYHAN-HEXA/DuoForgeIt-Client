@@ -1,6 +1,7 @@
-import { rateLimit } from 'express-rate-limit';
+import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
+import type { Request, Response, NextFunction } from 'express';
 import { RedisStore } from 'rate-limit-redis';
-import { ENABLE_CLOUDINARY_AUTH, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_TOKEN } from '../config/env.js';
+import { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_TOKEN } from '../config/env.js';
 
 /** General API budget per IP. */
 export const apiLimiter = rateLimit({
@@ -20,21 +21,21 @@ export const authLimiter = rateLimit({
 });
 
 // Lazy initialization of RedisStore to avoid errors when Upstash config is missing
-let redisStoreInstance: any;
-function getRedisStore() {
+let redisStoreInstance: RedisStore | undefined;
+function getRedisStore(): RedisStore | undefined {
   if (!UPSTASH_REDIS_REST_URL) {
-    // No Upstash config – skip Redis store entirely.
+    // No Upstash config – skip Redis store entirely (memory store fallback).
     return undefined;
   }
   if (redisStoreInstance !== undefined) return redisStoreInstance;
   try {
     redisStoreInstance = new RedisStore({
       // Upstash REST API client
-      sendCommand: async (...args: any[]) => {
-        if (!UPSTASH_REDIS_REST_URL) {
+      sendCommand: async (...args: string[]) => {
+        const url = UPSTASH_REDIS_REST_URL;
+        if (!url) {
           throw new Error('Upstash Redis URL not configured');
         }
-        const url = `${UPSTASH_REDIS_REST_URL}`;
         const body = JSON.stringify({ command: args[0], args: args.slice(1) });
         const resp = await fetch(url, {
           method: 'POST',
@@ -51,7 +52,7 @@ function getRedisStore() {
         return await resp.text();
       },
     });
-  } catch (e) {
+  } catch {
     // fallback to undefined store
     redisStoreInstance = undefined;
   }
@@ -60,30 +61,27 @@ function getRedisStore() {
 
 const uploadLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 10,
-  keyGenerator: (req: any) => {
-    if (req.authUser?.id) return String(req.authUser.id);
-    const { ipKeyGenerator } = require('express-rate-limit');
-    return ipKeyGenerator(req);
-  },
+  limit: 10,
+  // Per-user budget for authenticated callers; IPv6-safe per-IP fallback.
+  keyGenerator: (req) => req.authUser?.id ?? ipKeyGenerator(req.ip ?? ''),
   store: getRedisStore(),
   standardHeaders: 'draft-7',
   legacyHeaders: false,
-  handler: (req, res) => {
-    res.status(429).json({ error: { code: 'RATE_LIMITED', message: 'Too many upload signature requests' } });
+  handler: (_req, res) => {
+    res.status(429).json({ error: { code: 'RATE_LIMITED', message: 'Too many upload requests — try again in a minute' } });
   },
 });
 
-
-/** Wrapper that fails closed if Redis is unavailable when auth mode is enabled. */
-export async function uploadRateLimiter(req: any, res: any, next: any) {
-  // When auth feature is disabled, bypass rate limiting (legacy behavior preserved).
-  if (!ENABLE_CLOUDINARY_AUTH) return next();
+/**
+ * Upload-ticket budget (10/min/user). Applies whenever file storage is in
+ * use; when storage is unconfigured the ticket endpoint rejects first, so
+ * the limiter stays dormant anyway.
+ */
+export async function uploadRateLimiter(req: Request, res: Response, next: NextFunction) {
   try {
     await uploadLimiter(req, res, next);
-  } catch (err) {
+  } catch {
     // Fail closed – treat as service unavailable.
     res.status(503).json({ error: { code: 'SERVICE_UNAVAILABLE', message: 'Rate limit service unavailable' } });
   }
 }
-

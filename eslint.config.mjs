@@ -10,6 +10,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/.next/**',
       '**/src/generated/**',
+      '**/vendor-shared/**',
       '**/coverage/**',
       'apps/web/**',
     ],
