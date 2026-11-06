@@ -5,7 +5,7 @@
 | App | URL | Vercel project | Project ID | Root directory |
 | --- | --- | --- | --- | --- |
 | Web | https://techservicehub.vercel.app | `techservicehub` | `prj_kWJ6c7wBIN3KMCN6fvarYZV3kmFg` | `apps/web` |
-| API | https://tsh-api-mu.vercel.app/api | `tsh-api` | `prj_WSPOKE9ZliB3deYy1VQdgHFTHq8G` | `apps/api` |
+| API | https://tsh-api-mu.vercel.app/api | `tsh-api` | `prj_VW7s1sjXMAixBKaSw8GbzNsoUDBa` | `apps/api` |
 
 Legacy web aliases (`tsh-web-three`, `tsh-web-sandy`, `tsh-web-rahan-hexa`) 308-redirect
 to the canonical domain, and their origins stay on the API allow-list so old
