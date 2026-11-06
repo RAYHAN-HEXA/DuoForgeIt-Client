@@ -3,7 +3,7 @@
   "buildCommand": "npx tsc -p tsconfig.json && cp src/generated/prisma/package.json dist/generated/prisma/package.json && cp src/generated/prisma/*.mjs dist/generated/prisma/ && cp src/generated/prisma/*.node dist/generated/prisma/ 2>/dev/null || true",
   "functions": {
     "api/**/*.js": {
-      "includeFiles": ["src/generated/prisma/**", "dist/generated/prisma/**"]
+      "includeFiles": "**/generated/prisma/**"
     }
   },
   "rewrites": [
