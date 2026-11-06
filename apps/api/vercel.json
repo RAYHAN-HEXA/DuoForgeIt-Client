@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npx tsc -p tsconfig.json && cp src/generated/prisma/package.json dist/generated/prisma/package.json && cp src/generated/prisma/*.mjs dist/generated/prisma/ && cp src/generated/prisma/*.node dist/generated/prisma/ 2>/dev/null || true",
+  "outputDirectory": "dist",
   "functions": {
     "api/**/*.js": {
       "includeFiles": "**/generated/prisma/**"
