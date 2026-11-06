@@ -52,10 +52,16 @@ Preview deployments only.
 # API health: expect 200 + status/db/firebase ok
 curl -sS https://tsh-api-mu.vercel.app/api/health
 
-# CORS preflight from the web origin
+# CORS preflight from the web origin: expect 204 + matching allow-origin
 curl -sS -i -X OPTIONS https://tsh-api-mu.vercel.app/api/services \
   -H 'Origin: https://techservicehub.vercel.app' \
   -H 'Access-Control-Request-Method: GET' | grep -i access-control-allow-origin
+
+# A non-allowed origin must NOT receive an allow-origin header (no 500).
+# Only the browser blocks the response; the API itself answers normally.
+curl -sS -i -X OPTIONS https://tsh-api-mu.vercel.app/api/services \
+  -H 'Origin: https://evil.example' \
+  -H 'Access-Control-Request-Method: GET' | grep -ci access-control-allow-origin  # 0
 
 # Web is up
 curl -sS -o /dev/null -w '%{http_code}\n' https://techservicehub.vercel.app
