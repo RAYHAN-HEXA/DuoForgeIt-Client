@@ -402,6 +402,87 @@ export async function createPaymentSubmission(
   return { payment, orderNumber: summary?.orderNumber ?? '', orderTitle: summary?.title ?? '' };
 }
 
+// ─── Legacy v1 submission (account-less) ─────────────────────
+
+export type LegacyPaymentSubmissionInput = {
+  customerId: string;
+  orderId: string;
+  method: 'BKASH' | 'NAGAD' | 'ROCKET' | 'BANK_TRANSFER';
+  transactionId: string;
+};
+
+/**
+ * Create one legacy (v1) payment submission — the pre-v2 contract where the
+ * customer declares only a rail and a TrxID, with no receiving account and
+ * no client amount. It keeps every v2 trust boundary that does not depend
+ * on an account, and closes the historical gaps:
+ *  - the TrxID is normalized, so the Stage 1 `payment_trxid_active_unique`
+ *    partial index protects v1 rows exactly like v2 rows (a duplicate TrxID
+ *    on a different order can no longer be double-verified);
+ *  - fully-paid orders are refused (ORDER_ALREADY_PAID) and orders with any
+ *    verified money are refused with AMOUNT_MISMATCH — v1 charges the full
+ *    total and cannot express a partial outstanding, so a partially paid
+ *    order must go through v2, which charges the exact balance;
+ *  - P2002 from either partial index maps to the same stable 409 codes as
+ *    v2 (never a raw 500).
+ */
+export async function createLegacyPaymentSubmission(
+  input: LegacyPaymentSubmissionInput,
+): Promise<{ payment: Payment; orderNumber: string; orderTitle: string; totalAmount: string }> {
+  const order = await getOwnPayableOrder(input.customerId, input.orderId);
+  if (!order) throw ApiError.notFound('Order not found');
+  if (order.status === 'CANCELLED' || order.status === 'REJECTED') {
+    throw ApiError.conflict('Payments cannot be submitted for a cancelled/rejected order');
+  }
+
+  const outstanding = computeOutstanding(order);
+  const outstandingCents = parseMoneyToCents(outstanding) ?? 0n;
+  if (order.paymentStatus === 'PAID' || outstandingCents <= 0n) {
+    throw new ApiError(409, PAYMENT_ERROR_CODES.ORDER_ALREADY_PAID, 'This order is already fully paid.');
+  }
+  const paidCents = parseMoneyToCents(order.amountPaid ?? '0.00') ?? 0n;
+  if (paidCents > 0n) {
+    throw new ApiError(
+      409,
+      PAYMENT_ERROR_CODES.AMOUNT_MISMATCH,
+      `A verified partial payment exists on this order. Submit the exact outstanding amount (৳${outstanding}) from the order page instead.`,
+      { expected: outstanding },
+    );
+  }
+
+  const normalized = normalizeTransactionId(input.transactionId);
+  if (!normalized) throw ApiError.badRequest('Transaction ID is required');
+
+  let payment: Payment;
+  try {
+    // Same atomic-insert + authoritative-index pattern as v2.
+    payment = await prisma.payment.create({
+      data: {
+        orderId: order.id,
+        method: input.method,
+        status: 'SUBMITTED',
+        amount: order.totalAmount.toString(),
+        transactionId: input.transactionId,
+        transactionIdNormalized: normalized,
+      },
+    });
+  } catch (err) {
+    mapPaymentConstraintError(err);
+    throw err;
+  }
+
+  const summary = await prisma.order.findUnique({
+    where: { id: order.id },
+    select: { orderNumber: true, title: true },
+  });
+  return {
+    payment,
+    orderNumber: summary?.orderNumber ?? '',
+    orderTitle: summary?.title ?? '',
+    totalAmount: order.totalAmount,
+  };
+}
+
 // ─── Serialization ───────────────────────────────────────────
 
 /**

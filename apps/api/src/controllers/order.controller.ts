@@ -10,6 +10,7 @@ import { env, hasBlobStorage } from '../config/env.js';
 import { assertOwnedPathname, assertStoredBlob, assertUploadAllowed, signedDownloadUrl } from '../utils/blob.js';
 import { toOrderDto, toOrderSummaryDto } from '../utils/mappers.js';
 import { checkout, customerCancel, getOwnOrder } from '../services/order.service.js';
+import { createLegacyPaymentSubmission } from '../services/payment.service.js';
 import { clearServices } from '../services/cart.service.js';
 import { notifyUser } from '../services/notification.service.js';
 import { emailShell, notifyFounders } from '../services/mail.service.js';
@@ -153,24 +154,21 @@ export async function cancel(req: Request, res: Response, next: NextFunction) {
  * POST /api/orders/:id/payments — manual payment submission (BDT v1):
  * the customer pays via bKash/Nagad/Rocket/bank and records the transaction.
  * NEVER marks the order paid — a founder verifies server-side.
+ *
+ * All trust boundaries live in createLegacyPaymentSubmission (payment
+ * service): own-order 404, cancelled/rejected refusal, already-paid and
+ * partially-paid refusal, TrxID normalization feeding the duplicate-TrxID
+ * partial index, and P2002 → stable 409 codes.
  */
 export async function submitPayment(req: Request, res: Response, next: NextFunction) {
   try {
     const orderId = validated<{ id: string }>(req, 'params').id;
     const body = validated<z.infer<typeof paymentSubmitSchema>>(req, 'body');
-    const order = await getOwnOrder(req.authUser!.id, orderId);
-    if (['CANCELLED', 'REJECTED'].includes(order.status)) {
-      throw ApiError.conflict('Payments cannot be submitted for a cancelled/rejected order');
-    }
-    const total = order.totalAmount.toString();
-    const payment = await prisma.payment.create({
-      data: {
-        orderId: order.id,
-        method: body.method,
-        transactionId: body.transactionId,
-        amount: total,
-        status: 'SUBMITTED',
-      },
+    const { payment, orderNumber, orderTitle, totalAmount } = await createLegacyPaymentSubmission({
+      customerId: req.authUser!.id,
+      orderId,
+      method: body.method,
+      transactionId: body.transactionId,
     });
     await notifyUser({
       userId: req.authUser!.id,
@@ -184,12 +182,12 @@ export async function submitPayment(req: Request, res: Response, next: NextFunct
     {
       const adminBase = env.ADMIN_PANEL_URL ?? 'https://techservicehub.vercel.app';
       await notifyFounders(
-        `💳 Payment submitted for ${order.orderNumber} — ${formatBDT(total)}`,
+        `💳 Payment submitted for ${orderNumber} — ${formatBDT(totalAmount)}`,
         emailShell(
           'Transaction ID awaiting verification',
           [
-            ['Order', `${order.orderNumber} · ${order.title}`],
-            ['Amount', formatBDT(total)],
+            ['Order', `${orderNumber} · ${orderTitle}`],
+            ['Amount', formatBDT(totalAmount)],
             ['Method', body.method === 'BANK_TRANSFER' ? 'Bank transfer' : body.method],
             ['Transaction ID', body.transactionId],
             ['Customer', `${req.authUser!.fullName} (${req.authUser!.email})`],
