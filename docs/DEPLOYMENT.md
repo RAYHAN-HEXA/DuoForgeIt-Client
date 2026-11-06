@@ -16,20 +16,36 @@ bookmarks never hit a CORS wall.
 
 ## Environment contract (Production)
 
-| Project | Variable | Value |
+Full contract lives in `apps/api/.env.example` (with comments). The load-bearing
+variables and their 2026-11-07 production state:
+
+| Project | Variable | Value / state |
 | --- | --- | --- |
 | `techservicehub` | `NEXT_PUBLIC_API_URL` | `https://tsh-api-mu.vercel.app/api` |
-| `tsh-api` | `CORS_ORIGINS` | `https://techservicehub.vercel.app,https://tsh-web-three.vercel.app,https://tsh-web-sandy.vercel.app,https://tsh-web-rahan-hexa.vercel.app,https://techservicehub-rahan-hexa.vercel.app` |
+| `techservicehub` | `NEXT_PUBLIC_SITE_URL` | `https://techservicehub.vercel.app` |
+| `techservicehub` | `NEXT_PUBLIC_FIREBASE_*` (6) | Firebase web config |
+| `techservicehub` | `NEXT_PUBLIC_SERVICE_MARKETPLACE_ENABLED` | **unset** until launch (build-time baked) |
+| `tsh-api` | `DATABASE_URL` / `DIRECT_URL` | Neon pooled / direct (sensitive) |
+| `tsh-api` | `CORS_ORIGINS` | canonical + 4 legacy web origins, comma-separated |
 | `tsh-api` | `ADMIN_PANEL_URL` | `https://techservicehub.vercel.app` |
+| `tsh-api` | `FIREBASE_PROJECT_ID` + `FIREBASE_SERVICE_ACCOUNT_BASE64` | Firebase Admin |
+| `tsh-api` | `BLOB_READ_WRITE_TOKEN` | injected via the connected Blob store |
+| `tsh-api` | `SMTP_HOST/PORT/USER/PASS`, `MAIL_FROM`, `FOUNDER_NOTIFY_EMAILS` | Gmail SMTP (founder alerts + customer email) |
+| `tsh-api` | `SERVICE_MARKETPLACE_ENABLED` | **`true` since 2026-11-07** (API routes on, web still legacy) |
+| `tsh-api` | `WALLET_ENABLED` | unset (off — wallet phase not shipped) |
+| `tsh-api` | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_TOKEN` | **unset** (in-memory limiter fallback) |
 
 Notes:
 
-- `NEXT_PUBLIC_API_URL` is inlined into the client bundle at build time. Change it
-  first, then redeploy the web project; restarts alone do not pick it up.
+- `NEXT_PUBLIC_*` is inlined into the client bundle at build time. Changing one
+  needs a fresh **build** (git push) — an env-only `vercel redeploy` reuses the
+  old bundle. Server-read env vars do pick up on env-only redeploys.
 - `CORS_ORIGINS` is a comma-separated allow-list. No trailing slashes.
 - Production variables are marked sensitive; `vercel env pull` writes empty
   values for them. Verify behaviour, not the pulled file.
 - Never put secrets in `NEXT_PUBLIC_*` variables.
+- `/api/health` `.data.features` is the single deploy check:
+  `{ serviceMarketplace, wallet, blobStorage, email, redisRateLimiting }`.
 
 ## Database migrations — GATE before every API deploy
 
