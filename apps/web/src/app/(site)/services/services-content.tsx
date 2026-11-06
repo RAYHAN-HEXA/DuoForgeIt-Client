@@ -17,22 +17,39 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/empty-state';
 
 const PAGE_SIZE = 12;
+const SEARCH_MAX_LENGTH = 120;
+
+const SORTS = ['popular', 'price_asc', 'price_desc', 'newest'] as const;
+type SortKey = (typeof SORTS)[number];
+
+/** ?page=abc / 0 / 1.5 / -3 / '' all degrade to page 1 — never a 422. */
+function parsePageParam(raw: string | null): number {
+  const n = Number(raw ?? '1');
+  return Number.isInteger(n) && n >= 1 ? n : 1;
+}
+
+/** Unknown sort values fall back to the default instead of erroring. */
+function parseSortParam(raw: string | null): SortKey {
+  return (SORTS as readonly string[]).includes(raw ?? '') ? (raw as SortKey) : 'popular';
+}
 
 export function ServicesContent({ initialData }: { initialData?: Paginated<ServiceDto> }) {
   const router = useRouter();
   const params = useSearchParams();
   const category = params.get('category') ?? 'all';
-  const search = params.get('search') ?? '';
-  const sort = params.get('sort') ?? 'popular';
-  const page = Number(params.get('page') ?? '1');
+  const search = params.get('search')?.trim() ?? '';
+  const sort = parseSortParam(params.get('sort'));
+  const page = parsePageParam(params.get('page'));
 
   const [searchInput, setSearchInput] = useState(search);
 
-  // Debounce search → URL (single source of truth)
+  // Debounce search → URL (single source of truth). Trimmed on write so
+  // surrounding spaces never become part of the query.
   useEffect(() => {
     const t = setTimeout(() => {
-      if (searchInput !== search) {
-        setParams({ search: searchInput || null, page: null });
+      const trimmed = searchInput.trim();
+      if (trimmed !== search) {
+        setParams({ search: trimmed || null, page: null });
       }
     }, 350);
     return () => clearTimeout(t);
@@ -59,7 +76,8 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
   const swrKey = `/services?${query.toString()}`;
   // The first unfiltered page is server-rendered and passed in as fallback
   // data, so the grid exists in the initial HTML even if the client fetch is
-  // blocked (CORS, extension, offline) or auth bootstrap fails.
+  // blocked (CORS, extension, offline) or auth bootstrap fails. Sanitized
+  // values (page/sort) keep bogus URLs aligned with the SSR fallback key.
   const isDefaultQuery = page === 1 && sort === 'popular' && category === 'all' && !search;
 
   const { data: categories } = useSWR<ServiceCategoryDto[]>('/categories', () => api.get<ServiceCategoryDto[]>('/categories'));
@@ -70,6 +88,8 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
   );
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
+  // Fresh load finished, requested page is past the end (e.g. ?page=99).
+  const isOutOfRange = Boolean(data) && !isLoading && page > totalPages;
 
   return (
     <div className="space-y-8">
@@ -77,11 +97,13 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Services</h1>
           <p className="mt-1 text-muted-foreground">
-            {data
-              ? `${data.total} service${data.total === 1 ? '' : 's'} available`
-              : error
-                ? 'Could not load services'
-                : 'Loading…'}
+            {isOutOfRange
+              ? `Page ${page} doesn’t exist — this catalog has ${totalPages} page${totalPages === 1 ? '' : 's'}.`
+              : data
+                ? `${data.total} service${data.total === 1 ? '' : 's'} available`
+                : error
+                  ? 'Could not load services'
+                  : 'Loading…'}
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -93,6 +115,7 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
               placeholder="Search services…"
               className="w-full pl-9 sm:w-64"
               aria-label="Search services"
+              maxLength={SEARCH_MAX_LENGTH}
             />
           </div>
           <Select value={sort} onValueChange={(v) => setParams({ sort: v === 'popular' ? null : v, page: null })}>
@@ -109,8 +132,21 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
         </div>
       </div>
 
-      {/* Category chips */}
-      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Categories">
+      {/* Stale results with a failed refresh — surface it without wiping the grid. */}
+      {error && data && (
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+          <span>
+            Couldn’t refresh services — showing the last loaded results. {errorMessage(error)}
+          </span>
+          <Button variant="outline" size="sm" onClick={() => mutate()}>
+            Try again
+          </Button>
+        </div>
+      )}
+
+      {/* Category chips — toggle buttons (aria-pressed), not a tablist: they
+          filter the list rather than switching between views. */}
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
         <Chip active={category === 'all'} onClick={() => setParams({ category: null, page: null })}>
           All
         </Chip>
@@ -130,6 +166,17 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
           action={
             <Button variant="outline" onClick={() => mutate()}>
               Try again
+            </Button>
+          }
+        />
+      ) : isOutOfRange ? (
+        <EmptyState
+          icon={PackageOpen}
+          title="This page doesn’t exist"
+          description={`You’ve reached past the last page of results (${totalPages} page${totalPages === 1 ? '' : 's'}).`}
+          action={
+            <Button variant="outline" onClick={() => setParams({ page: null })}>
+              Go to page 1
             </Button>
           }
         />
@@ -164,10 +211,16 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
         <EmptyState
           icon={PackageOpen}
           title="No services match"
-          description={search ? `Nothing found for “${search}”. Try a different search or category.` : 'This category has no services yet — check back soon.'}
+          description={
+            search
+              ? `Nothing found for “${search}”. Try a different search or category.`
+              : category !== 'all'
+                ? 'This category has no services yet — check back soon.'
+                : 'No services are available right now — check back soon.'
+          }
           action={
             (search || category !== 'all') && (
-              <Button variant="outline" onClick={() => { setSearchInput(''); setParams({ search: null, category: null }); }}>
+              <Button variant="outline" onClick={() => { setSearchInput(''); setParams({ search: null, category: null, page: null }); }}>
                 Clear filters
               </Button>
             )
@@ -181,8 +234,8 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
-      role="tab"
-      aria-selected={active}
+      type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
         active ? 'border-primary bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
