@@ -113,7 +113,7 @@ function MarketplaceFeatured({
                 <p className="font-medium">Need something custom?</p>
                 <p className="mt-1 text-sm text-muted-foreground">We scope bespoke builds together.</p>
                 <Button variant="link" className="mt-2" asChild>
-                  <Link href="/services/it-consultation/request">
+                  <Link href="/services/it-consulting-sprint/request">
                     Request a quote <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>

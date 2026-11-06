@@ -3,41 +3,51 @@ import type { Metadata } from 'next';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { SERVICE_MARKETPLACE_ENABLED } from '@/lib/feature-flags';
+import { SITE_URL } from '@/lib/site-url';
 import { serverGet } from '@/lib/server-api';
-import type { MarketplaceServiceCardDto, MarketplaceServiceDetailDto, Paginated } from '@tsh/shared';
+import type { MarketplaceServiceCardDto, MarketplaceServiceDetailDto, Paginated, ServiceDto } from '@tsh/shared';
 import { ServiceDetailView } from '@/components/marketplace/service-detail-view';
 import { ServiceDetailContent } from './service-detail';
 
 type Params = { params: Promise<{ slug: string }> };
 
 /** Request-scoped fetch — generateMetadata and the page share one call. */
-const getService = cache(async (slug: string) => {
+const getMarketplaceService = cache(async (slug: string) => {
   return serverGet<MarketplaceServiceDetailDto>(`/marketplace/services/${slug}`);
 });
 
+const getLegacyService = cache(async (slug: string) => {
+  return serverGet<ServiceDto>(`/services/${slug}`);
+});
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  if (!SERVICE_MARKETPLACE_ENABLED) return {};
   const { slug } = await params;
   try {
-    const service = await getService(slug);
+    const service = SERVICE_MARKETPLACE_ENABLED ? await getMarketplaceService(slug) : await getLegacyService(slug);
+    const description = service.tagline ?? service.description.slice(0, 155);
     return {
       title: service.name,
-      description:
-        service.tagline ??
-        service.description.slice(0, 155),
+      description,
+      alternates: { canonical: `/services/${service.slug}` },
       openGraph: {
         title: service.name,
-        description: service.tagline ?? service.description.slice(0, 155),
+        description,
+        url: `${SITE_URL}/services/${service.slug}`,
         type: 'website',
         images: service.imageUrl ? [{ url: service.imageUrl }] : undefined,
       },
     };
   } catch {
-    return { title: 'Service' };
+    return { title: 'Service', robots: { index: false } };
   }
 }
 
-/** Flag off ⇒ legacy detail page renders exactly as before. */
+/**
+ * The service fetch runs inside the Suspense boundary (cacheComponents
+ * requires runtime data below a boundary). The fetch is request-scoped and
+ * shared with generateMetadata, so unknown slugs still resolve metadata and
+ * render the not-found page server-side — with no client loading flash.
+ */
 export default function ServiceDetailPage({ params }: Params) {
   if (!SERVICE_MARKETPLACE_ENABLED) {
     return (
@@ -48,7 +58,7 @@ export default function ServiceDetailPage({ params }: Params) {
           </div>
         }
       >
-        <ServiceDetailContent />
+        <LegacyDetail params={params} />
       </Suspense>
     );
   }
@@ -68,16 +78,29 @@ export default function ServiceDetailPage({ params }: Params) {
   );
 }
 
+/** Flag off ⇒ legacy detail page, server-fetched. */
+async function LegacyDetail({ params }: Params) {
+  const { slug } = await params;
+  let service: ServiceDto;
+  try {
+    service = await getLegacyService(slug);
+  } catch {
+    // Unknown / inactive / archived slug → not-found page.
+    notFound();
+  }
+  return <ServiceDetailContent initialData={service} />;
+}
+
 async function MarketplaceDetail({ params }: Params) {
   const { slug } = await params;
   let service: MarketplaceServiceDetailDto;
   try {
-    service = await getService(slug);
+    service = await getMarketplaceService(slug);
   } catch {
-    // Not found / unpublished / archived → 404 page
+    // Not found / unpublished / archived → not-found page
     notFound();
   }
-  let related = [] as Awaited<ReturnType<typeof fetchRelated>>;
+  let related: MarketplaceServiceCardDto[] = [];
   try {
     related = await fetchRelated(service);
   } catch {

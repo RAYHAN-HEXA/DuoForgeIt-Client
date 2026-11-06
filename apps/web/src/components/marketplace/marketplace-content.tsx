@@ -299,8 +299,8 @@ export function MarketplaceContent() {
         )}
       </section>
 
-      {/* Custom-request entry point — routed to IT Consultation (the catch-all
-          for custom work) until a dedicated custom-request service ships. */}
+      {/* Custom-request entry point — routed to the IT Consulting Sprint (the
+          catch-all for custom work) until a dedicated custom-request service ships. */}
       <motion.div
         initial={reduced ? { opacity: 0 } : { opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -320,7 +320,7 @@ export function MarketplaceContent() {
           </div>
         </div>
         <Button asChild>
-          <Link href="/services/it-consultation/request">Request a custom quote</Link>
+          <Link href="/services/it-consulting-sprint/request">Request a custom quote</Link>
         </Button>
       </motion.div>
     </div>

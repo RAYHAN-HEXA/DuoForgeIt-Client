@@ -1,33 +1,31 @@
 import { Suspense } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { SERVICE_MARKETPLACE_ENABLED } from '@/lib/feature-flags';
+import { Skeleton } from '@/components/ui/skeleton';
 import { RequestFormContent } from './request-form';
 
 type Params = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: Params) {
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
-  return { title: `Request — ${slug.replaceAll('-', ' ')}` };
+  return {
+    title: `Request — ${slug.replaceAll('-', ' ')}`,
+    // A request form is an action page, not a landing page.
+    robots: { index: false },
+  };
 }
 
-export default function ServiceRequestPage({ params }: Params) {
-  if (!SERVICE_MARKETPLACE_ENABLED) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <p className="text-muted-foreground">Service requests are not open yet.</p>
-      </div>
-    );
-  }
+export default async function ServiceRequestPage({ params }: Params) {
+  // Flag off ⇒ the route doesn't exist — a real 404 instead of a 200 shell.
+  if (!SERVICE_MARKETPLACE_ENABLED) notFound();
+
+  const { slug } = await params;
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
-        <RequestFormLoader params={params} />
+        <RequestFormContent slug={slug} />
       </Suspense>
     </div>
   );
-}
-
-async function RequestFormLoader({ params }: Params) {
-  const { slug } = await params;
-  return <RequestFormContent slug={slug} />;
 }

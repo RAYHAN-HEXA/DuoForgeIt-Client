@@ -29,15 +29,18 @@ const GROUP_LABELS: Record<string, string> = {
   extras: 'Add-ons',
 };
 
-export function ServiceDetailContent() {
+export function ServiceDetailContent({ initialData }: { initialData?: ServiceDto }) {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
   const { addItem } = useCart();
   const router = useRouter();
 
+  // Server-rendered pages pass the fetched service as fallback data, so the
+  // first paint is complete (no skeleton flash).
   const { data: service, isLoading, error } = useSWR<ServiceDto>(
     slug ? `/services/${slug}` : null,
     () => api.get<ServiceDto>(`/services/${slug}`),
+    initialData ? { fallbackData: initialData } : undefined,
   );
 
   const [requirements, setRequirements] = useState('');
@@ -178,8 +181,8 @@ export function ServiceDetailContent() {
             <div className="space-y-6">
               <h2 className="text-lg font-semibold">Configure your order</h2>
               {groups.map(([groupKey, options]) => (
-                <div key={groupKey} className="space-y-3">
-                  <p className="font-medium">{GROUP_LABELS[groupKey] ?? groupKey}</p>
+                <div key={groupKey} className="space-y-3" role="group" aria-labelledby={`option-group-${groupKey}`}>
+                  <p id={`option-group-${groupKey}`} className="font-medium">{GROUP_LABELS[groupKey] ?? groupKey}</p>
                   {groupKey === 'extras' ? (
                     <div className="grid gap-2 sm:grid-cols-2">
                       {options.map((o) => (
@@ -188,7 +191,10 @@ export function ServiceDetailContent() {
                           className="flex cursor-pointer items-center gap-3 rounded-lg border p-3.5 transition-colors hover:bg-muted/50 data-[checked=true]:border-primary data-[checked=true]:bg-primary/5"
                           data-checked={selected[groupKey]?.includes(o.id) ?? false}
                         >
+                          {/* Radix Checkbox is a <button> — a wrapping <label>
+                              doesn't name it, so an explicit aria-label is required. */}
                           <Checkbox
+                            aria-label={o.label}
                             checked={selected[groupKey]?.includes(o.id) ?? false}
                             onCheckedChange={(checked) => {
                               const current = selected[groupKey] ?? [];
@@ -214,7 +220,8 @@ export function ServiceDetailContent() {
                           key={o.id}
                           className="flex cursor-pointer items-center gap-3 rounded-lg border p-3.5 transition-colors hover:bg-muted/50 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
                         >
-                          <RadioGroupItem value={o.id} />
+                          {/* Radix RadioGroupItem is a <button> — explicit name. */}
+                          <RadioGroupItem value={o.id} aria-label={o.label} />
                           <span className="flex-1 text-sm">{o.label}</span>
                           <span className="text-sm font-medium text-primary">
                             {Number(o.priceDelta) >= 0 ? '+' : ''}
