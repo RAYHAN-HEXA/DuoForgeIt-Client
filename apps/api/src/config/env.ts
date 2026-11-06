@@ -64,6 +64,10 @@ export const ENABLE_CLOUDINARY_AUTH = env.ENABLE_CLOUDINARY_AUTH === 'true';
 // Grace period flag – when true, both legacy and authenticated URLs are accepted during migration.
 export const CLOUDINARY_AUTH_GRACE = env.CLOUDINARY_AUTH_GRACE === 'true';
 
+// Upstash Redis (optional) — used by the upload rate limiter when auth mode is on.
+export const UPSTASH_REDIS_REST_URL = env.UPSTASH_REDIS_REST_URL;
+export const UPSTASH_REDIS_TOKEN = env.UPSTASH_REDIS_TOKEN;
+
 export const corsOrigins = env.CORS_ORIGINS.split(',')
   .map((s) => s.trim())
   .filter(Boolean);

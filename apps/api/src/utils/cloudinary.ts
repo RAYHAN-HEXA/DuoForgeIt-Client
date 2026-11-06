@@ -1,5 +1,4 @@
 import * as crypto from 'node:crypto';
-import { v2 as cloudinary } from 'cloudinary';
 
 import { ApiError } from './ApiError.js';
 import { env, ENABLE_CLOUDINARY_AUTH, hasCloudinary } from '../config/env.js';
@@ -101,17 +100,20 @@ export function generateAuthToken(publicId: string, ttlSeconds = 300): string {
   if (!hasCloudinary) {
     throw ApiError.unavailable('Cloudinary not configured', 'CLOUDINARY_UNAVAILABLE');
   }
-  const token = cloudinary.utils.api_sign_request(
-    {
-      resource_type: 'image',
-      type: 'authenticated',
-      public_id: publicId,
-      acl: `/${publicId}/*`,
-      ttl: ttlSeconds,
-    },
-    env.CLOUDINARY_API_SECRET!,
-  );
-  return token;
+  // Same recipe as the Cloudinary SDK's api_sign_request: sort params
+  // alphabetically, join as `k=v&…`, append the API secret, SHA-1 it.
+  const params: Record<string, string | number> = {
+    resource_type: 'image',
+    type: 'authenticated',
+    public_id: publicId,
+    acl: `/${publicId}/*`,
+    ttl: ttlSeconds,
+  };
+  const toSign = Object.keys(params)
+    .sort()
+    .map((key) => `${key}=${params[key]}`)
+    .join('&');
+  return crypto.createHash('sha1').update(`${toSign}${env.CLOUDINARY_API_SECRET}`).digest('hex');
 }
 
 // Verify uploaded asset via Cloudinary Admin API and enforce size/MIME limits.
@@ -128,11 +130,11 @@ export async function verifyUpload(publicId: string, resourceType: 'image' | 'ra
   if (!resp.ok) {
     throw ApiError.badRequest('Uploaded asset not found or inaccessible');
   }
-  const data = await resp.json();
+  const data = (await resp.json()) as { bytes: number; format: string; type: string };
   if (data.bytes > UPLOAD_LIMITS.maxFileSizeBytes) {
     throw ApiError.badRequest('Asset exceeds size limit');
   }
-  if (!UPLOAD_LIMITS.allowedMimeTypes.includes(data.format)) {
+  if (!UPLOAD_LIMITS.allowedMimeTypes.includes(data.format as never)) {
     throw ApiError.badRequest('Disallowed file type');
   }
   // When auth mode is on, ensure asset storage type is authenticated.

@@ -4,7 +4,7 @@ import { ok } from '../utils/envelope.js';
 import { validated } from '../middleware/validate.js';
 import { prisma } from '../config/prisma.js';
 import { hasCloudinary } from '../config/env.js';
-import { assertUploadAllowed, signUpload, signedDownloadUrl, generateAuthToken, ENABLE_CLOUDINARY_AUTH, CLOUDINARY_AUTH_GRACE } from '../utils/cloudinary.js';
+import { assertUploadAllowed, signUpload, signedDownloadUrl, generateAuthToken } from '../utils/cloudinary.js';
 import { toAdminOrderDto, toAdminPaymentAccountDto, toAdminPaymentDto } from '../utils/mappers.js';
 import { getAnyOrder } from '../services/order.service.js';
 import { notifyUser } from '../services/notification.service.js';
