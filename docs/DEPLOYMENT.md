@@ -31,6 +31,32 @@ Notes:
   values for them. Verify behaviour, not the pulled file.
 - Never put secrets in `NEXT_PUBLIC_*` variables.
 
+## Database migrations — GATE before every API deploy
+
+**Always run `npx prisma migrate deploy` against the production database
+BEFORE (or with) any `tsh-api` redeploy.** Deploying API code whose Prisma
+client expects unapplied migrations produces raw `P2022/P2021` errors on
+reads that select the new columns — surfacing as generic "Internal server
+error" 500s on customer flows (this happened 2026-11-06: checkout 500'd
+because `manual_payments_v2` + `blob_storage_paths` were never applied while
+the API was redeployed).
+
+```bash
+cd apps/api
+npx prisma migrate status     # expect: "Database schema is up to date"
+npx prisma migrate deploy     # applies pending migrations from prisma/migrations
+```
+
+Requires a machine that can reach Neon on 5432 (`DIRECT_URL`). Neon direct
+endpoints are IPv6-first; if a network drops Postgres payloads after the TCP
+handshake (nc connects, no protocol response — VPN/ISP/security-software
+interception), switch networks (e.g. phone hotspot) or run the deploy from
+CI. Check state in the Neon console at any time:
+
+```sql
+SELECT migration_name, finished_at FROM _prisma_migrations ORDER BY migration_name;
+```
+
 ## Git flow
 
 Both remotes mirror the full monorepo and both are connected to Vercel:

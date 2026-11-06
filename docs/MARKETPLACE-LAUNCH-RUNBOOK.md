@@ -59,6 +59,9 @@ DB-only); `blobStorage: false` = uploads return 503 `FILE_STORAGE_UNCONFIGURED`.
 
 ## Deployment sequence
 
+0. **Migration gate (before any API deploy):** `cd apps/api && npx prisma migrate deploy`
+   — the deployed Prisma client must never be newer than the database (see the
+   2026-11-06 checkout-500 incident in DEPLOYMENT.md).
 1. Rotate DB password → update tsh-api env → redeploy API → health check `db: ok`.
 2. Add Blob / Upstash / mail envs → API redeploy → verify
    upload ticket, rate-limit burst, founder email on a staging order.
@@ -150,6 +153,14 @@ DB-only); `blobStorage: false` = uploads return 503 `FILE_STORAGE_UNCONFIGURED`.
 - **Re-seeding prod after the migration** re-archives the 7 (seed.ts marks
   legacy slugs ARCHIVED). Don't re-run `npm run db:seed` against production
   post-migration.
+- **Local → Neon connectivity (2026-11-06):** this Mac's network silently
+  drops Postgres payloads on 5432 — TCP connects (`nc -z` succeeds on both
+  pooler and direct hosts) but the SSL/protocol handshake gets no response,
+  so `psql` hangs forever and Prisma reports P1001. No system proxy/VPN
+  route was found (`scutil --proxy` empty, route via en0). Vercel functions
+  connect fine, so it's network-path level (ISP/router/security software).
+  Workarounds: switch network (phone hotspot) for `prisma migrate deploy`,
+  or run migrations from CI.
 - **Web test coverage**: apps/web has no test runner; the route-resolution
   checks (`/services/it-consulting-sprint/request` etc.) are manual curl steps
   in the matrix above.
