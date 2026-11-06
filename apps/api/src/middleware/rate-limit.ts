@@ -1,5 +1,5 @@
 import { rateLimit } from 'express-rate-limit';
-import RedisStore from 'rate-limit-redis';
+import { RedisStore } from 'rate-limit-redis';
 import { ENABLE_CLOUDINARY_AUTH, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_TOKEN } from '../config/env.js';
 
 /** General API budget per IP. */
