@@ -256,7 +256,7 @@ export function toReviewDto(r: Review): ReviewDto {
 
 /**
  * Full order DTO. Signed download URLs for attachments/deliverables are minted
- * by the caller (they depend on Cloudinary config) and passed in.
+ * by the caller (they depend on Blob storage config) and passed in.
  */
 export function toOrderDto(
   order: OrderFull,

@@ -20,7 +20,7 @@ import type { AdminPaymentQueueDto, AdminPaymentStatsDto } from '@tsh/shared';
  *
  * Production credentials must never appear in TEST_DATABASE_URL.
  *
- * Cloudinary is stubbed with fake credentials: signed-URL minting is exercised
+ * Vercel Blob is stubbed with fake credentials: signed-URL minting is exercised
  * without any network call, and secrets must never appear in responses.
  */
 

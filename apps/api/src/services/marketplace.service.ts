@@ -262,7 +262,7 @@ export async function getServiceForm(slug: string) {
 
 /**
  * Server-side validation of marketplace upload metadata (enforced again at
- * registration; the Cloudinary upload itself is signed client-side).
+ * registration; the Blob upload itself is signed client-side).
  * Photos are capped lower and must be image mime types; everything else is
  * checked against the shared extension whitelist (code/text files often
  * arrive as octet-stream, so the extension is the authority).

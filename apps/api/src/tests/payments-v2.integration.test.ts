@@ -218,7 +218,7 @@ d('manual-payments v2 (real PostgreSQL)', () => {
       expect(Object.keys(item).sort()).toEqual(
         ['accountHolder', 'accountNumber', 'accountType', 'id', 'instructions', 'label', 'methodKey', 'qrUrl'].sort(),
       );
-      expect(item.qrUrl).toBeNull(); // Cloudinary unconfigured in tests
+      expect(item.qrUrl).toBeNull(); // Blob storage unconfigured in tests
     }
     expect(stage2.some((i) => i.label === `STAGE2-${run}-bkash-off`)).toBe(false);
     const raw = JSON.stringify(res.body);

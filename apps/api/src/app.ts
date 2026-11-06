@@ -23,7 +23,7 @@ const pinoHttp = require('pino-http') as typeof pinoHttpType;
 export function createApp() {
   const app = express();
 
-  app.set('trust proxy', 1); // Render/Railway sit behind a proxy
+  app.set('trust proxy', 1); // Vercel/serverless proxies set X-Forwarded-*
   app.use(helmet());
   app.use(
     cors({

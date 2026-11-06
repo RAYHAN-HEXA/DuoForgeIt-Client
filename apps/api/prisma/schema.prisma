@@ -6,7 +6,8 @@
 // Conventions:
 //  - UUID PKs, timestamps on every table
 //  - money: Decimal(12,2), serialized to strings over the API (never floats)
-//  - files: Cloudinary references only — no blobs in Postgres
+//  - files: metadata + PRIVATE Vercel Blob pathnames; legacy Cloudinary
+//    columns are retained read-only for pre-cutover rows
 //  - orders snapshot service name/price at purchase time (OrderItem), so later
 //    catalog edits never rewrite order history
 
@@ -871,8 +872,8 @@ model ServiceRequest {
   @@index([assignedToId, status])
 }
 
-// Customer attachments / photos / admin deliverables — Cloudinary references
-// only; access via ownership-checked signed URLs. Nullable requestId supports
+// Customer attachments / photos / admin deliverables — private Vercel Blob
+// pathnames; access via ownership-checked signed URLs. Nullable requestId supports
 // staged uploads before the request exists (same pattern as OrderAttachment).
 model RequestFile {
   id           String          @id @default(uuid())

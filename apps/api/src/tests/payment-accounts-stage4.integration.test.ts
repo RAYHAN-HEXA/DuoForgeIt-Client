@@ -18,8 +18,8 @@ import type { AdminPaymentAccountDto } from '@tsh/shared';
  *
  * Production credentials must never appear in TEST_DATABASE_URL.
  *
- * Cloudinary is stubbed with fake credentials: signing/ownership logic is
- * exercised without any network upload. No real Cloudinary environment is
+ * Vercel Blob is stubbed with fake credentials: signing/ownership logic is
+ * exercised without any network upload. No real Blob environment is
  * contacted by this suite.
  */
 

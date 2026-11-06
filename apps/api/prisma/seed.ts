@@ -9,7 +9,8 @@
  * Replace placeholder founder names/bios/skills with the real ones before
  * launch (or edit via admin SiteContent/founder management later).
  */
-import { PrismaClient, FounderDiscipline, WalletMethod } from '../src/generated/prisma/client.js';
+import { PrismaClient, FounderDiscipline } from '../src/generated/prisma/client.js';
+import type { WalletMethod } from '../src/generated/prisma/client.js';
 import {
   MARKETPLACE_CATALOGUE,
   LEGACY_SERVICE_SLUGS,

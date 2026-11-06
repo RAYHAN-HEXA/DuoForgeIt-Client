@@ -48,7 +48,7 @@ describe('paymentAccountCreateSchema', () => {
         ...validCreate,
         accountType: 'Merchant',
         instructions: 'Send money, then submit the TrxID.',
-        qrPublicId: 'techservice-hub/payment-accounts/user/asset',
+        qrPathname: 'techservice-hub/payment-accounts/user/asset',
         displayOrder: 100_000,
       }).success,
     ).toBe(true);
@@ -76,19 +76,19 @@ describe('paymentAccountUpdateSchema', () => {
       label: 'Renamed account',
       accountType: null,
       instructions: null,
-      qrPublicId: null,
+      qrPathname: null,
     });
     expect(parsed.label).toBe('Renamed account');
     expect(parsed.accountType).toBeNull();
     expect(parsed.instructions).toBeNull();
-    expect(parsed.qrPublicId).toBeNull();
+    expect(parsed.qrPathname).toBeNull();
   });
 
   it('accepts an empty update object (no-op) but rejects invalid values', () => {
     expect(paymentAccountUpdateSchema.safeParse({}).success).toBe(true);
     expect(paymentAccountUpdateSchema.safeParse({ label: '' }).success).toBe(false);
     expect(paymentAccountUpdateSchema.safeParse({ methodKey: 'nope' }).success).toBe(false);
-    expect(paymentAccountUpdateSchema.safeParse({ qrPublicId: 'tiny' }).success).toBe(false);
+    expect(paymentAccountUpdateSchema.safeParse({ qrPathname: 'tiny' }).success).toBe(false);
   });
 });
 

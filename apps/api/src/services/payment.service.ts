@@ -45,7 +45,7 @@ export function normalizeTransactionId(raw: string): string {
  * (displayOrder, then label, then id) so the picker renders identically on
  * every request. Only safe DTO fields leave the service — audit columns,
  * isActive flags and internal ordering metadata stay behind. QR images are
- * minted as short-lived signed URLs (null when absent or Cloudinary is not
+ * minted as short-lived signed URLs (null when absent or Blob is not
  * configured).
  */
 export async function listActivePaymentAccounts(): Promise<PaymentAccountOptionDto[]> {
@@ -406,7 +406,7 @@ export async function createPaymentSubmission(
 
 /**
  * Customer-safe payment DTO. Snapshots (not the live account) are rendered,
- * the raw Cloudinary public id never leaves the service, and admin-only
+ * the raw storage pathname never leaves the service, and admin-only
  * fields (adminNote, verifiedAt, rejection audit) stay server-side until a
  * later stage introduces customer-safe rejection surfacing.
  */

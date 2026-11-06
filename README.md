@@ -12,7 +12,7 @@ service marketplace, pick a project lead (Founder A — engineering / Founder B 
 | Web      | Next.js 16 (App Router, Turbopack, cacheComponents), Tailwind v4, shadcn/ui, Framer Motion, SWR, React Hook Form + Zod, Firebase JS SDK |
 | API      | Express 5, Firebase Admin (ID-token auth), Prisma 6, Zod, pino, express-rate-limit |
 | DB       | Neon PostgreSQL (pooled `DATABASE_URL` + direct `DIRECT_URL` for migrations) |
-| Files    | Cloudinary signed client-side uploads (graceful 503 when unconfigured) |
+| Files    | Vercel Blob — private store, server-minted upload tickets, short-lived signed downloads (graceful 503 when unconfigured) |
 | Shared   | `@tsh/shared` — types, Zod schemas, constants (order pipeline, transitions, upload limits), money utils |
 
 ## Monorepo layout
@@ -40,9 +40,9 @@ Both dev scripts run a `predev` build of the shared package; after editing
 
 - `apps/api/.env` — `DATABASE_URL`, `DIRECT_URL`, `FIREBASE_PROJECT_ID` +
   service-account creds (`FIREBASE_SERVICE_ACCOUNT_BASE64` or cert vars),
-  optional `CLOUDINARY_*`, `SEED_FOUNDER_A_EMAIL`/`SEED_FOUNDER_B_EMAIL`
-  (see `.env.example`). The API boots without Firebase/Cloudinary and reports
-  gaps on `/api/health`.
+  `BLOB_READ_WRITE_TOKEN` (from a private Vercel Blob store),
+  `SEED_FOUNDER_A_EMAIL`/`SEED_FOUNDER_B_EMAIL` (see `.env.example`). The API
+  boots without Firebase/Blob and reports gaps on `/api/health`.
 - `apps/web/.env.local` — `NEXT_PUBLIC_API_URL` + Firebase web config
   (see `.env.local.example`).
 
@@ -59,7 +59,7 @@ auth-sync endpoint claims the row — no self-service role escalation is possibl
 - `GET/POST/PATCH/DELETE /api/cart(/items/:itemId)` — server-computed totals
 - `POST /api/orders` — idempotent checkout (`TSH-YYYY-NNNNNN`, snapshot pricing,
   transactional); `GET /api/orders[/:id]`; cancel/payment/revision/review/attachment subroutes
-- `POST /api/uploads/sign` — Cloudinary signature (503 `FILE_STORAGE_UNCONFIGURED` until configured)
+- `POST /api/uploads/blob/token` — scoped private Vercel Blob upload ticket (503 `FILE_STORAGE_UNCONFIGURED` until configured)
 - `GET /api/notifications` (+ read)
 - `/api/admin/*` — stats & analytics, order moderation (legal `ORDER_TRANSITIONS`
   enforced), founder reassignment, payment verification, deliverables, revisions,
