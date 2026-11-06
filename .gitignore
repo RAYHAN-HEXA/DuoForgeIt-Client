@@ -28,6 +28,9 @@ serviceAccountKey*.json
 # Testing
 coverage/
 
+# Local QA evidence (contains real emails — repos are public)
+docs/evidence/
+
 # Misc
 .DS_Store
 *.log
