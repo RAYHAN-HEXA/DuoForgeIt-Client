@@ -16,23 +16,41 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Mascot } from '@/components/mascot';
 import { GoogleIcon } from '@/components/google-icon';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, AuthSyncError } from '@/hooks/use-auth';
 import { useMascotForm } from '@/hooks/use-mascot-form';
 import { showOnboarding } from '@/components/onboarding-overlay';
+import { useEffect } from 'react';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register: registerAccount, loginWithGoogle } = useAuth();
+  const { register: registerAccount, loginWithGoogle, user, loading } = useAuth();
   const { mood, emailFocus, passwordFocus, blur, shake, setMood } = useMascotForm();
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Auto-redirect if already signed in
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [loading, user, router]);
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerFormSchema),
     defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
   });
 
-  function firebaseError(err: unknown): string {
+  function formatAuthError(err: unknown): string {
+    if (err instanceof AuthSyncError) {
+      if (err.status === 503) {
+        return 'Authentication service is not configured on the server.';
+      }
+      if (err.status === 0 || err.code === 'NETWORK_ERROR') {
+        return 'Cannot connect to the server. Please check your network connection.';
+      }
+      return err.message || 'Could not synchronize your profile with the server.';
+    }
+
     if (err instanceof FirebaseError) {
       switch (err.code) {
         case 'auth/email-already-in-use':
@@ -43,10 +61,23 @@ export default function RegisterPage() {
           return 'That email address does not look valid.';
         case 'auth/too-many-requests':
           return 'Too many attempts — please wait a minute and try again.';
+        case 'auth/popup-blocked':
+          return 'Popup was blocked by your browser. Please allow popups for this site.';
+        case 'auth/unauthorized-domain':
+          return 'This domain is not authorized in Firebase Authentication Console.';
+        case 'auth/operation-not-allowed':
+          return 'This sign-in method is not enabled in Firebase Console.';
+        case 'auth/network-request-failed':
+          return 'Network error — check your connection.';
         default:
-          return 'Could not create your account. Please try again.';
+          return err.message || 'Could not create your account. Please try again.';
       }
     }
+
+    if (err instanceof Error) {
+      return err.message;
+    }
+
     return 'Could not create your account. Please try again.';
   }
 
@@ -59,7 +90,7 @@ export default function RegisterPage() {
       setTimeout(() => router.replace('/dashboard'), 900);
     } catch (err) {
       shake();
-      toast.error('Registration failed', { description: firebaseError(err) });
+      toast.error('Registration failed', { description: formatAuthError(err) });
     } finally {
       setSubmitting(false);
     }
@@ -70,8 +101,11 @@ export default function RegisterPage() {
       await loginWithGoogle();
       router.replace('/dashboard');
     } catch (err) {
+      if (err instanceof FirebaseError && err.code === 'auth/popup-closed-by-user') {
+        return;
+      }
       shake();
-      toast.error('Google sign-in failed', { description: firebaseError(err) });
+      toast.error('Google sign-in failed', { description: formatAuthError(err) });
     }
   }
 

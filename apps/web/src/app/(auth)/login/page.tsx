@@ -16,9 +16,9 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Mascot } from '@/components/mascot';
 import { GoogleIcon } from '@/components/google-icon';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, AuthSyncError } from '@/hooks/use-auth';
 import { useMascotForm } from '@/hooks/use-mascot-form';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /** Only same-origin absolute paths (a single leading `/`, no scheme, no `//`). */
 function safeNextPath(raw: string | null): string {
@@ -33,34 +33,72 @@ function LoginPageContent() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get('next');
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, user, loading } = useAuth();
   const { mood, emailFocus, passwordFocus, blur, shake } = useMascotForm();
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Auto-redirect if already authenticated
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace(safeNextPath(next));
+    }
+  }, [loading, user, router, next]);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: { email: '', password: '' },
   });
 
-  /** Friendly messages for Firebase auth errors (never leak raw codes). */
-  function firebaseError(err: unknown): string {
+  /** Friendly messages for Firebase auth and profile sync errors (never leak raw codes). */
+  function formatAuthError(err: unknown): string {
+    if (err instanceof AuthSyncError) {
+      if (err.code === 'VERIFY_EMAIL_FIRST') {
+        return 'Please verify your email before logging in. Check your inbox for the verification link.';
+      }
+      if (err.code === 'EMAIL_LINKED_TO_DIFFERENT_UID') {
+        return 'This email is already associated with another sign-in method.';
+      }
+      if (err.status === 503) {
+        return 'Authentication service is not configured on the server.';
+      }
+      if (err.status === 0 || err.code === 'NETWORK_ERROR') {
+        return 'Cannot connect to the server. Please check your network connection.';
+      }
+      return err.message || 'Could not synchronize your profile with the server.';
+    }
+
     if (err instanceof FirebaseError) {
       switch (err.code) {
         case 'auth/invalid-credential':
         case 'auth/wrong-password':
         case 'auth/user-not-found':
           return 'Wrong email or password. Try again.';
+        case 'auth/invalid-email':
+          return 'Please enter a valid email address.';
         case 'auth/too-many-requests':
           return 'Too many attempts — please wait a minute and try again.';
         case 'auth/user-disabled':
           return 'This account has been disabled. Contact support.';
+        case 'auth/account-exists-with-different-credential':
+          return 'An account already exists with the same email using a different sign-in method.';
+        case 'auth/unauthorized-domain':
+          return 'This domain is not authorized in Firebase Authentication Console.';
+        case 'auth/popup-blocked':
+          return 'Popup was blocked by your browser. Please allow popups for this site.';
+        case 'auth/operation-not-allowed':
+          return 'This sign-in method is not enabled in Firebase Console.';
         case 'auth/network-request-failed':
           return 'Network error — check your connection.';
         default:
-          return 'Could not sign you in. Please try again.';
+          return err.message || 'Could not sign you in. Please try again.';
       }
     }
+
+    if (err instanceof Error) {
+      return err.message;
+    }
+
     return 'Could not sign you in. Please try again.';
   }
 
@@ -71,7 +109,7 @@ function LoginPageContent() {
       router.replace(safeNextPath(next));
     } catch (err) {
       shake();
-      toast.error('Sign in failed', { description: firebaseError(err) });
+      toast.error('Sign in failed', { description: formatAuthError(err) });
     } finally {
       setSubmitting(false);
     }
@@ -82,8 +120,11 @@ function LoginPageContent() {
       await loginWithGoogle();
       router.replace(safeNextPath(next));
     } catch (err) {
+      if (err instanceof FirebaseError && err.code === 'auth/popup-closed-by-user') {
+        return;
+      }
       shake();
-      toast.error('Google sign-in failed', { description: firebaseError(err) });
+      toast.error('Google sign-in failed', { description: formatAuthError(err) });
     }
   }
 

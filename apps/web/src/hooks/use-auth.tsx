@@ -18,7 +18,18 @@ import {
 } from 'firebase/auth';
 import type { PublicUser } from '@tsh/shared';
 import { auth, googleProvider } from '@/lib/firebase';
-import { api, setTokenProvider } from '@/lib/api';
+import { api, setTokenProvider, ApiClientError } from '@/lib/api';
+
+export class AuthSyncError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'AuthSyncError';
+  }
+}
 
 /**
  * Firebase owns credentials; the Express API owns the profile (role, status).
@@ -53,18 +64,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /** Tracks whether /auth/sync already ran for the current uid (avoid repeat syncs). */
   const syncedUid = useRef<string | null>(null);
 
-  const syncProfile = useCallback(async (fb: FirebaseUser): Promise<PublicUser | null> => {
-    try {
-      const { user: profile } = await api.post<{ user: PublicUser; isNew: boolean }>('/auth/sync', {});
-      syncedUid.current = fb.uid;
-      setUser(profile);
-      return profile;
-    } catch (err) {
-      // 503 = API is up but Firebase Admin isn't configured (dev) — surface via message toast at call sites
-      console.warn('[auth] profile sync failed:', err);
-      return null;
-    }
-  }, []);
+  const syncProfile = useCallback(
+    async (fb: FirebaseUser, throwOnError = false): Promise<PublicUser | null> => {
+      try {
+        const { user: profile } = await api.post<{ user: PublicUser; isNew: boolean }>('/auth/sync', {});
+        syncedUid.current = fb.uid;
+        setUser(profile);
+        return profile;
+      } catch (err) {
+        console.warn('[auth] profile sync failed:', err);
+        if (throwOnError) {
+          if (err instanceof ApiClientError) {
+            throw new AuthSyncError(err.status, err.code, err.message);
+          }
+          throw new AuthSyncError(
+            0,
+            'SYNC_FAILED',
+            err instanceof Error ? err.message : 'Could not synchronize user profile',
+          );
+        }
+        return null;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     setTokenProvider(() =>
@@ -92,7 +115,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!cred.user.emailVerified) {
         await sendEmailVerification(cred.user).catch(() => undefined);
       }
-      await syncProfile(cred.user);
+      try {
+        await syncProfile(cred.user, true);
+      } catch (err) {
+        await signOut(auth).catch(() => undefined);
+        syncedUid.current = null;
+        setUser(null);
+        setFirebaseUser(null);
+        throw err;
+      }
     },
     [syncProfile],
   );
@@ -100,14 +131,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      await syncProfile(cred.user);
+      try {
+        await syncProfile(cred.user, true);
+      } catch (err) {
+        await signOut(auth).catch(() => undefined);
+        syncedUid.current = null;
+        setUser(null);
+        setFirebaseUser(null);
+        throw err;
+      }
     },
     [syncProfile],
   );
 
   const loginWithGoogle = useCallback(async () => {
     const cred = await signInWithPopup(auth, googleProvider);
-    await syncProfile(cred.user);
+    try {
+      await syncProfile(cred.user, true);
+    } catch (err) {
+      await signOut(auth).catch(() => undefined);
+      syncedUid.current = null;
+      setUser(null);
+      setFirebaseUser(null);
+      throw err;
+    }
   }, [syncProfile]);
 
   const logout = useCallback(async () => {
