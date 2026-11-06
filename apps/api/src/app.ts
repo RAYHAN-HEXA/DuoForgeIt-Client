@@ -28,9 +28,11 @@ export function createApp() {
   app.use(
     cors({
       origin: (origin, cb) => {
-        // Allow server-to-server/no-origin requests (curl, health checks)
+        // Allow server-to-server/no-origin requests (curl, health checks).
+        // Disallowed origins get no CORS headers (not an error) so the request
+        // is still served normally and the browser blocks the response.
         if (!origin || corsOrigins.includes(origin)) return cb(null, true);
-        cb(new Error('Origin not allowed by CORS'));
+        cb(null, false);
       },
       credentials: false, // Bearer-token auth; no cookies cross-origin
       methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
