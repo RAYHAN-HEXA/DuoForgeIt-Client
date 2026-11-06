@@ -1,5 +1,11 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import { AdminShell } from '@/components/site/admin-shell';
+
+export const metadata: Metadata = {
+  title: 'Admin console',
+  robots: { index: false, follow: false },
+};
 
 /**
  * The admin shell reads usePathname + auth state — it streams inside Suspense

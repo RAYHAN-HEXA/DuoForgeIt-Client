@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next';
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+import { SITE_URL } from '@/lib/site-url';
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -8,10 +7,20 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        // Authenticated areas stay out of indexes.
-        disallow: ['/dashboard', '/admin', '/profile', '/orders', '/notifications', '/wallet'],
+        // Authenticated/transactional areas stay out of indexes.
+        disallow: [
+          '/dashboard',
+          '/admin',
+          '/profile',
+          '/orders',
+          '/notifications',
+          '/cart',
+          '/checkout',
+          '/login',
+          '/register',
+        ],
       },
     ],
-    sitemap: `${SITE}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

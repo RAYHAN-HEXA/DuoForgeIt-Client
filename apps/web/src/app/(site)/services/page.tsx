@@ -10,6 +10,8 @@ export const metadata = {
   title: 'Services',
   description:
     'Browse the TechService Hub service marketplace — web development, programming projects, academic documents, hardware builds, PC repair and IT consultation.',
+  // Filter/search URLs (?category=…, ?page=…) consolidate onto the clean URL.
+  alternates: { canonical: '/services' },
 };
 
 /** Must match `PAGE_SIZE` + default filters in `ServicesContent` so the SWR fallback key lines up. */

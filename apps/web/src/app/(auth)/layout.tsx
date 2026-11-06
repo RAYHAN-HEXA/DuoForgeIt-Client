@@ -1,6 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { MascotMark } from '@/components/mascot';
 import { CurrentYear } from '@/components/year';
+
+// Gated flows stay out of search indexes (mirrors the X-Robots-Tag header).
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /** Split layout: marketing panel on the left, auth card on the right. */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {

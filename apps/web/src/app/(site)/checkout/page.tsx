@@ -1,5 +1,11 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import { CheckoutContent } from './checkout-content';
+
+export const metadata: Metadata = {
+  title: 'Checkout',
+  robots: { index: false, follow: false },
+};
 
 /**
  * Deadline math calls `new Date()` at render, and the flow is auth-gated —
