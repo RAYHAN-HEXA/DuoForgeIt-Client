@@ -39,7 +39,9 @@ function OrderDetailContent() {
   const { data: order, isLoading, error, mutate } = useSWR<OrderDto>(
     id ? `/orders/${id}` : null,
     () => api.get<OrderDto>(`/orders/${id}`),
-    { revalidateOnFocus: false },
+    // Poll so payment review results reach the customer without a manual
+    // reload — the under-review banner promises automatic updates.
+    { revalidateOnFocus: false, refreshInterval: 30_000 },
   );
 
   if (isLoading) {
@@ -210,7 +212,7 @@ function OrderDetailContent() {
               <div key={p.id} className="flex items-start justify-between gap-3 rounded-lg border px-3 py-2 text-sm">
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 font-medium">
-                    <PaymentMethodBadge method={p.method} /> {statusLabel(p.method)}
+                    <PaymentMethodBadge method={p.method} /> {statusLabel(p.status)}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {p.transactionId ? `TrxID: ${p.transactionId} · ` : ''}

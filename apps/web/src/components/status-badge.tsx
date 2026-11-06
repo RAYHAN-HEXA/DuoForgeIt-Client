@@ -58,6 +58,7 @@ const LABELS: Record<string, string> = {
   NAGAD: 'Nagad',
   ROCKET: 'Rocket',
   BANK_TRANSFER: 'Bank transfer',
+  OTHER: 'Other',
 };
 
 export function StatusBadge({ status, className }: { status: OrderStatus | PaymentStatus | RevisionStatus | string; className?: string }) {

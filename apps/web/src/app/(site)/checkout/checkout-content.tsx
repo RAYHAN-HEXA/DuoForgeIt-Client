@@ -27,7 +27,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -58,7 +57,6 @@ export function CheckoutContent() {
   const [uploading, setUploading] = useState(false);
   const [deadline, setDeadline] = useState('');
   const [founderChoice, setFounderChoice] = useState<FounderChoice>('AUTO_ASSIGN');
-  const [paymentMethod, setPaymentMethod] = useState('BKASH');
   const [submitting, setSubmitting] = useState(false);
   /**
    * One checkout attempt = one idempotency key (retries replay the same order).
@@ -172,11 +170,9 @@ export function CheckoutContent() {
         }
       }
 
-      // Remember the payment method for the order-page payment form
-      sessionStorage.setItem(`tsh-payment-method-${order.id}`, paymentMethod);
       await refresh();
       toast.success(`Order ${order.orderNumber} submitted`, {
-        description: 'Next: pay via your chosen method and submit the transaction ID.',
+        description: 'Next: pay from the order page — live receiving accounts are shown there.',
       });
       router.replace(`/orders/${order.id}`);
     } catch (err) {
@@ -193,7 +189,7 @@ export function CheckoutContent() {
     Boolean(deadline || suggestedDeadline), // deadline
     true, // founder (AUTO_ASSIGN default)
     true, // pricing
-    true, // payment method (prefilled)
+    true, // how you'll pay (informational)
     true, // submit
   ][step];
 
@@ -355,31 +351,19 @@ export function CheckoutContent() {
           {step === 6 && (
             <div className="space-y-4">
               <h2 className="flex items-center gap-2 font-semibold">
-                <Wallet className="h-4 w-4 text-primary" /> Payment method
+                <Wallet className="h-4 w-4 text-primary" /> How you&apos;ll pay
               </h2>
-              <p className="text-sm text-muted-foreground">
-                Manual verification in this release: pay after submitting the order, then record your transaction ID —
-                a founder verifies it against our records.
-              </p>
-              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid gap-2 sm:grid-cols-2">
-                {[
-                  { value: 'BKASH', label: 'bKash', hint: 'Mobile wallet' },
-                  { value: 'NAGAD', label: 'Nagad', hint: 'Mobile wallet' },
-                  { value: 'ROCKET', label: 'Rocket', hint: 'Mobile wallet' },
-                  { value: 'BANK_TRANSFER', label: 'Bank transfer', hint: 'Direct deposit' },
-                ].map((m) => (
-                  <Label
-                    key={m.value}
-                    className="flex cursor-pointer items-center gap-3 rounded-lg border p-4 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
-                  >
-                    <RadioGroupItem value={m.value} />
-                    <span>
-                      <span className="block text-sm font-medium">{m.label}</span>
-                      <span className="block text-xs text-muted-foreground">{m.hint}</span>
-                    </span>
-                  </Label>
-                ))}
-              </RadioGroup>
+              <div className="space-y-2 rounded-lg border p-4 text-sm text-muted-foreground">
+                <p>
+                  Payment happens <span className="font-medium text-foreground">after you submit the order</span> — on
+                  the order page we show you our live receiving accounts (bKash / Nagad / Rocket / bank and more), each
+                  with the exact number and QR code to pay.
+                </p>
+                <p>
+                  Send the outstanding amount to the account you pick, then record the transaction ID (TrxID) there. A
+                  founder verifies every payment manually before the order is marked paid.
+                </p>
+              </div>
             </div>
           )}
 
@@ -394,7 +378,6 @@ export function CheckoutContent() {
                   value={founderChoice === 'AUTO_ASSIGN' ? 'Auto-assign' : founderChoice === 'FOUNDER_A' ? 'Founder A (preferred)' : 'Founder B (preferred)'}
                 />
                 <Row label="Files" value={staged.length ? `${staged.length} attached` : 'None'} />
-                <Row label="Payment method" value={paymentMethod === 'BANK_TRANSFER' ? 'Bank transfer' : paymentMethod} />
                 <Separator className="my-2" />
                 <div className="flex justify-between font-semibold">
                   <span>Total</span>

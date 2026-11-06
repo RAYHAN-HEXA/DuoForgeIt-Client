@@ -95,15 +95,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
 /** Badge on the Payments link when the verification queue is non-empty. */
 function InboxIndicator() {
-  const { data } = useSWR<{ items: AdminPaymentDto[] }>(
+  // The list endpoint paginates (default 20 rows) but returns the full count —
+  // read `total` so the badge never truncates a long queue.
+  const { data } = useSWR<{ items: AdminPaymentDto[]; total: number }>(
     '/admin/payments?status=SUBMITTED',
-    () => api.get<{ items: AdminPaymentDto[] }>('/admin/payments?status=SUBMITTED'),
+    () => api.get<{ items: AdminPaymentDto[]; total: number }>('/admin/payments?status=SUBMITTED'),
     { refreshInterval: 90_000 },
   );
-  if (!data?.items.length) return null;
+  const pending = data?.total ?? data?.items.length ?? 0;
+  if (!pending) return null;
   return (
     <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-      {data.items.length}
+      {pending}
     </span>
   );
 }
