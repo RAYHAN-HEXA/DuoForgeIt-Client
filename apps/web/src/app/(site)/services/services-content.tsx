@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
-import { ArrowRight, PackageOpen, Search, Star } from 'lucide-react';
+import { ArrowRight, AlertCircle, PackageOpen, Search, Star } from 'lucide-react';
 import type { Paginated, ServiceCategoryDto, ServiceDto } from '@tsh/shared';
 import { formatBDT } from '@tsh/shared';
-import { api } from '@/lib/api';
+import { api, errorMessage } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,7 +18,7 @@ import { EmptyState } from '@/components/empty-state';
 
 const PAGE_SIZE = 12;
 
-export function ServicesContent() {
+export function ServicesContent({ initialData }: { initialData?: Paginated<ServiceDto> }) {
   const router = useRouter();
   const params = useSearchParams();
   const category = params.get('category') ?? 'all';
@@ -56,11 +56,17 @@ export function ServicesContent() {
     ...(search ? { search } : {}),
   });
 
+  const swrKey = `/services?${query.toString()}`;
+  // The first unfiltered page is server-rendered and passed in as fallback
+  // data, so the grid exists in the initial HTML even if the client fetch is
+  // blocked (CORS, extension, offline) or auth bootstrap fails.
+  const isDefaultQuery = page === 1 && sort === 'popular' && category === 'all' && !search;
+
   const { data: categories } = useSWR<ServiceCategoryDto[]>('/categories', () => api.get<ServiceCategoryDto[]>('/categories'));
-  const { data, isLoading } = useSWR<Paginated<ServiceDto>>(
-    `/services?${query.toString()}`,
-    () => api.get<Paginated<ServiceDto>>(`/services?${query.toString()}`),
-    { keepPreviousData: true },
+  const { data, isLoading, error, mutate } = useSWR<Paginated<ServiceDto>>(
+    swrKey,
+    () => api.get<Paginated<ServiceDto>>(swrKey),
+    { keepPreviousData: true, fallbackData: isDefaultQuery ? initialData : undefined },
   );
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
@@ -71,7 +77,11 @@ export function ServicesContent() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Services</h1>
           <p className="mt-1 text-muted-foreground">
-            {data ? `${data.total} service${data.total === 1 ? '' : 's'} available` : 'Loading…'}
+            {data
+              ? `${data.total} service${data.total === 1 ? '' : 's'} available`
+              : error
+                ? 'Could not load services'
+                : 'Loading…'}
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -112,7 +122,18 @@ export function ServicesContent() {
       </div>
 
       {/* Grid */}
-      {isLoading && !data ? (
+      {error && !data ? (
+        <EmptyState
+          icon={AlertCircle}
+          title="Could not load services"
+          description={errorMessage(error)}
+          action={
+            <Button variant="outline" onClick={() => mutate()}>
+              Try again
+            </Button>
+          }
+        />
+      ) : isLoading && !data ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-64 rounded-xl" />

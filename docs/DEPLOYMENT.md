@@ -7,7 +7,9 @@
 | Web | https://techservicehub.vercel.app | `techservicehub` | `prj_kWJ6c7wBIN3KMCN6fvarYZV3kmFg` | `apps/web` |
 | API | https://tsh-api-mu.vercel.app/api | `tsh-api` | `prj_WSPOKE9ZliB3deYy1VQdgHFTHq8G` | `apps/api` |
 
-Legacy web alias kept for back-compat: https://tsh-web-three.vercel.app
+Legacy web aliases (`tsh-web-three`, `tsh-web-sandy`, `tsh-web-rahan-hexa`) 308-redirect
+to the canonical domain, and their origins stay on the API allow-list so old
+bookmarks never hit a CORS wall.
 
 - Vercel team: `RAHAN-HEXA` (`team_O1oPgRz3daZh9vouQVNfzzn5`)
 - Health check: https://tsh-api-mu.vercel.app/api/health
@@ -17,7 +19,7 @@ Legacy web alias kept for back-compat: https://tsh-web-three.vercel.app
 | Project | Variable | Value |
 | --- | --- | --- |
 | `techservicehub` | `NEXT_PUBLIC_API_URL` | `https://tsh-api-mu.vercel.app/api` |
-| `tsh-api` | `CORS_ORIGINS` | `https://techservicehub.vercel.app` |
+| `tsh-api` | `CORS_ORIGINS` | `https://techservicehub.vercel.app,https://tsh-web-three.vercel.app,https://tsh-web-sandy.vercel.app,https://tsh-web-rahan-hexa.vercel.app,https://techservicehub-rahan-hexa.vercel.app` |
 | `tsh-api` | `ADMIN_PANEL_URL` | `https://techservicehub.vercel.app` |
 
 Notes:
@@ -66,10 +68,24 @@ curl -sS -i -X OPTIONS https://tsh-api-mu.vercel.app/api/services \
 # Web is up
 curl -sS -o /dev/null -w '%{http_code}\n' https://techservicehub.vercel.app
 
+# Catalog is server-rendered: HTML must already contain real service names
+curl -sS https://techservicehub.vercel.app/services | grep -c 'Custom Software Project'  # >= 1
+
+# Legacy web aliases 308-redirect to the canonical domain
+curl -sS -o /dev/null -D - https://tsh-web-three.vercel.app | grep -iE 'HTTP/|location'
+
 # Deployment status
 vercel ls techservicehub --scope team_O1oPgRz3daZh9vouQVNfzzn5
 vercel ls tsh-api --scope team_O1oPgRz3daZh9vouQVNfzzn5
 ```
+
+Data-rendering notes:
+
+- `/services` streams page 1 from the server and reuses it as SWR fallback, so
+  the grid is present in the first HTML. A hard reload is only needed after
+  deploying a build that changed the catalogue rendering.
+- The API client tolerates Firebase token-bootstrap failures: public endpoints
+  are still requested unauthenticated instead of erroring in the UI.
 
 Manual browser check:
 

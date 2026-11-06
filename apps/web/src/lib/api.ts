@@ -30,7 +30,15 @@ type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 async function request<T>(method: Method, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = {};
-  const token = await tokenProvider();
+  // Auth bootstrap (expired refresh token, Firebase network error, first paint
+  // before the provider is registered) must never break public endpoints —
+  // fall through and call the API unauthenticated.
+  let token: string | null = null;
+  try {
+    token = await tokenProvider();
+  } catch {
+    token = null;
+  }
   if (token) headers.Authorization = `Bearer ${token}`;
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
