@@ -3,39 +3,20 @@ import type { Request, Response, NextFunction } from 'express';
 import { RedisStore } from 'rate-limit-redis';
 import { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_TOKEN } from '../config/env.js';
 
-/** General API budget per IP. */
-export const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 600,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-});
-
-/** Tighter budget for auth sync/profile endpoints. */
-export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 60,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests — slow down' } },
-});
-
-// Lazy initialization of RedisStore to avoid errors when Upstash config is missing
-let redisStoreInstance: RedisStore | undefined;
-function getRedisStore(): RedisStore | undefined {
-  if (!UPSTASH_REDIS_REST_URL) {
-    // No Upstash config – skip Redis store entirely (memory store fallback).
-    return undefined;
-  }
-  if (redisStoreInstance !== undefined) return redisStoreInstance;
+/**
+ * One RedisStore instance per limiter — counters for different windows/limits
+ * must never share keys, and express-rate-limit warns on a shared store.
+ * Returns undefined without Upstash config so each limiter falls back to the
+ * in-memory store (per-instance — fine on a single lambda, best-effort on
+ * serverless).
+ */
+function createRedisStore(): RedisStore | undefined {
+  const url = UPSTASH_REDIS_REST_URL;
+  if (!url) return undefined;
   try {
-    redisStoreInstance = new RedisStore({
+    return new RedisStore({
       // Upstash REST API client
       sendCommand: async (...args: string[]) => {
-        const url = UPSTASH_REDIS_REST_URL;
-        if (!url) {
-          throw new Error('Upstash Redis URL not configured');
-        }
         const body = JSON.stringify({ command: args[0], args: args.slice(1) });
         const resp = await fetch(url, {
           method: 'POST',
@@ -53,18 +34,36 @@ function getRedisStore(): RedisStore | undefined {
       },
     });
   } catch {
-    // fallback to undefined store
-    redisStoreInstance = undefined;
+    // Fallback to the limiter's in-memory store.
+    return undefined;
   }
-  return redisStoreInstance;
 }
+
+/** General API budget per IP. */
+export const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 600,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  store: createRedisStore(),
+});
+
+/** Tighter budget for auth sync/profile endpoints. */
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests — slow down' } },
+  store: createRedisStore(),
+});
 
 const uploadLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 10,
   // Per-user budget for authenticated callers; IPv6-safe per-IP fallback.
   keyGenerator: (req) => req.authUser?.id ?? ipKeyGenerator(req.ip ?? ''),
-  store: getRedisStore(),
+  store: createRedisStore(),
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   handler: (_req, res) => {

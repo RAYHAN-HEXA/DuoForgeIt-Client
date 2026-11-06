@@ -44,6 +44,7 @@ export function toServiceDto(service: ServiceWithRelations) {
     deliveryDays: service.deliveryDays,
     imageUrl: service.imageUrl,
     isFeatured: service.isFeatured,
+    updatedAt: service.updatedAt.toISOString(),
     category: { id: service.category.id, slug: service.category.slug, name: service.category.name },
     options: [...service.options]
       .sort((a, b) => a.displayOrder - b.displayOrder)

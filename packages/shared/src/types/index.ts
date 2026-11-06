@@ -57,6 +57,8 @@ export type ServiceDto = {
   deliveryDays: number;
   imageUrl: string | null;
   isFeatured: boolean;
+  /** Stable sitemap/metadata timestamp — ISO 8601. */
+  updatedAt: string;
   category: { id: string; slug: string; name: string };
   options: ServiceOptionDto[];
 };
@@ -459,6 +461,8 @@ export type MarketplaceServiceCardDto = {
   imageUrl: string | null;
   isFeatured: boolean;
   isPopular: boolean;
+  /** Stable sitemap/metadata timestamp — ISO 8601. */
+  updatedAt: string;
   category: { slug: string; name: string; iconKey: string | null };
 };
 

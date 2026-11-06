@@ -1,13 +1,20 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { ok } from '../utils/envelope.js';
-import { hasDatabase, firebaseCredentialSource } from '../config/env.js';
+import {
+  hasDatabase,
+  hasBlobStorage,
+  firebaseCredentialSource,
+  serviceMarketplaceEnabled,
+  walletEnabled,
+  UPSTASH_REDIS_REST_URL,
+} from '../config/env.js';
 import { getFirebaseAuth } from '../config/firebase.js';
 import { prisma } from '../config/prisma.js';
+import { mailTransport } from '../services/mail.service.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { apiLimiter, authLimiter, uploadRateLimiter } from '../middleware/rate-limit.js';
-import { serviceMarketplaceEnabled } from '../config/env.js';
 import * as marketplaceController from '../controllers/marketplace.controller.js';
 import * as paymentController from '../controllers/payment.controller.js';
 import {
@@ -91,6 +98,16 @@ router.get('/health', async (_req, res, next) => {
         db,
         firebase: getFirebaseAuth() ? 'ok' : 'unconfigured',
         firebaseCredentialSource,
+        // Feature/config state for the deploy checklist — safe booleans/enums,
+        // never secrets. `email` is the active transport ('none' ⇒ mail is
+        // DB/log-only until RESEND_API_KEY or SMTP vars land).
+        features: {
+          serviceMarketplace: serviceMarketplaceEnabled,
+          wallet: walletEnabled,
+          blobStorage: hasBlobStorage,
+          email: mailTransport,
+          redisRateLimiting: Boolean(UPSTASH_REDIS_REST_URL),
+        },
         time: new Date().toISOString(),
       }),
     );

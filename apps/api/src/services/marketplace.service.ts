@@ -118,6 +118,7 @@ function toCardDto(service: ServiceRow): MarketplaceServiceCardDto {
     imageUrl: service.imageUrl,
     isFeatured: service.isFeatured,
     isPopular: service.isPopular,
+    updatedAt: service.updatedAt.toISOString(),
     category: service.category,
   };
 }
