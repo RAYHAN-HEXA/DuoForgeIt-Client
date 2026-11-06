@@ -20,6 +20,15 @@ import { useAuth } from '@/hooks/use-auth';
 import { useMascotForm } from '@/hooks/use-mascot-form';
 import { useState } from 'react';
 
+/** Only same-origin absolute paths (a single leading `/`, no scheme, no `//`). */
+function safeNextPath(raw: string | null): string {
+  if (!raw) return '/dashboard';
+  if (!raw.startsWith('/') || raw.startsWith('//') || raw.startsWith('/\\')) return '/dashboard';
+  // Backslash tricks and control characters never belong in an internal path.
+  if (/[\r\n\\]/.test(raw)) return '/dashboard';
+  return raw;
+}
+
 function LoginPageContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -59,7 +68,7 @@ function LoginPageContent() {
     setSubmitting(true);
     try {
       await login(values.email, values.password);
-      router.replace(next ?? '/dashboard');
+      router.replace(safeNextPath(next));
     } catch (err) {
       shake();
       toast.error('Sign in failed', { description: firebaseError(err) });
@@ -71,7 +80,7 @@ function LoginPageContent() {
   async function onGoogle() {
     try {
       await loginWithGoogle();
-      router.replace(next ?? '/dashboard');
+      router.replace(safeNextPath(next));
     } catch (err) {
       shake();
       toast.error('Google sign-in failed', { description: firebaseError(err) });

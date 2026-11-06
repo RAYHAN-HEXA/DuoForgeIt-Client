@@ -19,9 +19,10 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // window.location read keeps the dynamic-path access out of prerender
+    // window.location read keeps the dynamic-path access out of prerender;
+    // path + search so /orders?page=2 returns to the same view after login.
     if (!loading && !user) {
-      router.replace(`/login?next=${encodeURIComponent(window.location.pathname)}`);
+      router.replace(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
     }
   }, [loading, user, router]);
 
@@ -35,7 +36,11 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) router.replace('/login?next=/admin');
+    // Deep-link back to the exact admin page (e.g. /admin/payments?status=PENDING)
+    // after sign-in — never a hardcoded /admin.
+    if (!loading && !user) {
+      router.replace(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+    }
   }, [loading, user, router]);
 
   if (loading) return <GuardLoader />;
