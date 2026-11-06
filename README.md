@@ -23,6 +23,23 @@ apps/api        Express API (controllers → services → Prisma; validated() mi
 packages/shared Compiled to dist/ — both apps resolve the built output
 ```
 
+## Production deployments
+
+| App | URL | Vercel project | Root directory |
+| --- | --- | --- | --- |
+| Web | https://techservicehub.vercel.app | `techservicehub` | `apps/web` |
+| API | https://tsh-api-mu.vercel.app/api | `tsh-api` | `apps/api` |
+
+Web and API are cross-wired through Vercel Production env vars:
+`NEXT_PUBLIC_API_URL` (web) points at the API base URL, and `CORS_ORIGINS`
+(API) allows the web origin. Because `NEXT_PUBLIC_*` values are inlined at
+build time, changing them requires a new web deployment.
+
+Deploys run from Git: pushing `main` to
+`RAYHAN-HEXA/DuoForgeIt-Client` builds the web project and pushing `main` to
+`RAYHAN-HEXA/DuoForgeIt-Server` builds the API project. See
+`docs/DEPLOYMENT.md` for the full runbook.
+
 ## Running locally
 
 ```bash
