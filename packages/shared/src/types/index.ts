@@ -1,5 +1,6 @@
 import type {
   AccountStatus,
+  FormFieldType,
   FounderDiscipline,
   NotificationType,
   OrderStatus,
@@ -7,6 +8,7 @@ import type {
   PaymentStatus,
   PricingModel,
   RevisionStatus,
+  ServiceStatus,
   ServiceType,
   UserRole,
 } from '../constants/index.js';
@@ -489,4 +491,89 @@ export type MarketplaceServiceFormDto = {
     validation: Record<string, unknown> | null;
     helpText: string | null;
   }>;
+};
+
+// ─── Admin catalog management ────────────────────────────────
+
+/** Category option for the admin service editor (includes inactive rows). */
+export type AdminServiceCategoryDto = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  iconKey: string | null;
+  isActive: boolean;
+  displayOrder: number;
+  serviceCount: number;
+};
+
+/** Usage counts drive the delete-vs-archive decision. */
+export type AdminServiceUsageDto = {
+  orders: number;
+  carts: number;
+  requests: number;
+};
+
+export type AdminServiceOptionDto = {
+  id: string;
+  kind: 'PACKAGE' | 'ADDON';
+  label: string;
+  description: string | null;
+  priceFrom: string | null;
+  priceTo: string | null;
+  isActive: boolean;
+  displayOrder: number;
+};
+
+export type AdminServiceFormFieldDto = {
+  id: string;
+  key: string;
+  label: string;
+  type: FormFieldType;
+  options: string[];
+  required: boolean;
+  helpText: string | null;
+  displayOrder: number;
+};
+
+/** Row shape for GET /api/admin/services. */
+export type AdminServiceSummaryDto = {
+  id: string;
+  slug: string;
+  name: string;
+  tagline: string | null;
+  category: { id: string; slug: string; name: string; iconKey: string | null };
+  status: ServiceStatus;
+  /** Null on legacy/archived rows that predate marketplace v2. */
+  serviceType: ServiceType | null;
+  pricingModel: PricingModel | null;
+  basePrice: string;
+  priceFrom: string | null;
+  priceTo: string | null;
+  priceNote: string | null;
+  deliveryEstimateText: string | null;
+  thumbnail: string | null;
+  imageUrl: string | null;
+  isFeatured: boolean;
+  isPopular: boolean;
+  displayOrder: number;
+  usage: AdminServiceUsageDto;
+  updatedAt: string;
+};
+
+/** Full editor payload for GET /api/admin/services/:id. */
+export type AdminServiceDetailDto = AdminServiceSummaryDto & {
+  description: string;
+  bannerImage: string | null;
+  deliveryDays: number;
+  revisionPolicy: string | null;
+  requirementsText: string | null;
+  features: string[];
+  deliverables: string[];
+  acceptedFileTypes: string[];
+  faqs: Array<{ q: string; a: string }>;
+  founderDiscipline: FounderDiscipline;
+  options: AdminServiceOptionDto[];
+  formFields: AdminServiceFormFieldDto[];
+  createdAt: string;
 };

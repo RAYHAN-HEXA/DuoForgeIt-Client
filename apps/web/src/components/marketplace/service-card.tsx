@@ -1,12 +1,26 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
-import { ArrowRight, Clock, Flame, Star } from 'lucide-react';
+import { ArrowRight, Archive, Clock, Flame, Loader2, Pencil, Star, Trash2 } from 'lucide-react';
+import { useSWRConfig } from 'swr';import { toast } from 'sonner';
 import type { MarketplaceServiceCardDto } from '@tsh/shared';
 import { formatPriceLabel } from '@tsh/shared';
+import { api, ApiClientError, errorMessage } from '@/lib/api';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { CategoryIcon } from './category-icon';
 
 /** Shared stagger choreography — transforms are dropped under reduced motion. */
@@ -24,8 +38,60 @@ export function cardVariants(reduced: boolean): Variants {
 
 export function ServiceCard({ service }: { service: MarketplaceServiceCardDto }) {
   const reduced = useReducedMotion();
+  const { isAdmin } = useAuth();
+  const { mutate: globalMutate } = useSWRConfig();
+  const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const image = service.thumbnail ?? service.imageUrl;
   const showDelivery = Boolean(service.deliveryEstimateText); // R6: only when admin-set
+
+  /** Refresh every marketplace/admin list that shows this service. */
+  async function revalidateCatalog() {
+    await globalMutate(
+      (key) =>
+        typeof key === 'string' &&
+        (key.startsWith('/marketplace/') ||
+          key.startsWith('home:marketplace') ||
+          key.startsWith('/admin/services')),
+      undefined,
+      { revalidate: true },
+    );
+  }
+
+  async function archiveService() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await api.patch(`/admin/services/${service.id}/status`, { status: 'ARCHIVED' });
+      toast.success('Service archived', { description: 'It is hidden from the public catalog.' });
+      await revalidateCatalog();
+    } catch (err) {
+      toast.error('Could not archive service', { description: errorMessage(err) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteService() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await api.delete(`/admin/services/${service.id}`);
+      toast.success('Service deleted');
+      setConfirmDelete(false);
+      await revalidateCatalog();
+    } catch (err) {
+      if (err instanceof ApiClientError && err.code === 'SERVICE_IN_USE') {
+        toast.error('This service is in use', {
+          description: 'Orders, carts or requests reference it. Archive it instead to keep that history intact.',
+        });
+      } else {
+        toast.error('Could not delete service', { description: errorMessage(err) });
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <motion.div variants={cardVariants(Boolean(reduced))} className="h-full">
@@ -103,9 +169,54 @@ export function ServiceCard({ service }: { service: MarketplaceServiceCardDto })
                 <Link href={`/services/${service.slug}/request`}>Order now</Link>
               </Button>
             </div>
+
+            {isAdmin && (
+              <div className="flex flex-wrap items-center gap-1 rounded-md border border-dashed border-primary/40 bg-primary/5 px-1.5 py-1">
+                <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                  Admin
+                </span>
+                <Button variant="ghost" size="xs" asChild>
+                  <Link href={`/admin/services/${service.id}/edit`}>
+                    <Pencil className="h-3 w-3" /> Edit
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="xs" onClick={() => void archiveService()} disabled={busy}>
+                  {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Archive className="h-3 w-3" />}
+                  Archive
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={busy}
+                >
+                  <Trash2 className="h-3 w-3" /> Delete
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </article>
+
+      <AlertDialog open={confirmDelete} onOpenChange={(open) => !busy && setConfirmDelete(open)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete “{service.name}”?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the service and its packages, add-ons and request-form fields. If any order,
+              cart or request references it, deletion is blocked and you can archive it instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" disabled={busy} onClick={() => void deleteService()}>
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }

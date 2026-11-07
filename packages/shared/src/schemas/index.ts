@@ -1,8 +1,12 @@
 import { z } from 'zod';
 import {
+  FOUNDER_DISCIPLINES,
+  FORM_FIELD_TYPES,
   LEGACY_PAYMENT_METHODS,
   MARKETPLACE_UPLOAD_LIMITS,
   PRICING_MODELS,
+  SERVICE_OPTION_KINDS,
+  SERVICE_STATUSES,
   SERVICE_TYPES,
   STORAGE_FOLDERS,
   UPLOAD_LIMITS,
@@ -70,40 +74,170 @@ export const contactSchema = z.object({
   website: z.string().max(500).optional(),
 });
 
-// ─── Catalog (admin CRUD, Phase 3+) ──────────────────────────
+// ─── Catalog (admin CRUD) ────────────────────────────────────
 
-export const serviceOptionSchema = z.object({
-  groupKey: z.string().trim().min(1).max(50),
-  label: z.string().trim().min(1).max(120),
-  /** Money as string with up to 2 decimals; may be negative for discounts. */
-  priceDelta: z
-    .string()
-    .regex(/^-?\d+(\.\d{1,2})?$/)
-    .default('0'),
-  daysDelta: z.number().int().default(0),
-  isDefault: z.boolean().default(false),
-  displayOrder: z.number().int().default(0),
-});
+/** Non-negative money as a string with up to 2 decimals — never a float. */
+const moneyStringSchema = z
+  .string()
+  .trim()
+  .regex(/^\d+(\.\d{1,2})?$/, 'Use a number with up to 2 decimals');
 
-export const serviceUpsertSchema = z.object({
-  slug: z
-    .string()
-    .trim()
-    .min(3)
-    .max(120)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Lowercase kebab-case'),
-  name: z.string().trim().min(3).max(160),
-  tagline: z.string().trim().max(200).optional(),
-  description: z.string().trim().min(10),
-  basePrice: z.string().regex(/^\d+(\.\d{1,2})?$/),
-  deliveryDays: z.number().int().min(1).max(365),
-  categoryId: z.uuid(),
-  imageUrl: z.url().optional(),
-  isFeatured: z.boolean().default(false),
-  isActive: z.boolean().default(true),
-  displayOrder: z.number().int().default(0),
-  options: z.array(serviceOptionSchema).max(30).default([]),
+/** Integer cents from a validated money string (for comparisons only). */
+function moneyCents(value: string | undefined): number | null {
+  if (value === undefined) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.round(n * 100) : null;
+}
+
+export const serviceFaqSchema = z.object({
+  q: z.string().trim().min(3).max(200),
+  a: z.string().trim().min(1).max(2000),
 });
+export type ServiceFaq = z.infer<typeof serviceFaqSchema>;
+
+export const serviceOptionSchema = z
+  .object({
+    /** Present when editing an existing row (omitted → create). */
+    id: z.uuid().optional(),
+    kind: z.enum(SERVICE_OPTION_KINDS),
+    label: z.string().trim().min(1).max(120),
+    description: z.string().trim().max(1000).optional(),
+    priceFrom: moneyStringSchema.optional(),
+    priceTo: moneyStringSchema.optional(),
+    isActive: z.boolean().default(true),
+    displayOrder: z.number().int().min(0).default(0),
+  })
+  .superRefine((value, ctx) => {
+    const from = moneyCents(value.priceFrom);
+    const to = moneyCents(value.priceTo);
+    if (from !== null && to !== null && from > to) {
+      ctx.addIssue({ code: 'custom', path: ['priceTo'], message: 'Max price must be ≥ min price' });
+    }
+  });
+export type ServiceOptionInput = z.infer<typeof serviceOptionSchema>;
+
+export const serviceFormFieldInputSchema = z
+  .object({
+    id: z.uuid().optional(),
+    key: z
+      .string()
+      .trim()
+      .min(1)
+      .max(60)
+      .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, 'Start with a letter; letters, numbers and underscores only'),
+    label: z.string().trim().min(1).max(160),
+    type: z.enum(FORM_FIELD_TYPES),
+    options: z.array(z.string().trim().min(1).max(120)).max(50).default([]),
+    required: z.boolean().default(false),
+    helpText: z.string().trim().max(500).optional(),
+    displayOrder: z.number().int().min(0).default(0),
+  })
+  .superRefine((value, ctx) => {
+    if ((value.type === 'SELECT' || value.type === 'MULTISELECT') && value.options.length === 0) {
+      ctx.addIssue({ code: 'custom', path: ['options'], message: 'Select fields need at least one option' });
+    }
+  });
+export type ServiceFormFieldInput = z.infer<typeof serviceFormFieldInputSchema>;
+
+/**
+ * Full admin editor contract for creating/replacing a marketplace service.
+ * Pricing consistency is enforced here so the web form and API never drift.
+ */
+export const serviceUpsertSchema = z
+  .object({
+    slug: z
+      .string()
+      .trim()
+      .min(3)
+      .max(120)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Lowercase kebab-case'),
+    name: z.string().trim().min(3).max(160),
+    tagline: z.string().trim().max(200).optional(),
+    description: z.string().trim().min(10).max(8000),
+    categoryId: z.uuid(),
+    serviceType: z.enum(SERVICE_TYPES),
+    pricingModel: z.enum(PRICING_MODELS),
+    basePrice: moneyStringSchema.default('0'),
+    priceFrom: moneyStringSchema.optional(),
+    priceTo: moneyStringSchema.optional(),
+    priceNote: z.string().trim().max(200).optional(),
+    deliveryDays: z.number().int().min(1).max(365).default(7),
+    deliveryEstimateText: z.string().trim().max(120).optional(),
+    revisionPolicy: z.string().trim().max(2000).optional(),
+    requirementsText: z.string().trim().max(4000).optional(),
+    features: z.array(z.string().trim().min(1).max(200)).max(30).default([]),
+    deliverables: z.array(z.string().trim().min(1).max(200)).max(30).default([]),
+    acceptedFileTypes: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
+    faqs: z.array(serviceFaqSchema).max(20).default([]),
+    imageUrl: z.url().optional(),
+    thumbnail: z.url().optional(),
+    bannerImage: z.url().optional(),
+    founderDiscipline: z.enum(FOUNDER_DISCIPLINES).default('BOTH'),
+    isFeatured: z.boolean().default(false),
+    isPopular: z.boolean().default(false),
+    status: z.enum(SERVICE_STATUSES).default('DRAFT'),
+    displayOrder: z.number().int().min(0).default(0),
+    options: z.array(serviceOptionSchema).max(30).default([]),
+    formFields: z.array(serviceFormFieldInputSchema).max(40).default([]),
+  })
+  .superRefine((value, ctx) => {
+    const from = moneyCents(value.priceFrom);
+    const to = moneyCents(value.priceTo);
+
+    if (value.pricingModel === 'STARTING_FROM' && from === null) {
+      ctx.addIssue({ code: 'custom', path: ['priceFrom'], message: 'Starting-from pricing needs a price' });
+    }
+    if (value.pricingModel === 'RANGE') {
+      if (from === null) {
+        ctx.addIssue({ code: 'custom', path: ['priceFrom'], message: 'Range pricing needs a minimum price' });
+      }
+      if (to === null) {
+        ctx.addIssue({ code: 'custom', path: ['priceTo'], message: 'Range pricing needs a maximum price' });
+      }
+      if (from !== null && to !== null && from > to) {
+        ctx.addIssue({ code: 'custom', path: ['priceTo'], message: 'Max price must be ≥ min price' });
+      }
+    }
+
+    // A published service must never show a zero/absent price for priced models.
+    if (value.status === 'PUBLISHED') {
+      const base = moneyCents(value.basePrice) ?? 0;
+      if (value.pricingModel === 'FIXED' && base <= 0) {
+        ctx.addIssue({ code: 'custom', path: ['basePrice'], message: 'A published fixed-price service needs a price' });
+      }
+      if (value.pricingModel === 'STARTING_FROM' && (from ?? 0) <= 0) {
+        ctx.addIssue({ code: 'custom', path: ['priceFrom'], message: 'A published service needs a price' });
+      }
+      if (value.pricingModel === 'RANGE' && (from ?? 0) <= 0) {
+        ctx.addIssue({ code: 'custom', path: ['priceFrom'], message: 'A published service needs a price' });
+      }
+    }
+
+    // Form-field keys must be unique within a service (matches the DB constraint).
+    const seenKeys = new Set<string>();
+    value.formFields.forEach((field, index) => {
+      if (seenKeys.has(field.key)) {
+        ctx.addIssue({ code: 'custom', path: ['formFields', index, 'key'], message: 'Duplicate field key' });
+      }
+      seenKeys.add(field.key);
+    });
+  });
+export type ServiceUpsertInput = z.infer<typeof serviceUpsertSchema>;
+
+/** GET /api/admin/services — management list filters. */
+export const adminServiceListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().trim().max(120).optional(),
+  status: z.enum(SERVICE_STATUSES).optional(),
+  categoryId: z.uuid().optional(),
+  sort: z.enum(['display_order', 'updated_desc', 'name_asc']).default('display_order'),
+});
+export type AdminServiceListQuery = z.infer<typeof adminServiceListQuerySchema>;
+
+/** PATCH /api/admin/services/:id/status */
+export const adminServiceStatusSchema = z.object({ status: z.enum(SERVICE_STATUSES) });
+export type AdminServiceStatusInput = z.infer<typeof adminServiceStatusSchema>;
 
 // ─── Cart (Phase 3+) ─────────────────────────────────────────
 

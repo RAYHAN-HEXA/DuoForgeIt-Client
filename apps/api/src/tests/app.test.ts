@@ -51,6 +51,15 @@ describe('RBAC smoke', () => {
     expect(res.status).toBe(401);
   });
 
+  it('rejects the admin service catalog without a token', async () => {
+    const list = await request(app).get('/api/admin/services');
+    expect(list.status).toBe(401);
+    expect(list.body.error.code).toBe('UNAUTHENTICATED');
+
+    const create = await request(app).post('/api/admin/services').send({});
+    expect(create.status).toBe(401);
+  });
+
   // ── Manual-payments v2 (Stage 2): authenticated-only surfaces ──
 
   it('rejects /api/payment-accounts without a token', async () => {

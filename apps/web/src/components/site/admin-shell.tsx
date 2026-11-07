@@ -9,6 +9,7 @@ import {
   MessageSquare,
   ShieldCheck,
   ShoppingCart,
+  Store,
   Users,
   Wallet,
 } from 'lucide-react';
@@ -21,6 +22,7 @@ import { RequireAdmin } from '@/components/guards';
 const ADMIN_LINKS: Array<{ href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }> = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+  { href: '/admin/services', label: 'Services', icon: Store },
   { href: '/admin/payments', label: 'Payments', icon: Wallet },
   { href: '/admin/payment-accounts', label: 'Receiving accounts', icon: Landmark },
   { href: '/admin/customers', label: 'Customers', icon: Users },
@@ -70,14 +72,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         {/* Mobile nav */}
         <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur md:hidden">
-          <nav className="flex justify-around py-2" aria-label="Admin mobile">
+          <nav className="flex justify-around gap-1 overflow-x-auto py-2" aria-label="Admin mobile">
             {ADMIN_LINKS.map((link) => {
               const active = link.exact ? pathname === link.href : pathname.startsWith(link.href);
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={cn('flex flex-col items-center gap-0.5 px-3 py-1 text-[11px]', active ? 'text-primary' : 'text-muted-foreground')}
+                  className={cn(
+                    'flex shrink-0 flex-col items-center gap-0.5 px-2 py-1 text-[10px]',
+                    active ? 'text-primary' : 'text-muted-foreground',
+                  )}
                 >
                   <link.icon className="h-5 w-5" />
                   {link.label}

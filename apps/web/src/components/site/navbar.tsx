@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Bell, LayoutDashboard, LogOut, Menu, ShieldCheck, ShoppingCart, UserRound } from 'lucide-react';
+import { Bell, LayoutDashboard, LogOut, Menu, Plus, ShieldCheck, ShoppingCart, Store, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -71,6 +71,13 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           {user ? (
             <>
+              {isAdmin && (
+                <Button variant="outline" size="sm" asChild className="hidden lg:inline-flex">
+                  <Link href="/admin/services/new">
+                    <Plus className="h-4 w-4" /> Add service
+                  </Link>
+                </Button>
+              )}
               <Button variant="ghost" size="icon" asChild className="relative" aria-label="Notifications">
                 <Link href="/notifications">
                   <Bell className="h-5 w-5" />
@@ -127,14 +134,26 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="cursor-pointer">
-                        <ShieldCheck className="h-4 w-4" /> Admin
-                        <Badge variant="secondary" className="ml-auto">
-                          admin
-                        </Badge>
-                      </Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="cursor-pointer">
+                          <ShieldCheck className="h-4 w-4" /> Admin
+                          <Badge variant="secondary" className="ml-auto">
+                            admin
+                          </Badge>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/services/new" className="cursor-pointer">
+                          <Plus className="h-4 w-4" /> Add service
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/services" className="cursor-pointer">
+                          <Store className="h-4 w-4" /> Manage services
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => void logout()} className="cursor-pointer text-destructive focus:text-destructive">
@@ -185,9 +204,25 @@ export function Navbar() {
                       Dashboard
                     </Link>
                     {isAdmin && (
-                      <Link href="/admin" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-muted">
-                        Admin
-                      </Link>
+                      <>
+                        <Link href="/admin" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-muted">
+                          Admin
+                        </Link>
+                        <Link
+                          href="/admin/services/new"
+                          onClick={() => setOpen(false)}
+                          className="rounded-md px-3 py-2 text-sm hover:bg-muted"
+                        >
+                          Add service
+                        </Link>
+                        <Link
+                          href="/admin/services"
+                          onClick={() => setOpen(false)}
+                          className="rounded-md px-3 py-2 text-sm hover:bg-muted"
+                        >
+                          Manage services
+                        </Link>
+                      </>
                     )}
                     <button
                       onClick={() => {

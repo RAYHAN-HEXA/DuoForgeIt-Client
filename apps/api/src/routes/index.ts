@@ -18,6 +18,8 @@ import { apiLimiter, authLimiter, uploadRateLimiter } from '../middleware/rate-l
 import * as marketplaceController from '../controllers/marketplace.controller.js';
 import * as paymentController from '../controllers/payment.controller.js';
 import {
+  adminServiceListQuerySchema,
+  adminServiceStatusSchema,
   blobUploadTokenRequestSchema,
   marketplaceListQuerySchema,
   paymentAccountCreateSchema,
@@ -27,6 +29,7 @@ import {
   paymentSubmitV2Schema,
   requestFileRegisterSchema,
   serviceRequestCreateSchema,
+  serviceUpsertSchema,
 } from '@tsh/shared';
 import * as authController from '../controllers/auth.controller.js';
 import * as catalogController from '../controllers/catalog.controller.js';
@@ -37,6 +40,7 @@ import * as uploadController from '../controllers/upload.controller.js';
 import * as contactController from '../controllers/contact.controller.js';
 import * as notificationController from '../controllers/notification.controller.js';
 import * as adminController from '../controllers/admin.controller.js';
+import * as adminServiceController from '../controllers/adminService.controller.js';
 import {
   cartItemAddSchema,
   checkoutSchema,
@@ -363,6 +367,43 @@ adminRouter.patch('/messages/:id', validate({ params: z.object({ id: z.uuid() })
 adminRouter.patch('/reviews/:id', validate({ params: z.object({ id: z.uuid() }), body: z.object({ isPublic: z.boolean() }) }), adminController.curateReview);
 adminRouter.get('/site-content', adminController.getSiteContent);
 adminRouter.put('/site-content', validate({ body: z.object({ key: z.string().trim().min(2).max(80), value: z.unknown() }) }), adminController.putSiteContent);
+
+// ─── Service catalog management (CRUD) ───────────────────────
+// Literal `/service-categories` is registered before `/:id` so it can never be
+// swallowed by the id route. PUT replaces the full editor payload; PATCH only
+// changes lifecycle status. Every handler is audited.
+adminRouter.get('/service-categories', adminServiceController.listCategories);
+adminRouter.get(
+  '/services',
+  validate({ query: adminServiceListQuerySchema }),
+  adminServiceController.listServices,
+);
+adminRouter.post(
+  '/services',
+  validate({ body: serviceUpsertSchema }),
+  adminServiceController.createService,
+);
+adminRouter.get(
+  '/services/:id',
+  validate({ params: z.object({ id: z.uuid() }) }),
+  adminServiceController.getService,
+);
+adminRouter.put(
+  '/services/:id',
+  validate({ params: z.object({ id: z.uuid() }), body: serviceUpsertSchema }),
+  adminServiceController.updateService,
+);
+adminRouter.patch(
+  '/services/:id/status',
+  validate({ params: z.object({ id: z.uuid() }), body: adminServiceStatusSchema }),
+  adminServiceController.setStatus,
+);
+adminRouter.delete(
+  '/services/:id',
+  validate({ params: z.object({ id: z.uuid() }) }),
+  adminServiceController.deleteService,
+);
+
 router.use('/admin', authenticate, requireAdmin, adminRouter);
 
 export { router as apiRouter, apiLimiter };

@@ -35,35 +35,172 @@ export declare const contactSchema: z.ZodObject<{
     message: z.ZodString;
     website: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
+export declare const serviceFaqSchema: z.ZodObject<{
+    q: z.ZodString;
+    a: z.ZodString;
+}, z.core.$strip>;
+export type ServiceFaq = z.infer<typeof serviceFaqSchema>;
 export declare const serviceOptionSchema: z.ZodObject<{
-    groupKey: z.ZodString;
+    id: z.ZodOptional<z.ZodUUID>;
+    kind: z.ZodEnum<{
+        PACKAGE: "PACKAGE";
+        ADDON: "ADDON";
+    }>;
     label: z.ZodString;
-    priceDelta: z.ZodDefault<z.ZodString>;
-    daysDelta: z.ZodDefault<z.ZodNumber>;
-    isDefault: z.ZodDefault<z.ZodBoolean>;
+    description: z.ZodOptional<z.ZodString>;
+    priceFrom: z.ZodOptional<z.ZodString>;
+    priceTo: z.ZodOptional<z.ZodString>;
+    isActive: z.ZodDefault<z.ZodBoolean>;
     displayOrder: z.ZodDefault<z.ZodNumber>;
 }, z.core.$strip>;
+export type ServiceOptionInput = z.infer<typeof serviceOptionSchema>;
+export declare const serviceFormFieldInputSchema: z.ZodObject<{
+    id: z.ZodOptional<z.ZodUUID>;
+    key: z.ZodString;
+    label: z.ZodString;
+    type: z.ZodEnum<{
+        TEXT: "TEXT";
+        TEXTAREA: "TEXTAREA";
+        NUMBER: "NUMBER";
+        SELECT: "SELECT";
+        MULTISELECT: "MULTISELECT";
+        DATE: "DATE";
+        CHECKBOX: "CHECKBOX";
+        FILE: "FILE";
+        URL: "URL";
+        PHONE: "PHONE";
+    }>;
+    options: z.ZodDefault<z.ZodArray<z.ZodString>>;
+    required: z.ZodDefault<z.ZodBoolean>;
+    helpText: z.ZodOptional<z.ZodString>;
+    displayOrder: z.ZodDefault<z.ZodNumber>;
+}, z.core.$strip>;
+export type ServiceFormFieldInput = z.infer<typeof serviceFormFieldInputSchema>;
+/**
+ * Full admin editor contract for creating/replacing a marketplace service.
+ * Pricing consistency is enforced here so the web form and API never drift.
+ */
 export declare const serviceUpsertSchema: z.ZodObject<{
     slug: z.ZodString;
     name: z.ZodString;
     tagline: z.ZodOptional<z.ZodString>;
     description: z.ZodString;
-    basePrice: z.ZodString;
-    deliveryDays: z.ZodNumber;
     categoryId: z.ZodUUID;
+    serviceType: z.ZodEnum<{
+        SD_WEB: "SD_WEB";
+        COMMERCIAL_WEB: "COMMERCIAL_WEB";
+        JAVA_OOP: "JAVA_OOP";
+        PRESENTATION: "PRESENTATION";
+        LAB_REPORT: "LAB_REPORT";
+        ASSIGNMENT_FORMATTING: "ASSIGNMENT_FORMATTING";
+        PROJECT_DOCUMENTATION: "PROJECT_DOCUMENTATION";
+        HARDWARE_PROJECT: "HARDWARE_PROJECT";
+        PC_REPAIR: "PC_REPAIR";
+        CONSULTATION: "CONSULTATION";
+    }>;
+    pricingModel: z.ZodEnum<{
+        FIXED: "FIXED";
+        STARTING_FROM: "STARTING_FROM";
+        RANGE: "RANGE";
+        CUSTOM_QUOTE: "CUSTOM_QUOTE";
+    }>;
+    basePrice: z.ZodDefault<z.ZodString>;
+    priceFrom: z.ZodOptional<z.ZodString>;
+    priceTo: z.ZodOptional<z.ZodString>;
+    priceNote: z.ZodOptional<z.ZodString>;
+    deliveryDays: z.ZodDefault<z.ZodNumber>;
+    deliveryEstimateText: z.ZodOptional<z.ZodString>;
+    revisionPolicy: z.ZodOptional<z.ZodString>;
+    requirementsText: z.ZodOptional<z.ZodString>;
+    features: z.ZodDefault<z.ZodArray<z.ZodString>>;
+    deliverables: z.ZodDefault<z.ZodArray<z.ZodString>>;
+    acceptedFileTypes: z.ZodDefault<z.ZodArray<z.ZodString>>;
+    faqs: z.ZodDefault<z.ZodArray<z.ZodObject<{
+        q: z.ZodString;
+        a: z.ZodString;
+    }, z.core.$strip>>>;
     imageUrl: z.ZodOptional<z.ZodURL>;
+    thumbnail: z.ZodOptional<z.ZodURL>;
+    bannerImage: z.ZodOptional<z.ZodURL>;
+    founderDiscipline: z.ZodDefault<z.ZodEnum<{
+        WEB_SOFTWARE_ECOMMERCE: "WEB_SOFTWARE_ECOMMERCE";
+        DESIGN_DOCS_UX: "DESIGN_DOCS_UX";
+        BOTH: "BOTH";
+    }>>;
     isFeatured: z.ZodDefault<z.ZodBoolean>;
-    isActive: z.ZodDefault<z.ZodBoolean>;
+    isPopular: z.ZodDefault<z.ZodBoolean>;
+    status: z.ZodDefault<z.ZodEnum<{
+        DRAFT: "DRAFT";
+        PUBLISHED: "PUBLISHED";
+        UNPUBLISHED: "UNPUBLISHED";
+        ARCHIVED: "ARCHIVED";
+    }>>;
     displayOrder: z.ZodDefault<z.ZodNumber>;
     options: z.ZodDefault<z.ZodArray<z.ZodObject<{
-        groupKey: z.ZodString;
+        id: z.ZodOptional<z.ZodUUID>;
+        kind: z.ZodEnum<{
+            PACKAGE: "PACKAGE";
+            ADDON: "ADDON";
+        }>;
         label: z.ZodString;
-        priceDelta: z.ZodDefault<z.ZodString>;
-        daysDelta: z.ZodDefault<z.ZodNumber>;
-        isDefault: z.ZodDefault<z.ZodBoolean>;
+        description: z.ZodOptional<z.ZodString>;
+        priceFrom: z.ZodOptional<z.ZodString>;
+        priceTo: z.ZodOptional<z.ZodString>;
+        isActive: z.ZodDefault<z.ZodBoolean>;
+        displayOrder: z.ZodDefault<z.ZodNumber>;
+    }, z.core.$strip>>>;
+    formFields: z.ZodDefault<z.ZodArray<z.ZodObject<{
+        id: z.ZodOptional<z.ZodUUID>;
+        key: z.ZodString;
+        label: z.ZodString;
+        type: z.ZodEnum<{
+            TEXT: "TEXT";
+            TEXTAREA: "TEXTAREA";
+            NUMBER: "NUMBER";
+            SELECT: "SELECT";
+            MULTISELECT: "MULTISELECT";
+            DATE: "DATE";
+            CHECKBOX: "CHECKBOX";
+            FILE: "FILE";
+            URL: "URL";
+            PHONE: "PHONE";
+        }>;
+        options: z.ZodDefault<z.ZodArray<z.ZodString>>;
+        required: z.ZodDefault<z.ZodBoolean>;
+        helpText: z.ZodOptional<z.ZodString>;
         displayOrder: z.ZodDefault<z.ZodNumber>;
     }, z.core.$strip>>>;
 }, z.core.$strip>;
+export type ServiceUpsertInput = z.infer<typeof serviceUpsertSchema>;
+/** GET /api/admin/services — management list filters. */
+export declare const adminServiceListQuerySchema: z.ZodObject<{
+    page: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+    pageSize: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+    search: z.ZodOptional<z.ZodString>;
+    status: z.ZodOptional<z.ZodEnum<{
+        DRAFT: "DRAFT";
+        PUBLISHED: "PUBLISHED";
+        UNPUBLISHED: "UNPUBLISHED";
+        ARCHIVED: "ARCHIVED";
+    }>>;
+    categoryId: z.ZodOptional<z.ZodUUID>;
+    sort: z.ZodDefault<z.ZodEnum<{
+        display_order: "display_order";
+        updated_desc: "updated_desc";
+        name_asc: "name_asc";
+    }>>;
+}, z.core.$strip>;
+export type AdminServiceListQuery = z.infer<typeof adminServiceListQuerySchema>;
+/** PATCH /api/admin/services/:id/status */
+export declare const adminServiceStatusSchema: z.ZodObject<{
+    status: z.ZodEnum<{
+        DRAFT: "DRAFT";
+        PUBLISHED: "PUBLISHED";
+        UNPUBLISHED: "UNPUBLISHED";
+        ARCHIVED: "ARCHIVED";
+    }>;
+}, z.core.$strip>;
+export type AdminServiceStatusInput = z.infer<typeof adminServiceStatusSchema>;
 export declare const cartItemAddSchema: z.ZodObject<{
     serviceId: z.ZodUUID;
     quantity: z.ZodDefault<z.ZodNumber>;
