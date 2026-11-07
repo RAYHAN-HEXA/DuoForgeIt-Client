@@ -209,7 +209,12 @@ export async function createPublicImage(
   folder: PublicImageFolder,
   options: { userId: string; mimeType: string; bytes: unknown },
 ): Promise<{ url: string; pathname: string; contentType: string }> {
-  assertBlobConfigured();
+  if (!env.BLOB_PUBLIC_READ_WRITE_TOKEN) {
+    throw ApiError.unavailable(
+      'Public image storage is not configured yet. Please try again later or contact support.',
+      'FILE_STORAGE_UNCONFIGURED',
+    );
+  }
   const extension = PUBLIC_IMAGE_MIME_EXTENSIONS[options.mimeType];
   if (!extension) {
     throw ApiError.badRequest(
@@ -227,7 +232,7 @@ export async function createPublicImage(
   const pathname = `${UPLOAD_FOLDERS[folder]}/${options.userId}/${crypto.randomUUID()}.${extension}`;
   const blob = await put(pathname, options.bytes, {
     access: 'public',
-    token: env.BLOB_READ_WRITE_TOKEN!,
+    token: env.BLOB_PUBLIC_READ_WRITE_TOKEN!,
     contentType: options.mimeType,
     addRandomSuffix: false,
   });

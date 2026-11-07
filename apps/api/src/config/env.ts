@@ -28,6 +28,9 @@ const envSchema = z.object({
   // Vercel Blob (server-side only). Optional so the API can boot before the
   // store is attached; upload/download endpoints then return FILE_STORAGE_UNCONFIGURED.
   BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
+  // Separate PUBLIC-access store for avatars/service media (private store
+  // rejects public blobs; the two access levels need their own tokens).
+  BLOB_PUBLIC_READ_WRITE_TOKEN: z.string().min(1).optional(),
 
   RESEND_API_KEY: z.string().min(1).optional(),
   MAIL_FROM: z.string().min(1).optional(),
