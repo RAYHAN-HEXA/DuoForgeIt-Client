@@ -13,6 +13,9 @@ bookmarks never hit a CORS wall.
 
 - Vercel team: `RAHAN-HEXA` (`team_O1oPgRz3daZh9vouQVNfzzn5`)
 - Health check: https://tsh-api-mu.vercel.app/api/health
+- The API root (`https://tsh-api-mu.vercel.app/`) returns a small JSON service
+  card. All real routes live under `/api/*`; a root 404 means the root-landing
+  function is missing (see Troubleshooting below).
 
 ## Environment contract (Production)
 
@@ -24,7 +27,7 @@ variables and their 2026-11-07 production state:
 | `techservicehub` | `NEXT_PUBLIC_API_URL` | `https://tsh-api-mu.vercel.app/api` |
 | `techservicehub` | `NEXT_PUBLIC_SITE_URL` | `https://techservicehub.vercel.app` |
 | `techservicehub` | `NEXT_PUBLIC_FIREBASE_*` (6) | Firebase web config |
-| `techservicehub` | `NEXT_PUBLIC_SERVICE_MARKETPLACE_ENABLED` | **unset** until launch (build-time baked) |
+| `techservicehub` | `NEXT_PUBLIC_SERVICE_MARKETPLACE_ENABLED` | **`true` since 2026-11-07** (build-time baked — needs a fresh web build) |
 | `tsh-api` | `DATABASE_URL` / `DIRECT_URL` | Neon pooled / direct (sensitive) |
 | `tsh-api` | `CORS_ORIGINS` | canonical + 4 legacy web origins, comma-separated |
 | `tsh-api` | `ADMIN_PANEL_URL` | `https://techservicehub.vercel.app` |
@@ -93,6 +96,9 @@ Preview deployments only.
 ## Verification
 
 ```bash
+# API root: expect 200 + the service card (not Vercel's 404 page)
+curl -sS https://tsh-api-mu.vercel.app/
+
 # API health: expect 200 + status/db/firebase ok
 curl -sS https://tsh-api-mu.vercel.app/api/health
 
@@ -134,6 +140,60 @@ Manual browser check:
 - DevTools → Network → `api` requests go to `tsh-api-mu.vercel.app`
 - Console has no CORS errors
 - Firebase sign-in succeeds and `GET /api/auth/me` returns 200
+
+## Troubleshooting — API shows "page does not exist"
+
+Vercel's generic 404 page means the request never reached the Express app.
+Work through these in order:
+
+1. **Find which URL is failing.**
+
+   ```bash
+   curl -sS -i https://tsh-api-mu.vercel.app/            # root
+   curl -sS -i https://tsh-api-mu.vercel.app/api/health  # real endpoint
+   ```
+
+   - Root 200 + health 200 → working (root is the JSON service card).
+   - Root 404 + health 200 → the deployment predates the root-landing
+     function; push the fix and let Vercel rebuild.
+   - Both 404 → continue below.
+
+2. **Confirm the production deployment exists and owns the alias.**
+
+   ```bash
+   vercel ls tsh-api --scope team_O1oPgRz3daZh9vouQVNfzzn5
+   vercel inspect https://tsh-api-mu.vercel.app --scope team_O1oPgRz3daZh9vouQVNfzzn5
+   ```
+
+   Expect `● Ready`, `target production`, the alias `tsh-api-mu.vercel.app`,
+   and a build line containing `λ api/[...path]`. If no function is listed,
+   the build never produced `dist/app.js` — read the build log with
+   `vercel inspect <deployment-url> --logs`.
+
+3. **Check the local project link.** `apps/api/.vercel/project.json` must point
+   at the current project `prj_VW7s1sjXMAixBKaSw8GbzNsoUDBa`. If it still
+   contains the old (deleted) id, relink before any manual deploy:
+
+   ```bash
+   cd apps/api
+   vercel link --project tsh-api --scope team_O1oPgRz3daZh9vouQVNfzzn5
+   ```
+
+4. **Reattach the domain if the project was recreated.** Add
+   `tsh-api-mu.vercel.app` under Project → Settings → Domains (or
+   `vercel domains add tsh-api-mu.vercel.app tsh-api`), then point it at the
+   current production deployment:
+
+   ```bash
+   vercel alias set <production-deployment-url> tsh-api-mu.vercel.app \
+     --scope team_O1oPgRz3daZh9vouQVNfzzn5
+   ```
+
+5. **If only `/api/*` is 404 while the function exists,** confirm the rewrites
+   in `apps/api/vercel.json` still map `/api/(.*)` → `/api/[...path]` and that
+   `/` → `/api`. If `outputDirectory` ever causes Vercel to drop the function,
+   remove that setting and redeploy — the function imports `dist/app.js`
+   directly.
 
 ## Manual deploys (fallback)
 
