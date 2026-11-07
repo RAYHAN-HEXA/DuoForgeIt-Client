@@ -16,16 +16,22 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   };
 }
 
-export default async function ServiceRequestPage({ params }: Params) {
+export default function ServiceRequestPage({ params }: Params) {
   // Flag off ⇒ the route doesn't exist — a real 404 instead of a 200 shell.
   if (!SERVICE_MARKETPLACE_ENABLED) notFound();
 
-  const { slug } = await params;
+  // `params` is runtime data under Cache Components: read it inside the
+  // Suspense boundary so the rest of the page can still be prerendered.
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
-        <RequestFormContent slug={slug} />
+        <RequestFormSection params={params} />
       </Suspense>
     </div>
   );
+}
+
+async function RequestFormSection({ params }: Params) {
+  const { slug } = await params;
+  return <RequestFormContent slug={slug} />;
 }
