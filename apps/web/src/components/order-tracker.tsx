@@ -8,7 +8,9 @@ import { statusLabel } from '@/components/status-badge';
 /**
  * The 7-stage order pipeline tracker (PRD §10): Submitted → Under review →
  * Approved → In progress → Quality review → Completed → Delivered.
- * Off-track terminal states (REJECTED/CANCELLED) render a red banner instead.
+ * A DELIVERED order renders every circle green and ticked — nothing is left
+ * "in progress". Off-track terminal states (REJECTED/CANCELLED) render a red
+ * banner instead.
  */
 export function OrderTracker({ status }: { status: OrderStatus }) {
   if (status === 'REJECTED' || status === 'CANCELLED') {
@@ -21,13 +23,14 @@ export function OrderTracker({ status }: { status: OrderStatus }) {
   }
 
   const currentIndex = ORDER_PIPELINE.indexOf(status);
+  const delivered = status === 'DELIVERED';
 
   return (
     <ol className="flex flex-col gap-0 sm:flex-row sm:items-start sm:gap-0" aria-label="Order progress">
       {ORDER_PIPELINE.map((stage, i) => {
-        const done = i < currentIndex;
-        const active = i === currentIndex;
         const isLast = i === ORDER_PIPELINE.length - 1;
+        const done = i < currentIndex || (delivered && isLast);
+        const active = i === currentIndex && !done;
         return (
           <li key={stage} className="flex items-start gap-3 sm:flex-1 sm:flex-col sm:items-center sm:gap-2 sm:text-center">
             <div className="flex items-center sm:w-full sm:flex-col">
