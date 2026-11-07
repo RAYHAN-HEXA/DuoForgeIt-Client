@@ -84,3 +84,31 @@ export async function uploadRateLimiter(req: Request, res: Response, next: NextF
     res.status(503).json({ error: { code: 'SERVICE_UNAVAILABLE', message: 'Rate limit service unavailable' } });
   }
 }
+
+const paymentSubmitLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  // Per-user budget for authenticated callers; IPv6-safe per-IP fallback.
+  keyGenerator: (req) => req.authUser?.id ?? ipKeyGenerator(req.ip ?? ''),
+  store: createRedisStore(),
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: { code: 'RATE_LIMITED', message: 'Too many payment submissions — try again later' },
+  },
+});
+
+/**
+ * Payment-submission budget (10/15min/user) — tighter than the global API
+ * limit because a submission writes money-movement records and fans out
+ * founder emails; abuse here is expensive, not just noisy.
+ */
+export async function paymentSubmitRateLimiter(req: Request, res: Response, next: NextFunction) {
+  try {
+    await paymentSubmitLimiter(req, res, next);
+  } catch {
+    // Fail closed – treat as service unavailable.
+    res.status(503).json({ error: { code: 'SERVICE_UNAVAILABLE', message: 'Rate limit service unavailable' } });
+  }
+}

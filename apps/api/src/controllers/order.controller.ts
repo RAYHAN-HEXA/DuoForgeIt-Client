@@ -13,7 +13,7 @@ import { checkout, customerCancel, getOwnOrder } from '../services/order.service
 import { createLegacyPaymentSubmission } from '../services/payment.service.js';
 import { clearServices } from '../services/cart.service.js';
 import { notifyUser } from '../services/notification.service.js';
-import { emailShell, notifyFounders } from '../services/mail.service.js';
+import { emailShell, notifyFounders, sendCustomerEmail } from '../services/mail.service.js';
 import { audit } from '../utils/audit.js';
 
 /**
@@ -64,6 +64,23 @@ export async function create(req: Request, res: Response, next: NextFunction) {
           ],
           'Open in admin console',
           `${adminBase}/admin/orders/${orderId}`,
+        ),
+      );
+
+      // Customer confirmation — best-effort, post-commit, never rolls back.
+      await sendCustomerEmail(
+        req.authUser!.email,
+        `Order received — ${order.orderNumber}`,
+        emailShell(
+          'We received your order',
+          [
+            ['Order', order.orderNumber],
+            ['Service', order.items.map((i) => `${i.serviceName} × ${i.quantity}`).join(', ')],
+            ['Total', formatBDT(order.totalAmount.toString())],
+            ['Deadline', new Date(order.deadline).toLocaleDateString('en-GB')],
+          ],
+          'Track your order',
+          `${adminBase}/orders/${orderId}`,
         ),
       );
     }

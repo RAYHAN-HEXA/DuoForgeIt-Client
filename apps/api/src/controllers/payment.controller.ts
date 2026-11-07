@@ -7,7 +7,7 @@ import { env } from '../config/env.js';
 import { formatBDT } from '@tsh/shared';
 import * as payment from '../services/payment.service.js';
 import { notifyUser } from '../services/notification.service.js';
-import { emailShell, notifyFounders } from '../services/mail.service.js';
+import { emailShell, notifyFounders, sendCustomerEmail } from '../services/mail.service.js';
 
 /**
  * Manual-payments v2 — customer-facing payment endpoints (Stage 2).
@@ -74,6 +74,23 @@ export async function submitPaymentV2(req: Request, res: Response, next: NextFun
         ],
         'Verify payment',
         `${adminBase}/admin/payments`,
+      ),
+    );
+
+    // Customer confirmation — best-effort, post-commit, never rolls back.
+    await sendCustomerEmail(
+      user.email,
+      `Payment submitted — ${orderNumber}`,
+      emailShell(
+        'We received your transaction ID',
+        [
+          ['Order', `${orderNumber} · ${orderTitle}`],
+          ['Amount', formatBDT(created.amount.toString())],
+          ['Account', created.methodLabelSnapshot ?? created.methodKeySnapshot ?? created.method],
+          ['Transaction ID', created.transactionId ?? '—'],
+        ],
+        'View payment status',
+        `${adminBase}/orders/${orderId}`,
       ),
     );
 

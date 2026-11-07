@@ -14,7 +14,7 @@ import { prisma } from '../config/prisma.js';
 import { mailTransport } from '../services/mail.service.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { apiLimiter, authLimiter, uploadRateLimiter } from '../middleware/rate-limit.js';
+import { apiLimiter, authLimiter, uploadRateLimiter, paymentSubmitRateLimiter } from '../middleware/rate-limit.js';
 import * as marketplaceController from '../controllers/marketplace.controller.js';
 import * as paymentController from '../controllers/payment.controller.js';
 import {
@@ -208,12 +208,11 @@ orderRouter.post('/:id/cancel', validate({ params: z.object({ id: z.uuid() }) })
 // Manual-payments v2 (account-driven submission) — a distinct sub-path so the
 // live v1 endpoint keeps its exact validation and response semantics: old
 // clients can never be routed into v2 validation, and Express 5's exact-path
-// matching keeps the two contracts isolated. authLimiter mirrors the other
-// authenticated mutation endpoints (60 req/15 min/IP — far above any
-// legitimate submission cadence).
+// matching keeps the two contracts isolated. A dedicated per-user limiter
+// (10 req/15 min) guards money-movement writes and founder email fan-out.
 orderRouter.post(
   '/:id/payments/v2',
-  authLimiter,
+  paymentSubmitRateLimiter,
   validate({ params: z.object({ id: z.uuid() }), body: paymentSubmitV2Schema }),
   paymentController.submitPaymentV2,
 );
