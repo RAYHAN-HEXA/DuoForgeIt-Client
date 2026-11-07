@@ -35,7 +35,7 @@ export function createApp() {
         cb(null, false);
       },
       credentials: false, // Bearer-token auth; no cookies cross-origin
-      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     }),
   );
   app.use(express.json({ limit: '1mb' }));

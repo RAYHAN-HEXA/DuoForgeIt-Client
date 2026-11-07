@@ -39,6 +39,33 @@ describe('unknown routes', () => {
   });
 });
 
+describe('CORS preflight', () => {
+  // Regression: the service editor saves via PUT, which was missing from the
+  // allowlist — the browser blocked the preflight and the admin saw
+  // "Cannot reach the server" on every save.
+  it('allows PUT preflights from an allowed origin', async () => {
+    const res = await request(app)
+      .options('/api/admin/services/some-id')
+      .set('Origin', 'http://localhost:3000')
+      .set('Access-Control-Request-Method', 'PUT')
+      .set('Access-Control-Request-Headers', 'content-type,authorization');
+    expect(res.status).toBe(204);
+    expect(res.headers['access-control-allow-origin']).toBe('http://localhost:3000');
+    const methods = res.headers['access-control-allow-methods'] ?? '';
+    for (const method of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+      expect(methods).toContain(method);
+    }
+  });
+
+  it('echoes no CORS headers for disallowed origins', async () => {
+    const res = await request(app)
+      .options('/api/admin/services/some-id')
+      .set('Origin', 'https://evil.example')
+      .set('Access-Control-Request-Method', 'PUT');
+    expect(res.headers['access-control-allow-origin']).toBeUndefined();
+  });
+});
+
 describe('RBAC smoke', () => {
   it('rejects admin endpoints without a token', async () => {
     const res = await request(app).get('/api/admin/ping');
