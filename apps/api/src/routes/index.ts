@@ -30,6 +30,11 @@ import {
   requestFileRegisterSchema,
   serviceRequestCreateSchema,
   serviceUpsertSchema,
+  quotationAcceptSchema,
+  quotationCreateSchema,
+  quotationDeclineSchema,
+  requestListQuerySchema,
+  requestStatusUpdateSchema,
 } from '@tsh/shared';
 import * as authController from '../controllers/auth.controller.js';
 import * as catalogController from '../controllers/catalog.controller.js';
@@ -181,6 +186,39 @@ if (serviceMarketplaceEnabled) {
   marketplaceRouter.get('/categories', marketplaceController.listCategories);
   router.use('/marketplace', marketplaceRouter);
 }
+
+// ─── Marketplace payment bridge: request & quotation management ─────────────
+// Deliberately OUTSIDE the flag gate: once a request exists the customer must
+// always be able to view it, accept/decline its quotation, and cancel — the
+// flag only gates the public catalog and NEW request submissions.
+
+const requestManagementRouter = Router();
+requestManagementRouter.get(
+  '/',
+  validate({ query: requestListQuerySchema }),
+  marketplaceController.listMyRequests,
+);
+requestManagementRouter.get(
+  '/:id',
+  validate({ params: z.object({ id: z.uuid() }) }),
+  marketplaceController.getMyRequest,
+);
+requestManagementRouter.post(
+  '/:id/cancel',
+  validate({ params: z.object({ id: z.uuid() }), body: z.object({ note: z.string().trim().max(2000).optional() }).optional() }),
+  marketplaceController.cancelMyRequest,
+);
+requestManagementRouter.post(
+  '/:id/quotations/accept',
+  validate({ params: z.object({ id: z.uuid() }), body: quotationAcceptSchema }),
+  marketplaceController.acceptQuotation,
+);
+requestManagementRouter.post(
+  '/:id/quotations/decline',
+  validate({ params: z.object({ id: z.uuid() }), body: quotationDeclineSchema }),
+  marketplaceController.declineQuotation,
+);
+router.use('/marketplace/requests', authenticate, requestManagementRouter);
 
 // ─── Users ───────────────────────────────────────────────────
 
@@ -413,6 +451,34 @@ adminRouter.delete(
   '/services/:id',
   validate({ params: z.object({ id: z.uuid() }) }),
   adminServiceController.deleteService,
+);
+
+// ─── Marketplace payment bridge (admin side) ─────────────────
+
+adminRouter.get(
+  '/requests',
+  validate({ query: requestListQuerySchema }),
+  marketplaceController.adminListRequests,
+);
+adminRouter.get(
+  '/requests/:id',
+  validate({ params: z.object({ id: z.uuid() }) }),
+  marketplaceController.adminGetRequest,
+);
+adminRouter.patch(
+  '/requests/:id/status',
+  validate({ params: z.object({ id: z.uuid() }), body: requestStatusUpdateSchema }),
+  marketplaceController.adminUpdateRequestStatus,
+);
+adminRouter.post(
+  '/requests/:id/quotations',
+  validate({ params: z.object({ id: z.uuid() }), body: quotationCreateSchema }),
+  marketplaceController.adminCreateQuotation,
+);
+adminRouter.patch(
+  '/quotations/:id/send',
+  validate({ params: z.object({ id: z.uuid() }) }),
+  marketplaceController.adminSendQuotation,
 );
 
 // Public service-media upload for the editor's Content tab (admins only —

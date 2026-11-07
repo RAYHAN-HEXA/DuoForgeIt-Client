@@ -7,7 +7,9 @@ import type {
   PaymentMethod,
   PaymentStatus,
   PricingModel,
+  QuotationStatus,
   RevisionStatus,
+  ServiceRequestStatus,
   ServiceStatus,
   ServiceType,
   UserRole,
@@ -213,6 +215,9 @@ export type OrderDto = {
   // ── Manual-payments v2 accounting (optional until API stages populate) ──
   /** Σ VERIFIED payment amounts (money string) — '0.00' until money clears. */
   amountPaid?: string;
+  /** Marketplace bridge: present when the order came from an accepted quotation. */
+  requestId?: string;
+  acceptedQuotationId?: string;
   /** totalAmount − amountPaid (money string). */
   outstandingAmount?: string;
 };
@@ -491,6 +496,69 @@ export type MarketplaceServiceFormDto = {
     validation: Record<string, unknown> | null;
     helpText: string | null;
   }>;
+};
+
+// ─── Marketplace payment bridge: requests & quotations ────────────────────
+
+export type QuotationDto = {
+  id: string;
+  requestId: string;
+  version: number;
+  /** Server-derived total = Σ items (money string). */
+  price: string;
+  items: Array<{ label: string; amount: string }>;
+  scopeText: string | null;
+  deliverables: string[];
+  estimatedTimeline: string | null;
+  /** ISO 8601 — after this the quotation can no longer be accepted. */
+  validUntil: string;
+  status: QuotationStatus;
+  sentAt: string | null;
+  respondedAt: string | null;
+  declineReason: string | null;
+  createdAt: string;
+};
+
+export type ServiceRequestStatusHistoryDto = {
+  fromStatus: string | null;
+  toStatus: string;
+  note: string | null;
+  actorName: string | null;
+  createdAt: string;
+};
+
+export type ServiceRequestSummaryDto = {
+  id: string;
+  referenceNo: string;
+  status: ServiceRequestStatus;
+  serviceName: string;
+  serviceSlug: string;
+  /** Latest SENT quotation price, when one exists (money string). */
+  quotedPrice: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ServiceRequestDetailDto = ServiceRequestSummaryDto & {
+  deadline: string | null;
+  notes: string | null;
+  quotations: QuotationDto[];
+  statusHistory: ServiceRequestStatusHistoryDto[];
+  /** Customer-visible answers to the service's request form. */
+  answers: Record<string, unknown>;
+};
+
+export type AdminServiceRequestDetailDto = ServiceRequestDetailDto & {
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  isRepair: boolean;
+};
+
+/** POST /api/marketplace/quotations/:id/accept — also returned on safe replay. */
+export type QuotationAcceptResultDto = {
+  order: { id: string; orderNumber: string; totalAmount: string };
+  replayed: boolean;
 };
 
 // ─── Admin catalog management ────────────────────────────────

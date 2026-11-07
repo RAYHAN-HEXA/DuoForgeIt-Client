@@ -299,6 +299,8 @@ export function toOrderDto(
     // Stage 6 admin dashboard needs the server-calculated values, so the
     // mapper now always populates them (customers see only their own order).
     amountPaid: order.amountPaid?.toString() ?? '0.00',
+    requestId: order.requestId ?? undefined,
+    acceptedQuotationId: order.acceptedQuotationId ?? undefined,
     outstandingAmount: subtractMoney(
       order.totalAmount.toString(),
       order.amountPaid?.toString() ?? '0.00',

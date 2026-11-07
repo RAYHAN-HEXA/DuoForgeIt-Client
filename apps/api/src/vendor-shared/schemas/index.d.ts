@@ -275,8 +275,8 @@ export declare const paymentSubmitV2Schema: z.ZodObject<{
  */
 export declare const paymentReviewSchema: z.ZodObject<{
     decision: z.ZodEnum<{
-        REJECTED: "REJECTED";
         VERIFIED: "VERIFIED";
+        REJECTED: "REJECTED";
     }>;
     note: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
@@ -449,3 +449,72 @@ export declare const requestFileRegisterSchema: z.ZodObject<{
     }>>;
 }, z.core.$strip>;
 export type RequestFileRegister = z.infer<typeof requestFileRegisterSchema>;
+/** One priced line on an admin-authored quotation. */
+export declare const quotationItemSchema: z.ZodObject<{
+    label: z.ZodString;
+    amount: z.ZodString;
+}, z.core.$strip>;
+export type QuotationItemInput = z.infer<typeof quotationItemSchema>;
+/** POST /api/admin/requests/:id/quotations — the server derives the total
+ *  price from the items and the version/validity windows; the client cannot
+ *  set either. */
+export declare const quotationCreateSchema: z.ZodObject<{
+    items: z.ZodArray<z.ZodObject<{
+        label: z.ZodString;
+        amount: z.ZodString;
+    }, z.core.$strip>>;
+    scopeText: z.ZodOptional<z.ZodString>;
+    deliverables: z.ZodDefault<z.ZodArray<z.ZodString>>;
+    estimatedTimeline: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export type QuotationCreate = z.infer<typeof quotationCreateSchema>;
+/** POST /api/marketplace/quotations/:id/accept — creates the order. The
+ *  idempotency key makes retries safe (unique on Order.idempotencyKey). */
+export declare const quotationAcceptSchema: z.ZodObject<{
+    idempotencyKey: z.ZodUUID;
+}, z.core.$strip>;
+export type QuotationAccept = z.infer<typeof quotationAcceptSchema>;
+/** POST /api/marketplace/quotations/:id/decline — customer declines a sent
+ *  quotation; a reason is required so the founders can re-quote. */
+export declare const quotationDeclineSchema: z.ZodObject<{
+    reason: z.ZodString;
+}, z.core.$strip>;
+export type QuotationDecline = z.infer<typeof quotationDeclineSchema>;
+/** PATCH /api/admin/requests/:id/status — transition-validated server-side
+ *  against REQUEST_TRANSITIONS. */
+export declare const requestStatusUpdateSchema: z.ZodObject<{
+    status: z.ZodEnum<{
+        REJECTED: "REJECTED";
+        REQUEST_SUBMITTED: "REQUEST_SUBMITTED";
+        UNDER_REVIEW: "UNDER_REVIEW";
+        DIAGNOSIS_SCHEDULED: "DIAGNOSIS_SCHEDULED";
+        DIAGNOSIS_SENT: "DIAGNOSIS_SENT";
+        QUOTATION_SENT: "QUOTATION_SENT";
+        QUOTATION_DECLINED: "QUOTATION_DECLINED";
+        QUOTATION_EXPIRED: "QUOTATION_EXPIRED";
+        ACCEPTED_AWAITING_PAYMENT: "ACCEPTED_AWAITING_PAYMENT";
+        ORDER_CREATED: "ORDER_CREATED";
+        CANCELLED: "CANCELLED";
+    }>;
+    note: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export type RequestStatusUpdate = z.infer<typeof requestStatusUpdateSchema>;
+/** GET /api/admin/requests + GET /api/marketplace/requests — shared paging. */
+export declare const requestListQuerySchema: z.ZodObject<{
+    page: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+    pageSize: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+    status: z.ZodOptional<z.ZodEnum<{
+        REJECTED: "REJECTED";
+        REQUEST_SUBMITTED: "REQUEST_SUBMITTED";
+        UNDER_REVIEW: "UNDER_REVIEW";
+        DIAGNOSIS_SCHEDULED: "DIAGNOSIS_SCHEDULED";
+        DIAGNOSIS_SENT: "DIAGNOSIS_SENT";
+        QUOTATION_SENT: "QUOTATION_SENT";
+        QUOTATION_DECLINED: "QUOTATION_DECLINED";
+        QUOTATION_EXPIRED: "QUOTATION_EXPIRED";
+        ACCEPTED_AWAITING_PAYMENT: "ACCEPTED_AWAITING_PAYMENT";
+        ORDER_CREATED: "ORDER_CREATED";
+        CANCELLED: "CANCELLED";
+    }>>;
+}, z.core.$strip>;
+export type RequestListQuery = z.infer<typeof requestListQuerySchema>;

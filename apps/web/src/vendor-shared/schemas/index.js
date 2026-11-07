@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { FOUNDER_DISCIPLINES, FORM_FIELD_TYPES, LEGACY_PAYMENT_METHODS, MARKETPLACE_UPLOAD_LIMITS, PRICING_MODELS, SERVICE_OPTION_KINDS, SERVICE_STATUSES, SERVICE_TYPES, STORAGE_FOLDERS, UPLOAD_LIMITS, } from '../constants/index.js';
+import { FOUNDER_DISCIPLINES, FORM_FIELD_TYPES, LEGACY_PAYMENT_METHODS, MARKETPLACE_UPLOAD_LIMITS, PRICING_MODELS, REQUEST_STATUSES, SERVICE_OPTION_KINDS, SERVICE_STATUSES, SERVICE_TYPES, STORAGE_FOLDERS, UPLOAD_LIMITS, } from '../constants/index.js';
 // ─── Pagination ──────────────────────────────────────────────
 export const paginationQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
@@ -511,4 +511,47 @@ export const requestFileRegisterSchema = z.object({
     mimeType: z.string().trim().min(3).max(120),
     sizeBytes: z.number().int().min(1),
     kind: z.enum(['ATTACHMENT', 'PHOTO']).default('ATTACHMENT'),
+});
+// ─── Marketplace payment bridge: quotations & request management ──────────
+/** One priced line on an admin-authored quotation. */
+export const quotationItemSchema = z
+    .object({
+    label: z.string().trim().min(1).max(160),
+    amount: moneyStringSchema,
+})
+    .superRefine((value, ctx) => {
+    if ((moneyCents(value.amount) ?? 0) <= 0) {
+        ctx.addIssue({ code: 'custom', path: ['amount'], message: 'Line amount must be greater than zero' });
+    }
+});
+/** POST /api/admin/requests/:id/quotations — the server derives the total
+ *  price from the items and the version/validity windows; the client cannot
+ *  set either. */
+export const quotationCreateSchema = z.object({
+    items: z.array(quotationItemSchema).min(1).max(20),
+    scopeText: z.string().trim().min(10).max(4000).optional(),
+    deliverables: z.array(z.string().trim().min(1).max(200)).max(20).default([]),
+    estimatedTimeline: z.string().trim().max(160).optional(),
+});
+/** POST /api/marketplace/quotations/:id/accept — creates the order. The
+ *  idempotency key makes retries safe (unique on Order.idempotencyKey). */
+export const quotationAcceptSchema = z.object({
+    idempotencyKey: z.uuid(),
+});
+/** POST /api/marketplace/quotations/:id/decline — customer declines a sent
+ *  quotation; a reason is required so the founders can re-quote. */
+export const quotationDeclineSchema = z.object({
+    reason: z.string().trim().min(5).max(1000),
+});
+/** PATCH /api/admin/requests/:id/status — transition-validated server-side
+ *  against REQUEST_TRANSITIONS. */
+export const requestStatusUpdateSchema = z.object({
+    status: z.enum(REQUEST_STATUSES),
+    note: z.string().trim().max(2000).optional(),
+});
+/** GET /api/admin/requests + GET /api/marketplace/requests — shared paging. */
+export const requestListQuerySchema = z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(50).default(20),
+    status: z.enum(REQUEST_STATUSES).optional(),
 });

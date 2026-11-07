@@ -51,7 +51,7 @@ function RequestForm({ form, slug }: { form: MarketplaceServiceFormDto; slug: st
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ referenceNo: string } | null>(null);
+  const [result, setResult] = useState<{ requestId: string; referenceNo: string } | null>(null);
 
   const defs: ServiceFormFieldDef[] = form.fields.map((f) => ({
     key: f.key,
@@ -106,7 +106,7 @@ function RequestForm({ form, slug }: { form: MarketplaceServiceFormDto; slug: st
         `/marketplace/services/${slug}/requests`,
         { answers: payload, notes: notes || undefined },
       );
-      setResult({ referenceNo: res.referenceNo });
+      setResult({ requestId: res.requestId, referenceNo: res.referenceNo });
       window.scrollTo({ top: 0 });
     } catch (err) {
       const details = validationDetails(err);
@@ -134,16 +134,16 @@ function RequestForm({ form, slug }: { form: MarketplaceServiceFormDto; slug: st
             <ol className="mt-2 list-decimal space-y-1 pl-5 text-left">
               <li>We review your requirements and any references.</li>
               <li>You receive a quotation with price, scope and timeline.</li>
-              <li>You accept the quotation and pay securely from your wallet.</li>
-              <li>Work begins — you track every step from your dashboard.</li>
+              <li>You accept the quotation — it becomes an order.</li>
+              <li>Pay via bKash from the order page and track every step.</li>
             </ol>
           </div>
           <div className="flex gap-3">
+            <Button asChild>
+              <Link href={`/requests/${result.requestId}`}>Track this request</Link>
+            </Button>
             <Button variant="outline" asChild>
               <Link href="/dashboard">Go to dashboard</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/services">Browse more services</Link>
             </Button>
           </div>
         </CardContent>

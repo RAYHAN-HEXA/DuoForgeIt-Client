@@ -12,6 +12,7 @@ import {
   Store,
   Users,
   Wallet,
+  FileText,
 } from 'lucide-react';
 import useSWR from 'swr';
 import type { AdminPaymentDto } from '@tsh/shared';
@@ -22,6 +23,7 @@ import { RequireAdmin } from '@/components/guards';
 const ADMIN_LINKS: Array<{ href: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }> = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+  { href: '/admin/requests', label: 'Requests', icon: FileText },
   { href: '/admin/services', label: 'Services', icon: Store },
   { href: '/admin/payments', label: 'Payments', icon: Wallet },
   { href: '/admin/payment-accounts', label: 'Receiving accounts', icon: Landmark },

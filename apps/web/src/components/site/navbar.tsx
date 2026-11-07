@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Bell, LayoutDashboard, LogOut, Menu, Plus, ShieldCheck, ShoppingCart, Store, UserRound } from 'lucide-react';
+import { Bell, FileText, LayoutDashboard, LogOut, Menu, Plus, ShieldCheck, ShoppingCart, Store, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -129,6 +129,11 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link href="/requests" className="cursor-pointer">
+                      <FileText className="h-4 w-4" /> My requests
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="/profile" className="cursor-pointer">
                       <UserRound className="h-4 w-4" /> Profile settings
                     </Link>
@@ -202,6 +207,9 @@ export function Navbar() {
                   <>
                     <Link href="/dashboard" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-muted">
                       Dashboard
+                    </Link>
+                    <Link href="/requests" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-muted">
+                      My requests
                     </Link>
                     {isAdmin && (
                       <>

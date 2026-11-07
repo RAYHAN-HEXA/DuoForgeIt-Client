@@ -38,7 +38,7 @@ export async function resolveFounderPreference(
  * Next order number for the year. The unique index on orderNumber is the real
  * guard — on a P2002 the checkout transaction simply retries with a fresh count.
  */
-async function nextOrderNumber(): Promise<string> {
+export async function nextOrderNumber(): Promise<string> {
   const year = new Date().getFullYear();
   const start = new Date(Date.UTC(year, 0, 1));
   const count = await prisma.order.count({ where: { createdAt: { gte: start } } });

@@ -3,21 +3,35 @@ import { ApiError } from '../utils/ApiError.js';
 import { logger } from '../utils/logger.js';
 import { assertOwnedPathname, assertStoredBlob } from '../utils/blob.js';
 import {
+  allowedRequestTransitions,
   buildRequestAnswersSchema,
   formFieldValidationSchema,
   buildOrderNumber,
   MARKETPLACE_UPLOAD_LIMITS,
+  QUOTATION_VALIDITY_DAYS,
+  REQUEST_CANCELLABLE,
   type MarketplaceCategoryDto,
   type MarketplaceListQuery,
   type MarketplacePackageDto,
   type MarketplaceServiceCardDto,
   type MarketplaceServiceDetailDto,
   type Paginated,
+  type QuotationAccept,
+  type QuotationCreate,
+  type QuotationDto,
+  type RequestListQuery,
+  type RequestStatusUpdate,
   type RequestFileRegister,
   type ServiceRequestCreate,
+  type ServiceRequestDetailDto,
+  type ServiceRequestStatus,
+  type ServiceRequestSummaryDto,
+  type AdminServiceRequestDetailDto,
+  type QuotationAcceptResultDto,
 } from '@tsh/shared';
 import { notifyUser } from './notification.service.js';
-import { notifyFounders, emailShell } from './mail.service.js';
+import { notifyFounders, emailShell, sendCustomerEmail } from './mail.service.js';
+import { nextOrderNumber } from './order.service.js';
 import type { Prisma } from '../generated/prisma/client.js';
 
 /**
@@ -486,4 +500,482 @@ export async function createRequest(input: ServiceRequestCreate & { userId: stri
   ).catch((err) => logger.error({ err }, 'Founder email failed'));
 
   return { requestId: created.id, referenceNo: created.referenceNo, status: 'REQUEST_SUBMITTED' as const };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Marketplace payment bridge: request → quotation → accept → order → bKash.
+// The schema anticipated this flow (Order.acceptedQuotationId @unique,
+// ACCEPTED_AWAITING_PAYMENT/ORDER_CREATED statuses) — these functions are its
+// only writers. Prices are server-derived from quotation items; the client can
+// never set a total.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const quotationInclude = { request: { select: { id: true, userId: true, status: true, deadline: true, notes: true, serviceId: true, isRepair: true, serviceSnapshot: true } } } satisfies Prisma.QuotationInclude;
+
+type QuotationRow = Prisma.QuotationGetPayload<{ include: typeof quotationInclude }>;
+
+function money(value: Prisma.Decimal | number): string {
+  return value.toFixed(2);
+}
+
+function toQuotationDto(q: {
+  id: string;
+  requestId: string;
+  version: number;
+  price: Prisma.Decimal;
+  items: unknown;
+  scopeText: string | null;
+  deliverables: unknown;
+  estimatedTimeline: string | null;
+  validUntil: Date;
+  status: string;
+  sentAt: Date | null;
+  respondedAt: Date | null;
+  declineReason: string | null;
+  createdAt: Date;
+}): QuotationDto {
+  const items = Array.isArray(q.items)
+    ? q.items.filter((v): v is { label: string; amount: string } => Boolean(v) && typeof v === 'object' && typeof (v as { label?: unknown }).label === 'string' && typeof (v as { amount?: unknown }).amount === 'string')
+    : [];
+  return {
+    id: q.id,
+    requestId: q.requestId,
+    version: q.version,
+    price: money(q.price),
+    items,
+    scopeText: q.scopeText || null,
+    deliverables: toStringArray(q.deliverables),
+    estimatedTimeline: q.estimatedTimeline || null,
+    validUntil: q.validUntil.toISOString(),
+    status: q.status as QuotationDto['status'],
+    sentAt: q.sentAt?.toISOString() ?? null,
+    respondedAt: q.respondedAt?.toISOString() ?? null,
+    declineReason: q.declineReason,
+    createdAt: q.createdAt.toISOString(),
+  };
+}
+
+const requestInclude = {
+  service: { select: { name: true, slug: true } },
+  user: { select: { id: true, fullName: true, email: true } },
+  quotations: { orderBy: { version: 'desc' as const } },
+} satisfies Prisma.ServiceRequestInclude;
+
+type RequestWithRelations = Prisma.ServiceRequestGetPayload<{ include: typeof requestInclude }>;
+
+// StatusHistory is polymorphic (entityType + bare entityId — no Prisma
+// relation), so request timelines are queried separately from the row.
+
+function toRequestSummary(r: RequestWithRelations): ServiceRequestSummaryDto {
+  const sent = (r.quotations ?? []).find((q) => q.status === 'SENT');
+  return {
+    id: r.id,
+    referenceNo: r.referenceNo,
+    status: r.status,
+    serviceName: r.service.name,
+    serviceSlug: r.service.slug,
+    quotedPrice: sent ? money(sent.price) : null,
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
+  };
+}
+
+function toRequestDetail(
+  r: RequestWithRelations,
+  history: Array<{ fromStatus: string | null; toStatus: string; note: string | null; createdAt: Date; actor: { fullName: string } | null }>,
+): ServiceRequestDetailDto {
+  return {
+    ...toRequestSummary(r),
+    deadline: r.deadline?.toISOString() ?? null,
+    notes: r.notes,
+    quotations: (r.quotations ?? []).map(toQuotationDto),
+    statusHistory: history.map((h) => ({
+      fromStatus: h.fromStatus,
+      toStatus: h.toStatus,
+      note: h.note,
+      actorName: h.actor?.fullName ?? null,
+      createdAt: h.createdAt.toISOString(),
+    })),
+    answers: (r.answers ?? {}) as Record<string, unknown>,
+  };
+}
+
+/** Polymorphic REQUEST timeline — no Prisma relation, so a manual query. */
+async function requestTimeline(requestId: string): Promise<Array<{ fromStatus: string | null; toStatus: string; note: string | null; createdAt: Date; actor: { fullName: string } | null }>> {
+  return prisma.statusHistory.findMany({
+    where: { entityType: 'REQUEST', entityId: requestId },
+    orderBy: { createdAt: 'asc' },
+    include: { actor: { select: { fullName: true } } },
+  });
+}
+
+/** Shortest legal transition path from `from` to `to` (BFS over the state machine). */
+function transitionPathTo(from: ServiceRequestStatus, to: ServiceRequestStatus, isRepair: boolean): ServiceRequestStatus[] {
+  if (from === to) return [];
+  const queue: Array<{ status: ServiceRequestStatus; path: ServiceRequestStatus[] }> = [{ status: from, path: [] }];
+  const seen = new Set<ServiceRequestStatus>([from]);
+  while (queue.length > 0) {
+    const cur = queue.shift()!;
+    for (const next of allowedRequestTransitions(cur.status ?? cur, isRepair)) {
+      if (seen.has(next)) continue;
+      const path = [...cur.path, next];
+      if (next === to) return path;
+      seen.add(next);
+      queue.push({ status: next, path });
+    }
+  }
+  throw new ApiError(400, 'INVALID_TRANSITION', `A ${from} request cannot reach ${to}`);
+}
+
+function requireTransition(from: ServiceRequestStatus, to: ServiceRequestStatus, isRepair = false): void {
+  if (!allowedRequestTransitions(from, isRepair).includes(to)) {
+    throw new ApiError(400, 'INVALID_TRANSITION', `A ${from} request cannot move to ${to}`);
+  }
+}
+
+async function writeHistory(tx: Prisma.TransactionClient, entityId: string, from: string | null, to: string, actorId: string | null, note?: string): Promise<void> {
+  await tx.statusHistory.create({
+    data: { entityType: 'REQUEST', entityId, fromStatus: from, toStatus: to, actorId, note: note ?? null },
+  });
+}
+
+// ─── Customer: my requests ──────────────────────────────────────────────────
+
+export async function listOwnRequests(userId: string, query: RequestListQuery): Promise<Paginated<ServiceRequestSummaryDto>> {
+  const where: Prisma.ServiceRequestWhereInput = { userId, ...(query.status ? { status: query.status } : {}) };
+  const [rows, total] = await Promise.all([
+    prisma.serviceRequest.findMany({
+      where,
+      orderBy: { updatedAt: 'desc' },
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
+      include: requestInclude,
+    }),
+    prisma.serviceRequest.count({ where }),
+  ]);
+  return { items: rows.map(toRequestSummary), page: query.page, pageSize: query.pageSize, total };
+}
+
+export async function getOwnRequest(userId: string, id: string): Promise<ServiceRequestDetailDto> {
+  const request = await prisma.serviceRequest.findFirst({
+    where: { id, userId },
+    include: requestInclude,
+  });
+  // Not-found for other customers' requests — never leak existence.
+  if (!request) throw ApiError.notFound('Request not found');
+  const history = await requestTimeline(id);
+  return toRequestDetail(request, history);
+}
+
+export async function cancelOwnRequest(userId: string, id: string, note: string | undefined): Promise<ServiceRequestSummaryDto> {
+  const request = await prisma.serviceRequest.findFirst({ where: { id, userId }, include: requestInclude });
+  if (!request) throw ApiError.notFound('Request not found');
+  if (!REQUEST_CANCELLABLE.includes(request.status)) {
+    throw new ApiError(409, 'REQUEST_NOT_CANCELLABLE', 'This request can no longer be cancelled');
+  }
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.serviceRequest.update({ where: { id: request.id }, data: { status: 'CANCELLED' } });
+    await writeHistory(tx, request.id, request.status, 'CANCELLED', null, note);
+    return tx.serviceRequest.findUniqueOrThrow({ where: { id: request.id }, include: requestInclude });
+  });
+  return toRequestSummary(updated);
+}
+
+// ─── Customer: quotation accept / decline ───────────────────────────────────
+
+export async function acceptQuotation(requestId: string, userId: string, input: QuotationAccept): Promise<QuotationAcceptResultDto> {
+  // Idempotent replay — same key returns the same order.
+  const replay = await prisma.order.findUnique({ where: { idempotencyKey: input.idempotencyKey } });
+  if (replay) {
+    if (replay.customerId !== userId || replay.requestId !== requestId) {
+      throw new ApiError(409, 'IDEMPOTENCY_KEY_USED', 'This idempotency key was already used for a different order');
+    }
+    return { order: { id: replay.id, orderNumber: replay.orderNumber, totalAmount: money(replay.totalAmount) }, replayed: true };
+  }
+
+  const request = await prisma.serviceRequest.findFirst({ where: { id: requestId, userId } });
+  // Other customers' requests do not exist.
+  if (!request) throw ApiError.notFound('Request not found');
+  if (request.status === 'ACCEPTED_AWAITING_PAYMENT' || request.status === 'ORDER_CREATED') {
+    const linked = await prisma.order.findFirst({
+      where: { requestId, acceptedQuotationId: { not: null } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (linked) return { order: { id: linked.id, orderNumber: linked.orderNumber, totalAmount: money(linked.totalAmount) }, replayed: true };
+  }
+  if (request.status !== 'QUOTATION_SENT') {
+    throw new ApiError(409, 'QUOTATION_NOT_ACCEPTABLE', 'This request has no quotation awaiting your response');
+  }
+  const quotation = (await prisma.quotation.findFirst({
+    where: { requestId, status: 'SENT' },
+    orderBy: { version: 'desc' },
+    include: quotationInclude,
+  })) as QuotationRow | null;
+  if (!quotation) throw new ApiError(409, 'QUOTATION_NOT_ACCEPTABLE', 'This request has no quotation awaiting your response');
+  if (quotation.validUntil.getTime() < Date.now()) {
+    // Expire it now so both sides agree on the state.
+    await prisma.$transaction(async (tx) => {
+      await tx.quotation.update({ where: { id: quotation.id }, data: { status: 'EXPIRED' } });
+      if (quotation.request.status === 'QUOTATION_SENT') {
+        requireTransition('QUOTATION_SENT', 'QUOTATION_EXPIRED');
+        await tx.serviceRequest.update({ where: { id: quotation.requestId }, data: { status: 'QUOTATION_EXPIRED' } });
+        await writeHistory(tx, quotation.requestId, 'QUOTATION_SENT', 'QUOTATION_EXPIRED', null, 'Validity window elapsed');
+      }
+    });
+    throw new ApiError(409, 'QUOTATION_EXPIRED', 'This quotation has expired — ask us for a fresh one');
+  }
+  if (quotation.request.status !== 'QUOTATION_SENT') {
+    throw ApiError.conflict('This quotation is no longer awaiting your response', 'QUOTATION_NOT_ACCEPTABLE');
+  }
+
+  const snapshot = (quotation.request.serviceSnapshot ?? {}) as { name?: unknown };
+  const serviceName = typeof snapshot.name === 'string' && snapshot.name.trim() ? snapshot.name : 'Marketplace service';
+  const deadline = quotation.request.deadline ?? new Date(Date.now() + 14 * 864e5);
+
+  // The accept transaction: quotation ACCEPTED, siblings SUPERSEDED, request
+  // QUOTATION_SENT → ACCEPTED_AWAITING_PAYMENT → ORDER_CREATED, order created
+  // with the unique acceptedQuotationId as the hard double-accept guard.
+  const persist = () =>
+    prisma.$transaction(async (tx) => {
+      await tx.quotation.update({ where: { id: quotation.id }, data: { status: 'ACCEPTED', respondedAt: new Date() } });
+      await tx.quotation.updateMany({ where: { requestId: quotation.requestId, id: { not: quotation.id }, status: 'SENT' }, data: { status: 'SUPERSEDED' } });
+      requireTransition('QUOTATION_SENT', 'ACCEPTED_AWAITING_PAYMENT');
+      await tx.serviceRequest.update({ where: { id: quotation.requestId }, data: { status: 'ACCEPTED_AWAITING_PAYMENT' } });
+      await writeHistory(tx, quotation.requestId, 'QUOTATION_SENT', 'ACCEPTED_AWAITING_PAYMENT', null, `Quotation v${quotation.version} accepted`);
+      requireTransition('ACCEPTED_AWAITING_PAYMENT', 'ORDER_CREATED');
+      await tx.serviceRequest.update({ where: { id: quotation.requestId }, data: { status: 'ORDER_CREATED' } });
+      await writeHistory(tx, quotation.requestId, 'ACCEPTED_AWAITING_PAYMENT', 'ORDER_CREATED', null, 'Order created — awaiting bKash payment');
+      const order = await tx.order.create({
+        data: {
+          orderNumber: await nextOrderNumber(),
+          customerId: userId,
+          requestId: quotation.requestId,
+          acceptedQuotationId: quotation.id,
+          status: 'SUBMITTED',
+          title: serviceName,
+          deadline,
+          totalAmount: quotation.price,
+          idempotencyKey: input.idempotencyKey,
+          serviceSnapshot: quotation.request.serviceSnapshot ?? undefined,
+          notes: quotation.request.notes ?? undefined,
+          items: {
+            create: [{
+              serviceId: quotation.request.serviceId,
+              serviceName,
+              basePrice: quotation.price,
+              quantity: 1,
+              lineTotal: quotation.price,
+              requirements: quotation.request.notes ?? null,
+            }],
+          },
+          statusHistory: {
+            create: [{ toStatus: 'SUBMITTED', note: 'Order created from an accepted quotation' }],
+          },
+        },
+      });
+      return order;
+    });
+
+  let order;
+  try {
+    order = await persist();
+  } catch (err) {
+    if (typeof err === 'object' && err !== null && (err as { code?: string }).code === 'P2002') {
+      // Concurrent double-accept: the unique indexes decided the winner.
+      const linked = await prisma.order.findUnique({ where: { acceptedQuotationId: quotation.id } });
+      if (linked && linked.customerId === userId) {
+        return { order: { id: linked.id, orderNumber: linked.orderNumber, totalAmount: money(linked.totalAmount) }, replayed: true };
+      }
+      const byKey = await prisma.order.findUnique({ where: { idempotencyKey: input.idempotencyKey } });
+      if (byKey && byKey.customerId === userId) {
+        return { order: { id: byKey.id, orderNumber: byKey.orderNumber, totalAmount: money(byKey.totalAmount) }, replayed: true };
+      }
+    }
+    throw err;
+  }
+
+  // Best-effort notifications.
+  await notifyUser({
+    userId,
+    type: 'REQUEST_STATUS',
+    title: `Order ${order.orderNumber} created`,
+    body: 'Your quotation was accepted — pay via bKash from the order page.',
+    link: `/orders/${order.id}`,
+  });
+  void sendCustomerEmail(
+    (await prisma.user.findUnique({ where: { id: userId }, select: { email: true, fullName: true } }))?.email ?? '',
+    `Quotation accepted — ${order.orderNumber}`,
+    emailShell(
+      'Your quotation was accepted',
+      [
+        ['Order', order.orderNumber],
+        ['Amount', money(order.totalAmount)],
+        ['Next step', 'Pay via bKash from the order page, then submit the Transaction ID'],
+      ],
+      'Pay now',
+      `${process.env.ADMIN_PANEL_URL ?? 'https://techservicehub.vercel.app'}/orders/${order.id}`,
+    ),
+  ).catch((err) => logger.error({ err }, 'Quotation-accept customer email failed'));
+  void notifyFounders(
+    `Quotation accepted → ${order.orderNumber} awaiting bKash payment`,
+    emailShell('A marketplace quotation was accepted', [['Order', order.orderNumber], ['Amount', money(order.totalAmount)]], 'Open admin console', `${process.env.ADMIN_PANEL_URL ?? 'https://techservicehub.vercel.app'}/admin/orders/${order.id}`),
+  ).catch((err) => logger.error({ err }, 'Quotation-accept founder email failed'));
+
+  return { order: { id: order.id, orderNumber: order.orderNumber, totalAmount: money(order.totalAmount) }, replayed: false };
+}
+
+export async function declineQuotation(requestId: string, userId: string, reason: string): Promise<QuotationDto> {
+  const request = await prisma.serviceRequest.findFirst({ where: { id: requestId, userId }, select: { id: true, userId: true, status: true } });
+  if (!request) throw ApiError.notFound('Request not found');
+  const quotation = (await prisma.quotation.findFirst({
+    where: { requestId, status: 'SENT' },
+    orderBy: { version: 'desc' },
+    include: quotationInclude,
+  })) as QuotationRow | null;
+  if (!quotation) throw new ApiError(409, 'QUOTATION_NOT_DECLINABLE', 'This request has no quotation to decline');
+  requireTransition(quotation.request.status, 'QUOTATION_DECLINED', false);
+
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.quotation.update({ where: { id: quotation.id }, data: { status: 'DECLINED', respondedAt: new Date(), declineReason: reason } });
+    await tx.serviceRequest.update({ where: { id: quotation.requestId }, data: { status: 'QUOTATION_DECLINED' } });
+    await writeHistory(tx, quotation.requestId, quotation.request.status, 'QUOTATION_DECLINED', null, `Quotation v${quotation.version} declined: ${reason}`);
+    return tx.quotation.findUniqueOrThrow({ where: { id: quotation.id }, include: quotationInclude });
+  });
+  void notifyFounders(`Request ${''}quotation declined`, emailShell('A customer declined a quotation', [['Reason', reason]], 'Open admin panel', process.env.ADMIN_PANEL_URL ?? undefined)).catch((err) => logger.error({ err }, 'Founder email failed'));
+  return toQuotationDto(updated);
+}
+
+// ─── Admin: request review & quotations ─────────────────────────────────────
+
+export async function adminListRequests(query: RequestListQuery): Promise<Paginated<(ServiceRequestSummaryDto & { customerName: string; customerEmail: string })>> {
+  const where: Prisma.ServiceRequestWhereInput = query.status ? { status: query.status } : {};
+  const [rows, total] = await Promise.all([
+    prisma.serviceRequest.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
+      include: requestInclude,
+    }),
+    prisma.serviceRequest.count({ where }),
+  ]);
+  return {
+    items: rows.map((r) => ({
+      ...toRequestSummary(r),
+      customerName: r.user.fullName,
+      customerEmail: r.user.email,
+    })),
+    page: query.page,
+    pageSize: query.pageSize,
+    total,
+  };
+}
+
+export async function adminGetRequest(id: string): Promise<AdminServiceRequestDetailDto> {
+  const request = await prisma.serviceRequest.findUnique({
+    where: { id },
+    include: requestInclude,
+  });
+  if (!request) throw ApiError.notFound('Request not found');
+  const history = await requestTimeline(id);
+  const detail = toRequestDetail(request, history);
+  return {
+    ...detail,
+    customerId: request.user.id,
+    customerName: request.user.fullName,
+    customerEmail: request.user.email,
+    isRepair: request.isRepair,
+  };
+}
+
+export async function adminUpdateRequestStatus(id: string, adminId: string, input: RequestStatusUpdate): Promise<ServiceRequestSummaryDto> {
+  const request = await prisma.serviceRequest.findUnique({ where: { id }, include: requestInclude });
+  if (!request) throw ApiError.notFound('Request not found');
+  requireTransition(request.status, input.status, request.isRepair);
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.serviceRequest.update({ where: { id: request.id }, data: { status: input.status, ...(input.status === 'UNDER_REVIEW' && !request.assignedToId ? { assignedToId: adminId } : {}) } });
+    await writeHistory(tx, request.id, request.status, input.status, adminId, input.note);
+    return tx.serviceRequest.findUniqueOrThrow({ where: { id: request.id }, include: requestInclude });
+  });
+  await notifyUser({
+    userId: request.userId,
+    type: 'REQUEST_STATUS',
+    title: 'Request update',
+    body: `Your request ${request.referenceNo} is now ${input.status.replaceAll('_', ' ').toLowerCase()}.`,
+    link: `/requests/${request.id}`,
+  });
+  return toRequestSummary(updated);
+}
+
+export async function createQuotation(requestId: string, adminId: string, input: QuotationCreate): Promise<QuotationDto> {
+  const request = await prisma.serviceRequest.findUnique({ where: { id: requestId }, select: { id: true, status: true, isRepair: true } });
+  if (!request) throw ApiError.notFound('Request not found');
+  if (['ORDER_CREATED', 'CANCELLED', 'REJECTED'].includes(request.status)) {
+    throw new ApiError(409, 'REQUEST_CLOSED', 'This request is closed — no further quotations');
+  }
+  const totalCents = input.items.reduce((sum, item) => sum + Math.round(parseFloat(item.amount) * 100), 0);
+  const price = (totalCents / 100).toFixed(2);
+  const maxVersion = await prisma.quotation.aggregate({ where: { requestId }, _max: { version: true } });
+  const version = (maxVersion._max.version ?? 0) + 1;
+  const quotation = await prisma.quotation.create({
+    data: {
+      requestId,
+      version,
+      price,
+      items: input.items,
+      scopeText: input.scopeText ?? '',
+      deliverables: input.deliverables ?? [],
+      estimatedTimeline: input.estimatedTimeline ?? '',
+      validUntil: new Date(Date.now() + QUOTATION_VALIDITY_DAYS * 864e5),
+      status: 'DRAFT',
+      sentById: adminId,
+    },
+    include: quotationInclude,
+  });
+  return toQuotationDto(quotation as QuotationRow);
+}
+
+export async function sendQuotation(quotationId: string, adminId: string): Promise<QuotationDto> {
+  const quotation = (await prisma.quotation.findUnique({ where: { id: quotationId }, include: quotationInclude })) as QuotationRow | null;
+  if (!quotation) throw ApiError.notFound('Quotation not found');
+  if (quotation.status !== 'DRAFT') throw new ApiError(409, 'QUOTATION_NOT_SENDABLE', 'Only a draft quotation can be sent');
+
+  const validUntil = new Date(Date.now() + QUOTATION_VALIDITY_DAYS * 864e5);
+  const updated = await prisma.$transaction(async (tx) => {
+    // Supersede any earlier sent version — only one live offer at a time.
+    await tx.quotation.updateMany({ where: { requestId: quotation.requestId, status: 'SENT' }, data: { status: 'SUPERSEDED' } });
+    // Walk the legal transition path to QUOTATION_SENT (e.g. REQUEST_SUBMITTED
+    // → UNDER_REVIEW → QUOTATION_SENT), one history row per hop.
+    const path = transitionPathTo(quotation.request.status, 'QUOTATION_SENT', quotation.request.isRepair);
+    let current = quotation.request.status;
+    for (const hop of path) {
+      await tx.serviceRequest.update({ where: { id: quotation.requestId }, data: { status: hop } });
+      await writeHistory(tx, quotation.requestId, current, hop, adminId, hop === 'QUOTATION_SENT' ? `Quotation v${quotation.version} sent` : undefined);
+      current = hop;
+    }
+    await tx.quotation.update({ where: { id: quotation.id }, data: { status: 'SENT', sentAt: new Date(), sentById: adminId, validUntil } });
+    return tx.quotation.findUniqueOrThrow({ where: { id: quotation.id }, include: quotationInclude });
+  });
+
+  // Best-effort customer notification — the whole point of sending is that
+  // they see it, so also write the in-app row.
+  await notifyUser({
+    userId: quotation.request.userId,
+    type: 'REQUEST_STATUS',
+    title: 'Quotation ready',
+    body: `Quotation v${quotation.version} for ${money(quotation.price)} is waiting in your requests.`,
+    link: `/requests/${quotation.requestId}`,
+  });
+  void sendCustomerEmail(
+    (await prisma.user.findUnique({ where: { id: quotation.request.userId }, select: { email: true } }))?.email ?? '',
+    `Quotation ready — ${money(quotation.price)}`,
+    emailShell(
+      'Your quotation is ready',
+      (Array.isArray(quotation.items) ? (quotation.items as Array<{ label: string; amount: string }>) : []).map((i) => [i.label, i.amount] as [string, string]),
+      'Review and accept',
+      `${process.env.ADMIN_PANEL_URL ?? 'https://techservicehub.vercel.app'}/requests/${quotation.requestId}`,
+    ),
+  ).catch((err) => logger.error({ err }, 'Quotation email failed'));
+
+  return toQuotationDto(updated as QuotationRow);
 }
