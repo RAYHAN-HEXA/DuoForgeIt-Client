@@ -6,7 +6,8 @@ import type { ApiEnvelope } from '@tsh/shared';
  * machine-readable codes (e.g. PROFILE_NOT_SYNCED, FILE_STORAGE_UNCONFIGURED).
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api';
+// Strip any trailing slash so env values like ".../api/" don't produce "//path" URLs.
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api').replace(/\/+$/, '');
 
 /** Set by the auth provider at boot; lets every call attach the fresh token. */
 let tokenProvider: () => Promise<string | null> = async () => null;
