@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ImageUploadField } from '@/components/image-upload-field';
 import { RequireAuth } from '@/components/guards';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -151,7 +152,13 @@ function ProfileContent() {
                 <p className="text-xs text-muted-foreground">Used only for delivery coordination if a project needs it.</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="profileImage">Profile image URL</Label>
+                <Label htmlFor="profileImage">Profile image</Label>
+                <ImageUploadField
+                  kind="avatar"
+                  value={profileImage}
+                  onChange={setProfileImage}
+                  hint="Upload a photo from your device (PNG, JPEG or WebP, up to 2 MB), or paste a URL below."
+                />
                 <Input id="profileImage" type="url" value={profileImage} onChange={(e) => setProfileImage(e.target.value)} placeholder="https://…" />
               </div>
               <Button type="submit" disabled={savingProfile}>

@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { ok } from '../utils/envelope.js';
 import { ApiError } from '../utils/ApiError.js';
 import { validated } from '../middleware/validate.js';
-import { createUploadTicket } from '../utils/blob.js';
+import { createUploadTicket, createPublicImage, PUBLIC_IMAGE_MAX_BYTES } from '../utils/blob.js';
 import type { BlobUploadTokenRequest } from '@tsh/shared';
 
 /**
@@ -33,4 +33,50 @@ export async function createTicket(req: Request, res: Response, next: NextFuncti
   } catch (err) {
     next(err);
   }
+}
+
+/**
+ * POST /api/uploads/image — the raw request body IS the image (express.raw,
+ * Content-Type image/*). The server stores it as a PUBLIC blob (≤2 MB,
+ * png/jpeg/webp) under the caller's own avatars/ namespace and returns the
+ * permanent CDN URL — clients drop it straight into the profileImage field.
+ */
+export async function uploadAvatarImage(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await createPublicImage('avatars', {
+      userId: req.authUser!.id,
+      mimeType: req.headers['content-type'] ?? '',
+      bytes: req.body,
+    });
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** POST /api/admin/uploads/image — same, but under the admins' service-images/ namespace. */
+export async function uploadServiceImage(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await createPublicImage('serviceImages', {
+      userId: req.authUser!.id,
+      mimeType: req.headers['content-type'] ?? '',
+      bytes: req.body,
+    });
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** Guard shared by both image routes: the raw parser must have produced bytes. */
+export function assertImageBody(req: Request, res: Response, next: NextFunction) {
+  if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+    next(ApiError.badRequest('Send the image bytes as the request body with an image/* Content-Type'));
+    return;
+  }
+  if (req.body.length > PUBLIC_IMAGE_MAX_BYTES) {
+    next(ApiError.badRequest('Image exceeds the 2 MB limit', 'FILE_TOO_LARGE'));
+    return;
+  }
+  next();
 }

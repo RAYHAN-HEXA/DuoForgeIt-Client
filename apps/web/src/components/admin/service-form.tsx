@@ -34,6 +34,7 @@ import {
   serviceUpsertSchema,
 } from '@tsh/shared';
 import { api, ApiClientError, errorMessage, validationDetails } from '@/lib/api';
+import { ImageUploadField } from '@/components/image-upload-field';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -844,26 +845,35 @@ export function ServiceForm({ service }: { service?: AdminServiceDetailDto }) {
               <CardTitle className="text-base">Content & media</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-5 sm:grid-cols-2">
-              <Field label="Thumbnail URL" error={fieldError('thumbnail')}>
-                <Input
-                  value={form.thumbnail}
-                  onChange={(event) => setField('thumbnail', event.target.value)}
-                  placeholder="https://…"
-                />
+              <Field label="Thumbnail" error={fieldError('thumbnail')}>
+                <div className="space-y-2">
+                  <ImageUploadField kind="service-image" value={form.thumbnail} onChange={(url) => setField('thumbnail', url)} />
+                  <Input
+                    value={form.thumbnail}
+                    onChange={(event) => setField('thumbnail', event.target.value)}
+                    placeholder="https://…"
+                  />
+                </div>
               </Field>
-              <Field label="Image URL" error={fieldError('imageUrl')} hint="Fallback when no thumbnail is set.">
-                <Input
-                  value={form.imageUrl}
-                  onChange={(event) => setField('imageUrl', event.target.value)}
-                  placeholder="https://…"
-                />
+              <Field label="Image" error={fieldError('imageUrl')} hint="Fallback when no thumbnail is set.">
+                <div className="space-y-2">
+                  <ImageUploadField kind="service-image" value={form.imageUrl} onChange={(url) => setField('imageUrl', url)} />
+                  <Input
+                    value={form.imageUrl}
+                    onChange={(event) => setField('imageUrl', event.target.value)}
+                    placeholder="https://…"
+                  />
+                </div>
               </Field>
-              <Field label="Banner image URL" error={fieldError('bannerImage')} className="sm:col-span-2">
-                <Input
-                  value={form.bannerImage}
-                  onChange={(event) => setField('bannerImage', event.target.value)}
-                  placeholder="https://…"
-                />
+              <Field label="Banner image" error={fieldError('bannerImage')} className="sm:col-span-2">
+                <div className="space-y-2">
+                  <ImageUploadField kind="service-image" value={form.bannerImage} onChange={(url) => setField('bannerImage', url)} />
+                  <Input
+                    value={form.bannerImage}
+                    onChange={(event) => setField('bannerImage', event.target.value)}
+                    placeholder="https://…"
+                  />
+                </div>
               </Field>
 
               <Field

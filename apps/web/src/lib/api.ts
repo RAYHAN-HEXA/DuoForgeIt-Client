@@ -120,3 +120,43 @@ export async function uploadToBlob(file: File, ticket: BlobUploadTicket): Promis
   });
   return result.pathname;
 }
+
+/**
+ * Upload a public image (avatar or service media). The raw bytes go through
+ * the API, which stores them as a PUBLIC Vercel Blob and returns the permanent
+ * CDN URL — drop it straight into profileImage / imageUrl / thumbnail /
+ * bannerImage fields.
+ */
+export async function uploadPublicImage(
+  file: File,
+  kind: 'avatar' | 'service-image',
+): Promise<{ url: string; pathname: string }> {
+  const path = kind === 'avatar' ? '/uploads/image' : '/admin/uploads/image';
+  const token = await tokenProvider().catch(() => null);
+  const headers: Record<string, string> = { 'Content-Type': file.type || 'application/octet-stream' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, { method: 'POST', headers, body: file });
+  } catch {
+    throw new ApiClientError(0, 'NETWORK_ERROR', 'Cannot reach the server — check your connection');
+  }
+
+  let payload: ApiEnvelope<{ url: string; pathname: string }> | null = null;
+  try {
+    payload = (await res.json()) as ApiEnvelope<{ url: string; pathname: string }>;
+  } catch {
+    // non-JSON error body (proxy down, HTML error page, …)
+  }
+  if (!res.ok || !payload || payload.success !== true) {
+    const err = payload && payload.success === false ? payload.error : null;
+    throw new ApiClientError(
+      res.status,
+      err?.code ?? `HTTP_${res.status}`,
+      err?.message ?? `Upload failed (${res.status})`,
+      err?.details,
+    );
+  }
+  return payload.data;
+}

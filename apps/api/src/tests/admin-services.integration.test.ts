@@ -287,6 +287,44 @@ d('Admin service catalog (real PostgreSQL)', () => {
     expect(page.items.some((row) => row.id === created.id)).toBe(true);
   });
 
+  // isActive mirrors status: PUBLISHED is exactly the legacy-catalog set, so
+  // publishing from the admin editor makes a service publicly orderable.
+  it('publishing makes a service visible in the anonymous legacy catalog', async () => {
+    const created = await createOk();
+
+    // Draft → hidden from the anonymous legacy catalog.
+    expect((await request(app).get(`/api/services/${created.slug}`)).status).toBe(404);
+
+    // Publish (PATCH status) → visible anonymously.
+    const published = await request(app)
+      .patch(`/api/admin/services/${created.id}/status`)
+      .set(auth('admin'))
+      .send({ status: 'PUBLISHED' });
+    expect(published.status, JSON.stringify(published.body)).toBe(200);
+    const list = await request(app).get('/api/services?pageSize=50');
+    expect(list.status).toBe(200);
+    expect((list.body.data.items as Array<{ slug: string }>).some((row) => row.slug === created.slug)).toBe(true);
+    expect((await request(app).get(`/api/services/${created.slug}`)).status).toBe(200);
+
+    // Unpublish → hidden again everywhere.
+    const unpublished = await request(app)
+      .patch(`/api/admin/services/${created.id}/status`)
+      .set(auth('admin'))
+      .send({ status: 'UNPUBLISHED' });
+    expect(unpublished.status).toBe(200);
+    const hiddenList = await request(app).get('/api/services?pageSize=50');
+    expect((hiddenList.body.data.items as Array<{ slug: string }>).some((row) => row.slug === created.slug)).toBe(false);
+    expect((await request(app).get(`/api/services/${created.slug}`)).status).toBe(404);
+
+    // "Save & publish" (full PUT with status PUBLISHED) → visible again.
+    const savedPublish = await request(app)
+      .put(`/api/admin/services/${created.id}`)
+      .set(auth('admin'))
+      .send(baseCreate({ slug: created.slug, status: 'PUBLISHED' }));
+    expect(savedPublish.status, JSON.stringify(savedPublish.body)).toBe(200);
+    expect((await request(app).get(`/api/services/${created.slug}`)).status).toBe(200);
+  });
+
   it('deletes an unreferenced service', async () => {
     const created = await createOk();
     const res = await request(app).delete(`/api/admin/services/${created.id}`).set(auth('admin'));

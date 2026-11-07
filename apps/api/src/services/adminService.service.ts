@@ -426,10 +426,9 @@ export async function updateService(id: string, input: ServiceUpsertInput): Prom
       data: {
         slug: input.slug,
         ...scalarData(input),
-        // Archiving must hide a legacy-catalog service everywhere. Publishing
-        // deliberately preserves isActive so v2 rows stay out of the legacy
-        // catalog (seeded v2 services are PUBLISHED with isActive = false).
-        ...(input.status === 'ARCHIVED' ? { isActive: false } : {}),
+        // isActive mirrors status: the legacy public catalog (and Add-to-cart)
+        // serves isActive=true rows, so PUBLISHED is exactly the visible set.
+        isActive: input.status === 'PUBLISHED',
       },
     });
 
@@ -502,9 +501,8 @@ export async function setServiceStatus(id: string, status: ServiceStatus): Promi
     where: { id },
     data: {
       status,
-      // Archiving removes it from the legacy catalog too; publishing never
-      // flips isActive on (v2 rows are intentionally inactive there).
-      ...(status === 'ARCHIVED' ? { isActive: false } : {}),
+      // isActive mirrors status: PUBLISHED is exactly the legacy-catalog set.
+      isActive: status === 'PUBLISHED',
     },
     include: detailInclude,
   });

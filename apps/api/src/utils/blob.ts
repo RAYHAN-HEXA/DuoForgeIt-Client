@@ -16,7 +16,7 @@ import * as crypto from 'node:crypto';
 import { ApiError } from './ApiError.js';
 import { env } from '../config/env.js';
 import { UPLOAD_LIMITS } from '@tsh/shared';
-import { issueSignedToken, presignUrl, head, del } from '@vercel/blob';
+import { issueSignedToken, presignUrl, head, del, put } from '@vercel/blob';
 import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
 
 /** Upload folders — Vercel Blob namespaces (folder component of pathnames). */
@@ -29,6 +29,10 @@ export const UPLOAD_FOLDERS = {
   paymentAccounts: 'techservice-hub/payment-accounts',
   /** Marketplace service-request attachments (RequestFile.storagePath). */
   requests: 'techservice-hub/requests',
+  /** Public user avatars — world-readable CDN URLs (profile photos). */
+  avatars: 'techservice-hub/avatars',
+  /** Public service media managed by admins via the service editor. */
+  serviceImages: 'techservice-hub/service-images',
 } as const;
 export type UploadFolder = keyof typeof UPLOAD_FOLDERS;
 
@@ -182,6 +186,52 @@ export async function createUploadTicket(
     access: 'private',
     expiresAt: new Date(validUntil).toISOString(),
   };
+}
+
+/**
+ * Public images (avatars, service media): 2 MB cap, png/jpeg/webp only.
+ * Unlike the private ticket flow, the bytes flow THROUGH the server so the
+ * blob is created with access:'public' in one step — client tokens don't
+ * carry an access level, so public uploads never use them. The returned URL
+ * is the permanent public CDN URL, safe to store in profileImage/imageUrl.
+ */
+export const PUBLIC_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+
+const PUBLIC_IMAGE_MIME_EXTENSIONS: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+};
+
+export type PublicImageFolder = 'avatars' | 'serviceImages';
+
+export async function createPublicImage(
+  folder: PublicImageFolder,
+  options: { userId: string; mimeType: string; bytes: unknown },
+): Promise<{ url: string; pathname: string; contentType: string }> {
+  assertBlobConfigured();
+  const extension = PUBLIC_IMAGE_MIME_EXTENSIONS[options.mimeType];
+  if (!extension) {
+    throw ApiError.badRequest(
+      `File type ${options.mimeType} is not allowed — use PNG, JPEG or WebP`,
+      'FILE_TYPE_NOT_ALLOWED',
+    );
+  }
+  if (!Buffer.isBuffer(options.bytes) || options.bytes.length < 1) {
+    throw ApiError.badRequest('Empty image upload');
+  }
+  if (options.bytes.length > PUBLIC_IMAGE_MAX_BYTES) {
+    throw ApiError.badRequest('Image exceeds the 2 MB limit', 'FILE_TOO_LARGE');
+  }
+
+  const pathname = `${UPLOAD_FOLDERS[folder]}/${options.userId}/${crypto.randomUUID()}.${extension}`;
+  const blob = await put(pathname, options.bytes, {
+    access: 'public',
+    token: env.BLOB_READ_WRITE_TOKEN!,
+    contentType: options.mimeType,
+    addRandomSuffix: false,
+  });
+  return { url: blob.url, pathname: blob.pathname, contentType: options.mimeType };
 }
 
 /**

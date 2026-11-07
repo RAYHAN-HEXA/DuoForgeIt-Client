@@ -87,6 +87,21 @@ describe('RBAC smoke', () => {
     expect(create.status).toBe(401);
   });
 
+  it('rejects the public image uploads without a token', async () => {
+    const avatar = await request(app)
+      .post('/api/uploads/image')
+      .set('Content-Type', 'image/png')
+      .send(Buffer.from('png'));
+    expect(avatar.status).toBe(401);
+    expect(avatar.body.error.code).toBe('UNAUTHENTICATED');
+
+    const serviceImage = await request(app)
+      .post('/api/admin/uploads/image')
+      .set('Content-Type', 'image/png')
+      .send(Buffer.from('png'));
+    expect(serviceImage.status).toBe(401);
+  });
+
   // ── Manual-payments v2 (Stage 2): authenticated-only surfaces ──
 
   it('rejects /api/payment-accounts without a token', async () => {

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, raw } from 'express';
 import { z } from 'zod';
 import { ok } from '../utils/envelope.js';
 import {
@@ -247,6 +247,18 @@ router.post(
   uploadController.createTicket,
 );
 
+// Public image upload (avatars): raw bytes in → { url, pathname } out. The
+// server creates the blob with access:'public' in one step; body capped at
+// 2 MB by the raw parser (413) plus an explicit guard (400).
+router.post(
+  '/uploads/image',
+  authenticate,
+  uploadRateLimiter,
+  raw({ type: 'image/*', limit: '2mb' }),
+  uploadController.assertImageBody,
+  uploadController.uploadAvatarImage,
+);
+
 // ─── Payment accounts (manual-payments v2) ───────────────────
 
 router.get('/payment-accounts', authenticate, paymentController.listAccounts);
@@ -402,6 +414,16 @@ adminRouter.delete(
   '/services/:id',
   validate({ params: z.object({ id: z.uuid() }) }),
   adminServiceController.deleteService,
+);
+
+// Public service-media upload for the editor's Content tab (admins only —
+// this router sits behind authenticate + requireAdmin).
+adminRouter.post(
+  '/uploads/image',
+  uploadRateLimiter,
+  raw({ type: 'image/*', limit: '2mb' }),
+  uploadController.assertImageBody,
+  uploadController.uploadServiceImage,
 );
 
 router.use('/admin', authenticate, requireAdmin, adminRouter);
