@@ -19,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { EmptyState } from '@/components/empty-state';
+import { Reveal } from '@/components/motion/reveal';
 import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/hooks/use-cart';
 
@@ -155,7 +156,7 @@ export function ServiceDetailContent({ initialData }: { initialData?: ServiceDto
       <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
         {/* Main info */}
         <div className="space-y-8">
-          <div>
+          <Reveal>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">{service.category.name}</Badge>
               {service.isFeatured && (
@@ -170,15 +171,15 @@ export function ServiceDetailContent({ initialData }: { initialData?: ServiceDto
               <Clock className="h-4 w-4" />
               Standard delivery: {service.deliveryDays} days
             </div>
-          </div>
+          </Reveal>
 
-          <div className="space-y-2">
+          <Reveal delay={0.05} className="space-y-2">
             <h2 className="text-lg font-semibold">About this service</h2>
             <p className="whitespace-pre-line leading-relaxed text-muted-foreground">{service.description}</p>
-          </div>
+          </Reveal>
 
           {service.options.length > 0 && (
-            <div className="space-y-6">
+            <Reveal delay={0.05} className="space-y-6">
               <h2 className="text-lg font-semibold">Configure your order</h2>
               {groups.map(([groupKey, options]) => (
                 <div key={groupKey} className="space-y-3" role="group" aria-labelledby={`option-group-${groupKey}`}>
@@ -188,7 +189,7 @@ export function ServiceDetailContent({ initialData }: { initialData?: ServiceDto
                       {options.map((o) => (
                         <Label
                           key={o.id}
-                          className="flex cursor-pointer items-center gap-3 rounded-lg border p-3.5 transition-colors hover:bg-muted/50 data-[checked=true]:border-primary data-[checked=true]:bg-primary/5"
+                          className="flex cursor-pointer items-center gap-3 rounded-lg border p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/50 hover:shadow-sm data-[checked=true]:border-primary data-[checked=true]:bg-primary/5"
                           data-checked={selected[groupKey]?.includes(o.id) ?? false}
                         >
                           {/* Radix Checkbox is a <button> — a wrapping <label>
@@ -218,7 +219,7 @@ export function ServiceDetailContent({ initialData }: { initialData?: ServiceDto
                       {options.map((o) => (
                         <Label
                           key={o.id}
-                          className="flex cursor-pointer items-center gap-3 rounded-lg border p-3.5 transition-colors hover:bg-muted/50 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
+                          className="flex cursor-pointer items-center gap-3 rounded-lg border p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/50 hover:shadow-sm has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
                         >
                           {/* Radix RadioGroupItem is a <button> — explicit name. */}
                           <RadioGroupItem value={o.id} aria-label={o.label} />
@@ -233,10 +234,10 @@ export function ServiceDetailContent({ initialData }: { initialData?: ServiceDto
                   )}
                 </div>
               ))}
-            </div>
+            </Reveal>
           )}
 
-          <div className="space-y-2">
+          <Reveal delay={0.05} className="space-y-2">
             <Label htmlFor="requirements">Project requirements (you can refine later)</Label>
             <Textarea
               id="requirements"
@@ -247,12 +248,12 @@ export function ServiceDetailContent({ initialData }: { initialData?: ServiceDto
               placeholder="Describe your project: goals, references, tech constraints, academic requirements — anything the founder should know."
             />
             <p className="text-xs text-muted-foreground">{requirements.length}/8000</p>
-          </div>
+          </Reveal>
         </div>
 
         {/* Order summary */}
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <Card>
+          <Card className="card-lift hover:shadow-lg">
             <CardContent className="space-y-5 p-6">
               <div className="flex items-baseline justify-between">
                 <span className="text-sm text-muted-foreground">

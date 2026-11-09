@@ -15,6 +15,8 @@ import { formatBDT } from '@tsh/shared';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AnimatedCounter } from '@/components/motion/animated-counter';
+import { Reveal } from '@/components/motion/reveal';
 
 export default function AdminOverviewPage() {
   const { data: stats, isLoading } = useSWR<AdminStatsDto>(
@@ -27,10 +29,10 @@ export default function AdminOverviewPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <Reveal>
         <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
         <p className="mt-1 text-sm text-muted-foreground">Platform health at a glance.</p>
-      </div>
+      </Reveal>
 
       {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -44,7 +46,7 @@ export default function AdminOverviewPage() {
 
       {/* Revenue */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <Card className="card-lift lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-base">Monthly revenue & orders (12 months)</CardTitle>
           </CardHeader>
@@ -59,7 +61,7 @@ export default function AdminOverviewPage() {
                       {m.month}: {formatBDT(m.revenue)} · {m.orders} orders
                     </div>
                     <div
-                      className="w-full rounded-t bg-primary/80 transition-colors group-hover:bg-primary"
+                      className="w-full origin-bottom animate-bar-grow rounded-t bg-primary/80 transition-colors group-hover:bg-primary"
                       style={{ height: `${Math.max(2, (Number(m.revenue) / maxRevenue) * 130)}px` }}
                     />
                     <span className="text-[10px] text-muted-foreground">{m.month.slice(5)}</span>
@@ -70,7 +72,7 @@ export default function AdminOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-lift">
           <CardHeader>
             <CardTitle className="text-base">Revenue</CardTitle>
           </CardHeader>
@@ -92,7 +94,7 @@ export default function AdminOverviewPage() {
 
       {/* Popular services + founder workload */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
+        <Card className="card-lift">
           <CardHeader>
             <CardTitle className="text-base">Popular services</CardTitle>
           </CardHeader>
@@ -111,7 +113,7 @@ export default function AdminOverviewPage() {
                       <span className="text-muted-foreground">{s.orders}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${(s.orders / max) * 100}%` }} />
+                      <div className="h-full origin-left animate-[underline-slide_700ms_cubic-bezier(0.22,1,0.36,1)_both] rounded-full bg-primary" style={{ width: `${(s.orders / max) * 100}%` }} />
                     </div>
                   </div>
                 );
@@ -120,7 +122,7 @@ export default function AdminOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-lift">
           <CardHeader>
             <CardTitle className="text-base">Founder workload</CardTitle>
           </CardHeader>
@@ -154,16 +156,16 @@ export default function AdminOverviewPage() {
 
 function Stat({ icon: Icon, label, value, loading }: { icon: React.ComponentType<{ className?: string }>; label: string; value: number; loading: boolean }) {
   return (
-    <Card>
+    <Card className="card-lift">
       <CardContent className="flex items-center gap-4 p-5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 transition-colors duration-300 group-hover/card:bg-primary/15">
           <Icon className="h-5 w-5 text-primary" />
         </div>
         <div>
           {loading ? (
             <Skeleton className="h-6 w-12" />
           ) : (
-            <p className="text-2xl font-bold leading-none">{value}</p>
+            <AnimatedCounter value={value} className="text-2xl font-bold leading-none" />
           )}
           <p className="mt-1 text-sm text-muted-foreground">{label}</p>
         </div>

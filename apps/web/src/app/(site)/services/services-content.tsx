@@ -15,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/empty-state';
+import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
+import { SpotlightCard } from '@/components/motion/spotlight-card';
 
 const PAGE_SIZE = 12;
 const SEARCH_MAX_LENGTH = 120;
@@ -93,7 +95,7 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <Reveal className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Services</h1>
           <p className="mt-1 text-muted-foreground">
@@ -130,7 +132,7 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
             </SelectContent>
           </Select>
         </div>
-      </div>
+      </Reveal>
 
       {/* Stale results with a failed refresh — surface it without wiping the grid. */}
       {error && data && (
@@ -188,11 +190,15 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
         </div>
       ) : data && data.items.length > 0 ? (
         <>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {data.items.map((s) => (
-              <ServiceCard key={s.id} service={s} />
+              <StaggerItem key={s.id} className="h-full">
+                <SpotlightCard>
+                  <ServiceCard service={s} />
+                </SpotlightCard>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 pt-4">
               <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setParams({ page: String(page - 1) })}>
@@ -248,7 +254,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 function ServiceCard({ service }: { service: ServiceDto }) {
   return (
-    <Card className="group flex flex-col transition-all hover:-translate-y-1 hover:shadow-lg">
+    <Card className="card-lift group flex h-full flex-col hover:-translate-y-1 hover:shadow-lg">
       <CardContent className="flex flex-1 flex-col gap-3 p-6">
         <div className="flex items-center justify-between">
           <Badge variant="secondary">{service.category.name}</Badge>

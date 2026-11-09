@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/empty-state';
+import { Reveal } from '@/components/motion/reveal';
 import { RequireAuth } from '@/components/guards';
 
 type Field = MarketplaceServiceFormDto['fields'][number];
@@ -153,7 +154,7 @@ function RequestForm({ form, slug }: { form: MarketplaceServiceFormDto; slug: st
 
   return (
     <div className="space-y-6">
-      <div>
+      <Reveal>
         <Link href={`/services/${slug}`} className="text-sm text-muted-foreground hover:text-foreground">
           ← Back to service
         </Link>
@@ -161,7 +162,7 @@ function RequestForm({ form, slug }: { form: MarketplaceServiceFormDto; slug: st
         <p className="mt-1 text-sm text-muted-foreground">
           Fill in your requirements — we review everything and send you a quotation before any payment.
         </p>
-      </div>
+      </Reveal>
 
       <form onSubmit={onSubmit} noValidate className="space-y-5">
         {form.fields.map((field) => (

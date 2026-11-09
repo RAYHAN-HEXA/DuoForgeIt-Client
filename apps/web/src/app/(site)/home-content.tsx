@@ -27,6 +27,9 @@ import { formatBDT } from '@tsh/shared';
 import { api, errorMessage } from '@/lib/api';
 import { SERVICE_MARKETPLACE_ENABLED } from '@/lib/feature-flags';
 import { MarketplaceHomeSections } from '@/components/marketplace/home-sections';
+import { GuideVideo } from '@/components/site/guide-video';
+import { GradientOrbs } from '@/components/motion/gradient-orbs';
+import { Reveal } from '@/components/motion/reveal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -138,9 +141,10 @@ export function HomeContent() {
 
 function Hero({ hero }: { hero: Partial<HeroContent> }) {
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden bg-aurora">
       <div className="absolute inset-0 bg-grid" aria-hidden="true" />
-      <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" aria-hidden="true" />
+      <GradientOrbs className="opacity-90" />
+      <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl animate-float-slow" aria-hidden="true" />
       <div className="relative mx-auto flex max-w-7xl flex-col items-center gap-14 px-4 pb-24 pt-20 text-center sm:px-6 sm:pt-28">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -149,7 +153,7 @@ function Hero({ hero }: { hero: Partial<HeroContent> }) {
           className="max-w-3xl space-y-6"
         >
           <Badge variant="outline" className="bg-background/70 px-3 py-1 text-foreground">
-            <span className="mr-2 flex h-2 w-2 rounded-full bg-primary" />
+            <span className="mr-2 flex h-2 w-2 animate-pulse-soft rounded-full bg-primary" />
             Two founders. Direct access. Zero layers.
           </Badge>
           <h1 className="text-balance text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-6xl">
@@ -187,7 +191,7 @@ function Hero({ hero }: { hero: Partial<HeroContent> }) {
             { icon: Waypoints, title: '7-stage pipeline', body: 'Track progress from submission to delivery.' },
             { icon: ShieldCheck, title: 'Secure delivery', body: 'Files shared via expiring secure links.' },
           ].map((c) => (
-            <Card key={c.title} className="bg-background/70 backdrop-blur">
+            <Card key={c.title} className="card-lift bg-background/70 backdrop-blur">
               <CardContent className="flex items-start gap-3 p-5 text-left">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                   <c.icon className="h-5 w-5 text-primary" />
@@ -246,7 +250,7 @@ function FeaturedServices({ services }: { services: HomepageDto['featuredService
         />
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => (
-            <Card key={s.id} className="group flex flex-col transition-all hover:-translate-y-1 hover:shadow-lg">
+            <Card key={s.id} className="card-lift group flex flex-col hover:-translate-y-1 hover:shadow-lg">
               <CardContent className="flex flex-1 flex-col gap-3 p-6">
                 <div className="flex items-center justify-between">
                   <Badge variant="secondary">{s.category.name}</Badge>
@@ -303,7 +307,7 @@ function WhyUs({ items }: { items: Array<{ title: string; body: string }> }) {
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
             >
-              <Card className="h-full">
+              <Card className="card-lift h-full hover:shadow-lg">
                 <CardContent className="p-6">
                   <span className="text-3xl font-extrabold text-primary/20">{String(i + 1).padStart(2, '0')}</span>
                   <h3 className="mt-2 font-semibold">{item.title}</h3>
@@ -324,7 +328,17 @@ function HowItWorks({ steps }: { steps: Array<{ title: string; body: string }> }
   return (
     <section id="how-it-works" className="scroll-mt-20 py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <SectionHeading eyebrow="Process" title="How it works" description="Four steps between your idea and your finished project." />
+        <SectionHeading
+          eyebrow="Process"
+          title="How it works"
+          description="Watch the full journey — order, admin approval, progress tracking, and delivery — then follow the four quick steps below."
+        />
+        <Reveal className="mx-auto mt-12 max-w-4xl" y={30}>
+          <GuideVideo title="Customer walkthrough — order, approval and delivery" />
+          <p className="mt-3 text-center text-sm text-muted-foreground">
+            A 99-second walkthrough of a real order: from choosing a service to receiving the delivered files.
+          </p>
+        </Reveal>
         <div className="relative mt-16 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="absolute left-0 right-0 top-6 hidden h-0.5 bg-gradient-to-r from-primary/40 via-primary/20 to-primary/40 lg:block" aria-hidden="true" />
           {steps.map((step, i) => (
@@ -369,7 +383,7 @@ function Founders({ founders }: { founders: HomepageDto['founders'] }) {
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.55, delay: i * 0.12 }}
             >
-              <Card className="h-full transition-all hover:-translate-y-1 hover:shadow-lg">
+              <Card className="card-lift h-full hover:-translate-y-1 hover:shadow-lg">
                 <CardContent className="flex h-full flex-col gap-4 p-6">
                   <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16 border-2 border-primary/20">
@@ -436,7 +450,7 @@ function Portfolio({ projects }: { projects: HomepageDto['portfolio'] }) {
         <SectionHeading eyebrow="Portfolio" title="Featured projects" />
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((p) => (
-            <Card key={p.id} className="group overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg">
+            <Card key={p.id} className="card-lift group overflow-hidden hover:-translate-y-1 hover:shadow-lg">
               <CardContent className="flex h-full flex-col p-0">
                 <div className="flex h-40 items-center justify-center bg-gradient-to-br from-primary/15 to-fuchsia-500/10">
                   {p.imageUrl ? (
@@ -479,7 +493,7 @@ function Testimonials({ testimonials }: { testimonials: HomepageDto['testimonial
         <SectionHeading eyebrow="Testimonials" title="What clients say" />
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {testimonials.map((t) => (
-            <Card key={t.id} className="flex h-full flex-col">
+            <Card key={t.id} className="card-lift flex h-full flex-col hover:shadow-lg">
               <CardContent className="flex flex-1 flex-col gap-4 p-6">
                 <div className="flex gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (

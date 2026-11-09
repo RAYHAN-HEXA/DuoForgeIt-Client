@@ -23,6 +23,7 @@ const securityHeaders = [
       // Tailwind/shadcn inject inline styles.
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://lh3.googleusercontent.com",
+      "media-src 'self'",
       "font-src 'self' data:",
       // Firebase auth/Firestore REST + WebSocket endpoints and the API.
       `connect-src 'self' ${API_URL} https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com`,

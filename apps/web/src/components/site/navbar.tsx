@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Bell, FileText, LayoutDashboard, LogOut, Menu, Plus, ShieldCheck, ShoppingCart, Store, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -35,6 +35,14 @@ export function Navbar() {
   const { itemCount } = useCart();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Notification badge (only while signed in)
   const { data: notifications } = useSWR<NotificationsResponseDto>(
@@ -45,10 +53,14 @@ export function Navbar() {
   const unread = notifications?.unread ?? 0;
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={`sticky top-0 z-50 border-b bg-background/80 backdrop-blur transition-shadow duration-300 supports-[backdrop-filter]:bg-background/60 ${
+        scrolled ? 'shadow-sm shadow-primary/10' : ''
+      }`}
+    >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2.5">
-          <MascotMark className="h-9 w-9" />
+        <Link href="/" className="group flex items-center gap-2.5">
+          <MascotMark className="h-9 w-9 transition-transform duration-300 group-hover:scale-105" />
           <span className="text-base font-semibold tracking-tight">
             TechService <span className="text-primary">Hub</span>
           </span>
@@ -59,8 +71,8 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground ${
-                pathname === link.href ? 'text-foreground' : 'text-muted-foreground'
+              className={`relative rounded-md px-3 py-2 text-sm font-medium transition-colors after:absolute after:inset-x-3 after:bottom-1 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-gradient-to-r after:from-primary after:to-brand-fuchsia after:transition-transform after:duration-300 hover:bg-muted hover:text-foreground hover:after:scale-x-100 ${
+                pathname === link.href ? 'text-foreground after:scale-x-100' : 'text-muted-foreground'
               }`}
             >
               {link.label}
@@ -82,7 +94,10 @@ export function Navbar() {
                 <Link href="/notifications">
                   <Bell className="h-5 w-5" />
                   {unread > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                    <span
+                      key={unread}
+                      className="animate-badge-pop absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground"
+                    >
                       {unread > 9 ? '9+' : unread}
                     </span>
                   )}
@@ -92,7 +107,10 @@ export function Navbar() {
                 <Link href="/cart">
                   <ShoppingCart className="h-5 w-5" />
                   {itemCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                    <span
+                      key={itemCount}
+                      className="animate-badge-pop absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground"
+                    >
                       {itemCount > 9 ? '9+' : itemCount}
                     </span>
                   )}

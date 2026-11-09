@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/empty-state';
+import { Reveal } from '@/components/motion/reveal';
 import { AuthPrompt } from '@/components/guards';
 import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/hooks/use-cart';
@@ -39,8 +40,10 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight">Your cart</h1>
-      <p className="mt-1 text-muted-foreground">Review your services before checkout.</p>
+      <Reveal>
+        <h1 className="text-3xl font-bold tracking-tight">Your cart</h1>
+        <p className="mt-1 text-muted-foreground">Review your services before checkout.</p>
+      </Reveal>
 
       {cartLoading && !cart ? (
         <div className="mt-8 space-y-4">
@@ -51,7 +54,7 @@ export default function CartPage() {
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="space-y-4">
             {cart.items.map((item) => (
-              <Card key={item.id}>
+              <Card key={item.id} className="card-lift hover:shadow-md">
                 <CardContent className="p-5">
                   <div className="flex flex-col gap-4 sm:flex-row">
                     <div className="flex-1 space-y-3">
@@ -117,7 +120,7 @@ export default function CartPage() {
                         >
                           <Minus className="h-3.5 w-3.5" />
                         </Button>
-                        <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
+                        <span key={item.quantity} className="animate-badge-pop w-8 text-center text-sm font-semibold">{item.quantity}</span>
                         <Button
                           variant="outline"
                           size="icon-sm"
@@ -141,7 +144,7 @@ export default function CartPage() {
           </div>
 
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <Card>
+            <Card className="card-lift hover:shadow-lg">
               <CardContent className="space-y-4 p-6">
                 <h2 className="font-semibold">Order summary</h2>
                 <div className="space-y-2 text-sm">

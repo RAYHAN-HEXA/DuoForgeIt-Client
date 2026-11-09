@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/empty-state';
+import { AnimatedCounter } from '@/components/motion/animated-counter';
+import { Reveal } from '@/components/motion/reveal';
 import { StatusBadge } from '@/components/status-badge';
 import { RequireAuth } from '@/components/guards';
 import { useAuth } from '@/hooks/use-auth';
@@ -46,12 +48,12 @@ function DashboardContent({ name, emailVerified }: { name: string; emailVerified
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <Reveal>
           <h1 className="text-3xl font-bold tracking-tight">
             Welcome back, {name.split(' ')[0]}
           </h1>
           <p className="mt-1 text-muted-foreground">Your projects at a glance.</p>
-        </div>
+        </Reveal>
         <Button asChild>
           <Link href="/services">New project <ArrowRight className="h-4 w-4" /></Link>
         </Button>
@@ -92,8 +94,8 @@ function DashboardContent({ name, emailVerified }: { name: string; emailVerified
         ) : orders.length > 0 ? (
           <div className="mt-4 space-y-3">
             {orders.map((o) => (
-              <Link key={o.id} href={`/orders/${o.id}`} className="block">
-                <Card className="transition-all hover:-translate-y-0.5 hover:shadow-md">
+              <Link key={o.id} href={`/orders/${o.id}`} className="group block">
+                <Card className="card-lift hover:-translate-y-0.5 hover:shadow-md">
                   <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                     <div>
                       <p className="font-medium">{o.title}</p>
@@ -105,6 +107,7 @@ function DashboardContent({ name, emailVerified }: { name: string; emailVerified
                       {o.paymentStatus && <StatusBadge status={o.paymentStatus} />}
                       <StatusBadge status={o.status} />
                       <span className="font-semibold">{formatBDT(o.totalAmount)}</span>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5" />
                     </div>
                   </CardContent>
                 </Card>
@@ -128,16 +131,16 @@ function DashboardContent({ name, emailVerified }: { name: string; emailVerified
 
 function StatCard({ icon: Icon, label, value, loading }: { icon: React.ComponentType<{ className?: string }>; label: string; value: number; loading: boolean }) {
   return (
-    <Card>
+    <Card className="card-lift hover:shadow-md">
       <CardContent className="flex items-center gap-4 p-5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 transition-colors duration-300 group-hover/card:bg-primary/15">
           <Icon className="h-5 w-5 text-primary" />
         </div>
         <div>
           {loading ? (
             <Skeleton className="h-6 w-10" />
           ) : (
-            <p className="text-2xl font-bold leading-none">{value}</p>
+            <AnimatedCounter value={value} className="text-2xl font-bold leading-none" />
           )}
           <p className="mt-1 text-sm text-muted-foreground">{label}</p>
         </div>

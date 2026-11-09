@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { RequireAuth } from '@/components/guards';
+import { Reveal } from '@/components/motion/reveal';
 
 function label(status: string): string {
   return status.replaceAll('_', ' ').toLowerCase();
@@ -70,7 +71,7 @@ function RequestDetailContent() {
   if (error || !data) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-12">
-        <Card>
+        <Card className="card-lift">
           <CardContent className="p-6">
             <p className="font-medium">Request not available</p>
             <p className="mt-1 text-sm text-muted-foreground">{errorMessage(error)}</p>
@@ -135,16 +136,16 @@ function RequestDetailContent() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-12">
-      <div>
+      <Reveal>
         <p className="font-mono text-xs text-muted-foreground">{data.referenceNo}</p>
         <h1 className="mt-1 flex items-center gap-2 text-2xl font-bold tracking-tight">
           <FileText className="h-5 w-5 text-primary" /> {data.serviceName}
         </h1>
         <Badge variant="outline" className="mt-2">{label(data.status)}</Badge>
-      </div>
+      </Reveal>
 
       {accepted && (
-        <Card className="border-primary/40 bg-primary/[0.04]">
+        <Card className="card-lift border-primary/40 bg-primary/[0.04]">
           <CardContent className="flex items-start gap-3 p-4">
             <PartyPopper className="h-5 w-5 text-primary" />
             <div className="text-sm">
@@ -160,7 +161,7 @@ function RequestDetailContent() {
 
       {/* Quotation */}
       {data.quotations.length > 0 && (
-        <Card>
+        <Card className="card-lift">
           <CardHeader>
             <CardTitle className="text-base">Quotations</CardTitle>
           </CardHeader>
@@ -216,7 +217,7 @@ function RequestDetailContent() {
 
       {/* Requirements / answers */}
       {Object.keys(data.answers ?? {}).length > 0 && (
-        <Card>
+        <Card className="card-lift">
           <CardHeader><CardTitle className="text-base">Your requirements</CardTitle></CardHeader>
           <CardContent className="space-y-1 text-sm">
             {Object.entries(data.answers).map(([key, value]) => (
@@ -231,7 +232,7 @@ function RequestDetailContent() {
       )}
 
       {/* Timeline */}
-      <Card>
+      <Card className="card-lift">
         <CardHeader><CardTitle className="text-base">History</CardTitle></CardHeader>
         <CardContent className="space-y-2">
           {data.statusHistory.map((h, i) => (

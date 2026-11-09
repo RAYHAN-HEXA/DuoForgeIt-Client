@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/empty-state';
+import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 
 /** Human status text for request pipeline values. */
 function label(status: string): string {
@@ -24,14 +25,14 @@ export default function MyRequestsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <Reveal>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <FileText className="h-5 w-5 text-primary" /> My requests
         </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
           Service requests and their quotations. Accept a quotation to turn it into a payable order.
         </p>
-      </div>
+      </Reveal>
 
       {isLoading && !data ? (
         <div className="space-y-3">
@@ -40,10 +41,11 @@ export default function MyRequestsPage() {
       ) : error ? (
         <EmptyState icon={FileText} title="Could not load requests" description={errorMessage(error)} />
       ) : data && data.items.length > 0 ? (
-        <div className="space-y-3">
+        <Stagger className="space-y-3">
           {data.items.map((r) => (
-            <Card key={r.id}>
-              <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+            <StaggerItem key={r.id}>
+              <Card className="card-lift hover:shadow-md">
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-mono text-xs text-muted-foreground">{r.referenceNo}</p>
@@ -62,8 +64,9 @@ export default function MyRequestsPage() {
                 </Button>
               </CardContent>
             </Card>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       ) : (
         <EmptyState
           icon={FileText}

@@ -52,8 +52,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                     key={link.href}
                     href={link.href}
                     className={cn(
-                      'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                      active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                      'relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:origin-top before:scale-y-0 before:rounded-full before:bg-primary-foreground before:transition-transform before:duration-300',
+                      active
+                        ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/30 before:scale-y-100'
+                        : 'text-muted-foreground hover:translate-x-0.5 hover:bg-muted hover:text-foreground',
                     )}
                   >
                     <link.icon className="h-4 w-4" />
@@ -82,11 +84,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'flex shrink-0 flex-col items-center gap-0.5 px-2 py-1 text-[10px]',
+                    'flex shrink-0 flex-col items-center gap-0.5 px-2 py-1 text-[10px] transition-colors',
                     active ? 'text-primary' : 'text-muted-foreground',
                   )}
                 >
-                  <link.icon className="h-5 w-5" />
+                  <link.icon className={cn('h-5 w-5 transition-transform duration-200', active && 'scale-110')} />
                   {link.label}
                 </Link>
               );
@@ -94,7 +96,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
 
-        <main className="min-w-0 flex-1 pb-24 md:pb-8">{children}</main>
+        <main key={pathname} className="page-enter min-w-0 flex-1 pb-24 md:pb-8">{children}</main>
       </div>
     </RequireAdmin>
   );
@@ -112,7 +114,7 @@ function InboxIndicator() {
   const pending = data?.total ?? data?.items.length ?? 0;
   if (!pending) return null;
   return (
-    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+    <span key={pending} className="animate-badge-pop ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
       {pending}
     </span>
   );

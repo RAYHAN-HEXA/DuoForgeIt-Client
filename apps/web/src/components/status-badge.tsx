@@ -68,7 +68,7 @@ export function StatusBadge({ status, className }: { status: OrderStatus | Payme
     REVISION_STYLES[status as RevisionStatus] ??
     'bg-muted text-muted-foreground border-border';
   return (
-    <Badge variant="outline" className={cn(styles, 'font-medium', className)}>
+    <Badge variant="outline" className={cn(styles, 'font-medium transition-colors duration-300', className)}>
       {LABELS[status] ?? status.replaceAll('_', ' ').toLowerCase()}
     </Badge>
   );

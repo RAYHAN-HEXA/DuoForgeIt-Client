@@ -70,7 +70,7 @@ function ResetPasswordContent() {
 
   if (status === 'checking') {
     return (
-      <div className="flex flex-col items-center gap-4 text-center">
+      <div className="page-enter flex flex-col items-center gap-4 text-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-sm text-muted-foreground">Validating your reset link…</p>
       </div>
@@ -79,10 +79,10 @@ function ResetPasswordContent() {
 
   if (status === 'invalid' || status === 'done') {
     return (
-      <div className="flex flex-col items-center gap-5 text-center">
+      <div className="page-enter flex flex-col items-center gap-5 text-center">
         {status === 'done' ? (
           <>
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950 animate-badge-pop">
               <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
@@ -114,7 +114,7 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="page-enter space-y-8">
       <div className="flex flex-col items-center gap-4 text-center">
         <Mascot mood={mood} className="h-40 w-40" />
         <div>

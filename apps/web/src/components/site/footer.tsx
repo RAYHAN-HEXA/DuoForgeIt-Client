@@ -45,8 +45,8 @@ export function Footer() {
     <footer className="border-t bg-muted/30">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="space-y-3">
-          <Link href="/" className="flex items-center gap-2.5">
-            <MascotMark className="h-8 w-8" />
+          <Link href="/" className="group flex items-center gap-2.5">
+            <MascotMark className="h-8 w-8 transition-transform duration-300 group-hover:scale-105" />
             <span className="font-semibold">TechService Hub</span>
           </Link>
           <p className="max-w-xs text-sm text-muted-foreground">
@@ -60,7 +60,10 @@ export function Footer() {
             <ul className="space-y-2">
               {col.links.map((l) => (
                 <li key={l.href + l.label}>
-                  <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground">
+                  <Link
+                    href={l.href}
+                    className="inline-block text-sm text-muted-foreground transition-all duration-200 hover:translate-x-0.5 hover:text-foreground"
+                  >
                     {l.label}
                   </Link>
                 </li>
@@ -73,7 +76,10 @@ export function Footer() {
           <ul className="space-y-2">
             {accountLinks.map((l) => (
               <li key={l.href}>
-                <Link href={l.href} className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href={l.href}
+                  className="inline-block text-sm text-muted-foreground transition-all duration-200 hover:translate-x-0.5 hover:text-foreground"
+                >
                   {l.label}
                 </Link>
               </li>

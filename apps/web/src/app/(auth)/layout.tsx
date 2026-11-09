@@ -16,7 +16,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-primary p-10 text-primary-foreground lg:flex">
         <div className="absolute inset-0 bg-grid opacity-20" aria-hidden="true" />
         <div
-          className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-primary-foreground/10 blur-3xl"
+          className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-primary-foreground/10 blur-3xl animate-float-slow"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-brand-fuchsia/25 blur-3xl animate-float-slow [animation-delay:-3s]"
           aria-hidden="true"
         />
         <Link href="/" className="relative flex items-center gap-2.5 font-semibold">

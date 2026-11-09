@@ -33,6 +33,7 @@ import { OrderTracker } from '@/components/order-tracker';
 import { StatusBadge, PaymentMethodBadge, statusLabel } from '@/components/status-badge';
 import { OrderPaymentSection, PaymentStatusBanner, orderOutstanding, moneyToCents, ZERO_CENTS } from '@/components/order-payment';
 import { RequireAuth } from '@/components/guards';
+import { Reveal } from '@/components/motion/reveal';
 
 function OrderDetailContent() {
   const { id } = useParams<{ id: string }>();
@@ -57,7 +58,7 @@ function OrderDetailContent() {
   if (error || !order) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-        <Card>
+        <Card className="card-lift">
           <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
             <PackageOpen className="h-8 w-8 text-muted-foreground" />
             <p className="font-medium">Order not found</p>
@@ -87,7 +88,7 @@ function OrderDetailContent() {
       </Button>
 
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <Reveal className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight">{order.title}</h1>
@@ -101,12 +102,12 @@ function OrderDetailContent() {
           <CalendarClock className="h-4 w-4 text-muted-foreground" />
           Due <span className="font-semibold">{new Date(order.deadline).toLocaleDateString()}</span>
         </div>
-      </div>
+      </Reveal>
 
       {cancellable && <CancelSection orderId={order.id} onDone={() => void mutate()} />}
 
       {/* Progress tracker */}
-      <Card>
+      <Card className="card-lift">
         <CardHeader>
           <CardTitle className="text-base">Progress</CardTitle>
         </CardHeader>
@@ -130,7 +131,7 @@ function OrderDetailContent() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Items */}
-        <Card>
+        <Card className="card-lift">
           <CardHeader>
             <CardTitle className="text-base">Items & pricing</CardTitle>
           </CardHeader>
@@ -168,7 +169,7 @@ function OrderDetailContent() {
         </Card>
 
         {/* Team */}
-        <Card>
+        <Card className="card-lift">
           <CardHeader>
             <CardTitle className="text-base">Your team</CardTitle>
           </CardHeader>
@@ -192,7 +193,7 @@ function OrderDetailContent() {
         </Card>
 
         {/* Payments */}
-        <Card>
+        <Card className="card-lift">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Wallet className="h-4 w-4" /> Payments
@@ -255,7 +256,7 @@ function OrderDetailContent() {
         )}
 
         {/* Revisions */}
-        <Card>
+        <Card className="card-lift">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <MessageSquarePlus className="h-4 w-4" /> Revisions
@@ -282,7 +283,7 @@ function OrderDetailContent() {
         </Card>
 
         {/* Files */}
-        <Card className="lg:col-span-2">
+        <Card className="card-lift lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-base">Files</CardTitle>
           </CardHeader>
@@ -342,7 +343,7 @@ function OrderDetailContent() {
 
         {/* Review */}
         {canReview && (
-          <Card className="lg:col-span-2">
+          <Card className="card-lift lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Star className="h-4 w-4" /> Rate this project
@@ -354,7 +355,7 @@ function OrderDetailContent() {
           </Card>
         )}
         {order.review && (
-          <Card className="lg:col-span-2">
+          <Card className="card-lift lg:col-span-2">
             <CardContent className="flex items-center gap-3 p-5">
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (

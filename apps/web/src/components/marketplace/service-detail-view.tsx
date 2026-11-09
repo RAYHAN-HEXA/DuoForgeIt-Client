@@ -103,7 +103,7 @@ export function ServiceDetailView({
             </div>
 
             {/* Order box */}
-            <Card className="w-full shrink-0 lg:w-80">
+            <Card className="card-lift w-full shrink-0 lg:w-80">
               <CardContent className="space-y-3 p-5">
                 <div>
                   <p className="text-xs text-muted-foreground">
@@ -147,7 +147,7 @@ export function ServiceDetailView({
         </Reveal>
 
         <Reveal className="lg:col-span-2">
-          <Card>
+          <Card className="card-lift">
             <CardContent className="space-y-5 p-5">
               <div className="flex items-start gap-3">
                 <Package className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
@@ -196,7 +196,7 @@ export function ServiceDetailView({
           <h2 className="text-xl font-semibold">Pricing &amp; packages</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {service.packages.map((p) => (
-              <Card key={p.id} className="border-primary/30">
+              <Card key={p.id} className="card-lift border-primary/30">
                 <CardContent className="space-y-2 p-5">
                   <p className="font-semibold">{p.label}</p>
                   {p.description && <p className="text-sm text-muted-foreground">{p.description}</p>}

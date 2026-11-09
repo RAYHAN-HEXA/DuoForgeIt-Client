@@ -21,8 +21,8 @@ export function EmptyState({
         className,
       )}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-        <Icon className="h-5 w-5 text-muted-foreground" />
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/12 to-brand-fuchsia/12">
+        <Icon className="h-5 w-5 text-primary" />
       </div>
       <div>
         <p className="font-medium">{title}</p>
@@ -49,7 +49,14 @@ export function SectionHeading({
       {eyebrow && (
         <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-primary">{eyebrow}</p>
       )}
-      <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
+      <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
+      <span
+        aria-hidden="true"
+        className={cn(
+          'mt-4 block h-1 w-14 rounded-full bg-gradient-to-r from-primary via-brand-violet to-brand-fuchsia',
+          align === 'center' && 'mx-auto',
+        )}
+      />
       {description && <p className="mt-3 text-muted-foreground">{description}</p>}
     </div>
   );

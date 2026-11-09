@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { Navbar } from '@/components/site/navbar';
 import { Footer } from '@/components/site/footer';
+import { ScrollProgress } from '@/components/motion/scroll-progress';
 
 /**
  * Navbar reads usePathname + auth state — it streams in inside Suspense so
@@ -9,6 +10,7 @@ import { Footer } from '@/components/site/footer';
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <ScrollProgress />
       <Suspense fallback={<div className="h-16 border-b" aria-hidden="true" />}>
         <Navbar />
       </Suspense>

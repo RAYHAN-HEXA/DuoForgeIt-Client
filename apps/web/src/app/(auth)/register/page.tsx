@@ -110,7 +110,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="page-enter space-y-8">
       <div className="flex flex-col items-center gap-4 text-center">
         <Mascot mood={mood} className="h-40 w-40" />
         <div>

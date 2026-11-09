@@ -33,6 +33,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/empty-state';
 import { AuthPrompt } from '@/components/guards';
 import { FounderPicker, type FounderChoice } from '@/components/founder-picker';
+import { Reveal } from '@/components/motion/reveal';
 import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/hooks/use-cart';
 
@@ -195,14 +196,17 @@ export function CheckoutContent() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
-      <p className="mt-1 text-muted-foreground">
-        Step {step + 1} of {STEPS.length} — {STEPS[step]}
-      </p>
-      <Progress value={((step + 1) / STEPS.length) * 100} className="mt-4" />
+      <Reveal>
+        <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
+        <p className="mt-1 text-muted-foreground">
+          Step {step + 1} of {STEPS.length} — {STEPS[step]}
+        </p>
+        <Progress value={((step + 1) / STEPS.length) * 100} className="mt-4" />
+      </Reveal>
 
       <Card className="mt-6">
         <CardContent className="p-6 sm:p-8">
+          <div key={step} className="page-enter">
           {step === 0 && (
             <div className="space-y-4">
               <h2 className="font-semibold">Review your services</h2>
@@ -390,6 +394,8 @@ export function CheckoutContent() {
               </Button>
             </div>
           )}
+
+          </div>
 
           {/* Step controls */}
           <div className="mt-8 flex items-center justify-between">

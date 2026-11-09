@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageUploadField } from '@/components/image-upload-field';
+import { Reveal } from '@/components/motion/reveal';
 import { RequireAuth } from '@/components/guards';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -89,12 +90,14 @@ function ProfileContent() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight">Profile settings</h1>
-      <p className="mt-1 text-muted-foreground">Manage your account details.</p>
+      <Reveal>
+        <h1 className="text-3xl font-bold tracking-tight">Profile settings</h1>
+        <p className="mt-1 text-muted-foreground">Manage your account details.</p>
+      </Reveal>
 
       <div className="mt-8 space-y-6">
         {/* Account identity (Firebase-owned) */}
-        <Card>
+        <Card className="card-lift">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <UserRound className="h-4 w-4" /> Account
@@ -102,7 +105,7 @@ function ProfileContent() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
-              <Avatar className="h-14 w-14 border">
+              <Avatar className="h-14 w-14 border transition-transform duration-300 hover:scale-105">
                 <AvatarImage src={profileImage || user.profileImage || undefined} alt="" />
                 <AvatarFallback className="bg-primary/10 font-bold text-primary">
                   {user.fullName.slice(0, 2).toUpperCase()}
@@ -136,7 +139,7 @@ function ProfileContent() {
         </Card>
 
         {/* Profile fields (Neon-owned) */}
-        <Card>
+        <Card className="card-lift">
           <CardHeader>
             <CardTitle className="text-base">Profile details</CardTitle>
           </CardHeader>
@@ -170,7 +173,7 @@ function ProfileContent() {
 
         {/* Password */}
         {!isGoogle && (
-          <Card>
+          <Card className="card-lift">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <KeyRound className="h-4 w-4" /> Password
@@ -198,7 +201,7 @@ function ProfileContent() {
           </Card>
         )}
         {isGoogle && (
-          <Card>
+          <Card className="card-lift">
             <CardContent className="p-5 text-sm text-muted-foreground">
               You sign in with Google — password management is handled by your Google account.
             </CardContent>

@@ -36,9 +36,9 @@ export function OrderTracker({ status }: { status: OrderStatus }) {
             <div className="flex items-center sm:w-full sm:flex-col">
               <span
                 className={cn(
-                  'z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold',
+                  'z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors duration-500',
                   done && 'border-primary bg-primary text-primary-foreground',
-                  active && 'border-primary bg-background text-primary ring-4 ring-primary/15',
+                  active && 'border-primary bg-background text-primary ring-4 ring-primary/15 animate-pulse-soft',
                   !done && !active && 'border-muted-foreground/30 bg-background text-muted-foreground/50',
                 )}
                 aria-current={active ? 'step' : undefined}
@@ -48,7 +48,7 @@ export function OrderTracker({ status }: { status: OrderStatus }) {
               {!isLast && (
                 <span
                   className={cn(
-                    'ml-2 h-0.5 w-10 grow rounded sm:ml-0 sm:mt-2 sm:h-0.5 sm:w-full',
+                    'ml-2 h-0.5 w-10 grow rounded transition-colors duration-500 sm:ml-0 sm:mt-2 sm:h-0.5 sm:w-full',
                     done ? 'bg-primary' : 'bg-muted-foreground/20',
                   )}
                   aria-hidden="true"

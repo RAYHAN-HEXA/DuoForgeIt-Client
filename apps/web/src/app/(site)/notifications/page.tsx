@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/empty-state';
+import { Reveal } from '@/components/motion/reveal';
 import { RequireAuth } from '@/components/guards';
 import { cn } from '@/lib/utils';
 
@@ -34,7 +35,7 @@ function NotificationsContent() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <div className="flex items-center justify-between">
+      <Reveal className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
           <p className="mt-1 text-muted-foreground">{data ? `${data.unread} unread` : ''}</p>
@@ -44,7 +45,7 @@ function NotificationsContent() {
             <CheckCheck className="h-4 w-4" /> Mark all read
           </Button>
         )}
-      </div>
+      </Reveal>
 
       <div className="mt-8 space-y-2">
         {isLoading && !data ? (
@@ -54,7 +55,7 @@ function NotificationsContent() {
             const card = (
               <Card
                 className={cn(
-                  'transition-colors',
+                  'card-lift hover:shadow-sm',
                   !n.readAt && 'border-primary/30 bg-primary/[0.04]',
                 )}
               >
