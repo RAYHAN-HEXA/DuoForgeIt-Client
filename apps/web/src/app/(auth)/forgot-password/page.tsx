@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
           <MailCheck className="h-8 w-8 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Check your inbox</h1>
+          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">Check your inbox</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             If an account exists for <span className="font-medium text-foreground">{email}</span>, a
             password-reset link is on its way.
@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
       <div className="flex flex-col items-center gap-4 text-center">
         <Mascot mood={mood} className="h-40 w-40" />
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Forgot your password?</h1>
+          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">Forgot your password?</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Enter your email and we&apos;ll send a reset link.
           </p>

@@ -59,7 +59,7 @@ export function ImageUploadField({
         {value ? (
           <div className="relative shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary uploaded URL */}
-            <img src={value} alt="" className="h-12 w-12 rounded-lg border object-cover" />
+            <img src={value} alt="" className="h-12 w-12 rounded-lg border border-primary/15 object-cover shadow-soft" />
             <button
               type="button"
               onClick={() => onChange('')}
@@ -70,8 +70,8 @@ export function ImageUploadField({
             </button>
           </div>
         ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border bg-muted/40">
-            <ImagePlus className="h-5 w-5 text-muted-foreground/60" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-primary/25 bg-gradient-to-br from-primary/8 to-brand-fuchsia/5">
+            <ImagePlus className="h-5 w-5 text-primary/50" />
           </div>
         )}
         <input

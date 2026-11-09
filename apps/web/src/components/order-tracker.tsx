@@ -37,7 +37,7 @@ export function OrderTracker({ status }: { status: OrderStatus }) {
               <span
                 className={cn(
                   'z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors duration-500',
-                  done && 'border-primary bg-primary text-primary-foreground',
+                  done && 'animate-badge-pop border-primary bg-gradient-to-br from-primary to-brand-violet text-primary-foreground shadow-glow',
                   active && 'border-primary bg-background text-primary ring-4 ring-primary/15 animate-pulse-soft',
                   !done && !active && 'border-muted-foreground/30 bg-background text-muted-foreground/50',
                 )}
@@ -49,7 +49,9 @@ export function OrderTracker({ status }: { status: OrderStatus }) {
                 <span
                   className={cn(
                     'ml-2 h-0.5 w-10 grow rounded transition-colors duration-500 sm:ml-0 sm:mt-2 sm:h-0.5 sm:w-full',
-                    done ? 'bg-primary' : 'bg-muted-foreground/20',
+                    done
+                      ? 'bg-gradient-to-r from-primary to-brand-violet'
+                      : 'bg-muted-foreground/20',
                   )}
                   aria-hidden="true"
                 />

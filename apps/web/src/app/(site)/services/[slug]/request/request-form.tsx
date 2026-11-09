@@ -120,11 +120,13 @@ function RequestForm({ form, slug }: { form: MarketplaceServiceFormDto; slug: st
 
   if (result) {
     return (
-      <Card>
+      <Card className="card-lift border-primary/20 shadow-glow">
         <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
-          <CheckCircle2 className="h-12 w-12 text-emerald-600" aria-hidden="true" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/20">
+            <CheckCircle2 className="h-9 w-9 text-primary" aria-hidden="true" />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold">Request submitted</h1>
+            <h1 className="font-heading text-2xl font-bold">Request submitted</h1>
             <p className="mt-1 text-muted-foreground">
               Your reference number is{' '}
               <span className="font-mono font-semibold text-foreground">{result.referenceNo}</span>
@@ -158,7 +160,7 @@ function RequestForm({ form, slug }: { form: MarketplaceServiceFormDto; slug: st
         <Link href={`/services/${slug}`} className="text-sm text-muted-foreground hover:text-foreground">
           ← Back to service
         </Link>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight">Request: {form.service.name}</h1>
+        <h1 className="mt-2 font-heading text-2xl font-bold tracking-tight sm:text-3xl">Request: {form.service.name}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Fill in your requirements — we review everything and send you a quotation before any payment.
         </p>

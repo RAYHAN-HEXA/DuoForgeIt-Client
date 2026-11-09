@@ -197,19 +197,19 @@ export function CheckoutContent() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
       <Reveal>
-        <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
+        <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Checkout</h1>
         <p className="mt-1 text-muted-foreground">
           Step {step + 1} of {STEPS.length} — {STEPS[step]}
         </p>
         <Progress value={((step + 1) / STEPS.length) * 100} className="mt-4" />
       </Reveal>
 
-      <Card className="mt-6">
+      <Card className="mt-6 border-primary/15 shadow-glow">
         <CardContent className="p-6 sm:p-8">
           <div key={step} className="page-enter">
           {step === 0 && (
             <div className="space-y-4">
-              <h2 className="font-semibold">Review your services</h2>
+              <h2 className="font-heading font-semibold">Review your services</h2>
               {cart.items.map((item) => (
                 <div key={item.id} className="flex items-start justify-between gap-4 rounded-lg border p-4">
                   <div>
@@ -235,7 +235,7 @@ export function CheckoutContent() {
 
           {step === 1 && (
             <div className="space-y-3">
-              <h2 className="font-semibold">Project requirements</h2>
+              <h2 className="font-heading font-semibold">Project requirements</h2>
               <p className="text-sm text-muted-foreground">
                 Overall notes for the whole order (per-item requirements stay editable in your cart and order page).
               </p>
@@ -252,7 +252,7 @@ export function CheckoutContent() {
 
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="font-semibold">Reference files (optional)</h2>
+              <h2 className="font-heading font-semibold">Reference files (optional)</h2>
               <p className="text-sm text-muted-foreground">
                 Briefs, slides, past work — up to 5 files, 10 MB each. Stored privately and shared only with your project lead.
               </p>
@@ -294,7 +294,7 @@ export function CheckoutContent() {
 
           {step === 3 && (
             <div className="space-y-3">
-              <h2 className="font-semibold">Project deadline</h2>
+              <h2 className="font-heading font-semibold">Project deadline</h2>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CalendarClock className="h-4 w-4" />
                 When do you need the finished project?
@@ -318,7 +318,7 @@ export function CheckoutContent() {
 
           {step === 4 && (
             <div className="space-y-4">
-              <h2 className="flex items-center gap-2 font-semibold">
+              <h2 className="flex items-center gap-2 font-heading font-semibold">
                 <UserCheck className="h-4 w-4 text-primary" /> Choose your project lead
               </h2>
               <FounderPicker founders={homepage?.founders ?? []} value={founderChoice} onChange={setFounderChoice} />
@@ -330,7 +330,7 @@ export function CheckoutContent() {
 
           {step === 5 && (
             <div className="space-y-4">
-              <h2 className="font-semibold">Pricing review</h2>
+              <h2 className="font-heading font-semibold">Pricing review</h2>
               <div className="space-y-2 text-sm">
                 {cart.items.map((item) => (
                   <div key={item.id} className="flex justify-between">
@@ -354,7 +354,7 @@ export function CheckoutContent() {
 
           {step === 6 && (
             <div className="space-y-4">
-              <h2 className="flex items-center gap-2 font-semibold">
+              <h2 className="flex items-center gap-2 font-heading font-semibold">
                 <Wallet className="h-4 w-4 text-primary" /> How you&apos;ll pay
               </h2>
               <div className="space-y-2 rounded-lg border p-4 text-sm text-muted-foreground">
@@ -373,7 +373,7 @@ export function CheckoutContent() {
 
           {step === 7 && (
             <div className="space-y-4">
-              <h2 className="font-semibold">Submit your order</h2>
+              <h2 className="font-heading font-semibold">Submit your order</h2>
               <div className="space-y-1.5 rounded-lg border p-4 text-sm">
                 <Row label="Items" value={`${cart.items.length}`} />
                 <Row label="Deadline" value={new Date(`${deadline || suggestedDeadline}T23:59:00`).toLocaleDateString()} />

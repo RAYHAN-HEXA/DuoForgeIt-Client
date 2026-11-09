@@ -91,7 +91,7 @@ function ProfileContent() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <Reveal>
-        <h1 className="text-3xl font-bold tracking-tight">Profile settings</h1>
+        <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Profile settings</h1>
         <p className="mt-1 text-muted-foreground">Manage your account details.</p>
       </Reveal>
 
@@ -105,7 +105,7 @@ function ProfileContent() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
-              <Avatar className="h-14 w-14 border transition-transform duration-300 hover:scale-105">
+              <Avatar className="h-14 w-14 border-2 border-primary/15 ring-2 ring-primary/10 ring-offset-2 ring-offset-background transition-transform duration-300 hover:scale-105">
                 <AvatarImage src={profileImage || user.profileImage || undefined} alt="" />
                 <AvatarFallback className="bg-primary/10 font-bold text-primary">
                   {user.fullName.slice(0, 2).toUpperCase()}

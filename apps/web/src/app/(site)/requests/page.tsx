@@ -26,7 +26,7 @@ export default function MyRequestsPage() {
   return (
     <div className="space-y-6">
       <Reveal>
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+        <h1 className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tight sm:text-3xl">
           <FileText className="h-5 w-5 text-primary" /> My requests
         </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
@@ -44,7 +44,7 @@ export default function MyRequestsPage() {
         <Stagger className="space-y-3">
           {data.items.map((r) => (
             <StaggerItem key={r.id}>
-              <Card className="card-lift hover:shadow-md">
+              <Card className="card-lift transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-glow">
                 <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

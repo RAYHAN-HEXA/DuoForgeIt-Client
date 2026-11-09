@@ -138,14 +138,16 @@ function RequestDetailContent() {
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-12">
       <Reveal>
         <p className="font-mono text-xs text-muted-foreground">{data.referenceNo}</p>
-        <h1 className="mt-1 flex items-center gap-2 text-2xl font-bold tracking-tight">
+        <h1 className="mt-1 flex items-center gap-2 font-heading text-2xl font-bold tracking-tight sm:text-3xl">
           <FileText className="h-5 w-5 text-primary" /> {data.serviceName}
         </h1>
-        <Badge variant="outline" className="mt-2">{label(data.status)}</Badge>
+        <Badge variant="outline" className="mt-2 border-primary/20 bg-primary/5 text-primary">
+          {label(data.status)}
+        </Badge>
       </Reveal>
 
       {accepted && (
-        <Card className="card-lift border-primary/40 bg-primary/[0.04]">
+        <Card className="card-lift animate-badge-pop border-primary/40 bg-gradient-to-r from-primary/8 to-brand-fuchsia/5 shadow-glow">
           <CardContent className="flex items-start gap-3 p-4">
             <PartyPopper className="h-5 w-5 text-primary" />
             <div className="text-sm">
@@ -167,7 +169,7 @@ function RequestDetailContent() {
           </CardHeader>
           <CardContent className="space-y-4">
             {data.quotations.map((q) => (
-              <div key={q.id} className="rounded-lg border p-4">
+              <div key={q.id} className="rounded-xl border border-primary/15 bg-gradient-to-br from-primary/[0.03] to-transparent p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium">Version {q.version}</p>
                   <Badge variant={q.status === 'SENT' && !expired ? 'secondary' : 'outline'}>{label(q.status)}</Badge>
@@ -179,9 +181,9 @@ function RequestDetailContent() {
                       <span className="font-medium">৳{item.amount}</span>
                     </li>
                   ))}
-                  <li className="flex justify-between gap-2 border-t pt-1 font-semibold">
+                  <li className="flex justify-between gap-2 border-t pt-1 font-heading font-semibold">
                     <span>Total</span>
-                    <span>৳{q.price}</span>
+                    <span className="text-primary">৳{q.price}</span>
                   </li>
                 </ul>
                 {q.scopeText && <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{q.scopeText}</p>}

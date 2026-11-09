@@ -114,7 +114,7 @@ export default function RegisterPage() {
       <div className="flex flex-col items-center gap-4 text-center">
         <Mascot mood={mood} className="h-40 w-40" />
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">Create your account</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Track orders, chat with founders, and get secure deliverables.
           </p>

@@ -39,7 +39,7 @@ export default function AdminMessagesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+        <h1 className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tight sm:text-3xl">
           <Inbox className="h-5 w-5 text-primary" /> Contact inbox
         </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">Messages from the public contact form.</p>
@@ -52,7 +52,14 @@ export default function AdminMessagesPage() {
       ) : data && data.items.length > 0 ? (
         <div className="space-y-3">
           {data.items.map((m) => (
-            <Card key={m.id} className={!m.isRead ? 'border-primary/30 bg-primary/[0.03]' : undefined}>
+            <Card
+              key={m.id}
+              className={
+                !m.isRead
+                  ? 'card-lift relative overflow-hidden border-primary/25 bg-primary/[0.03] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-gradient-to-b before:from-primary before:to-brand-fuchsia'
+                  : 'card-lift'
+              }
+            >
               <CardContent className="space-y-2 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">

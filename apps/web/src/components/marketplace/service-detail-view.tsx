@@ -66,16 +66,20 @@ export function ServiceDetailView({
           <span>{service.category.name}</span>
         </nav>
 
-        <div className="overflow-hidden rounded-2xl border">
-          <div className={`relative h-44 sm:h-56 ${image ? '' : 'bg-primary/5'}`}>
+        <div className="group/hero overflow-hidden rounded-2xl border border-primary/10 shadow-glow">
+          <div className={`relative h-44 overflow-hidden sm:h-56 ${image ? '' : 'bg-gradient-to-br from-primary/10 to-brand-fuchsia/5'}`}>
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={image} alt="" className="h-full w-full object-cover" />
+              <img src={image} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover/hero:scale-[1.03]" />
             ) : (
               <div className="flex h-full items-center justify-center">
                 <CategoryIcon iconKey={service.category.iconKey} className="h-14 w-14 text-primary/50" />
               </div>
             )}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card/70 to-transparent"
+            />
             <div className="absolute left-4 top-4 flex gap-1.5">
               {service.isPopular && (
                 <Badge className="border-0 bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300">Popular</Badge>
@@ -92,7 +96,7 @@ export function ServiceDetailView({
                 <CategoryIcon iconKey={service.category.iconKey} className="h-4 w-4" aria-hidden="true" />
                 {service.category.name}
               </p>
-              <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">{service.name}</h1>
+              <h1 className="mt-2 font-heading text-2xl font-bold tracking-tight sm:text-3xl">{service.name}</h1>
               {service.tagline && <p className="mt-2 text-lg text-muted-foreground">{service.tagline}</p>}
               {showDelivery && (
                 <p className="mt-3 flex items-center gap-1.5 text-sm font-medium">
@@ -103,13 +107,13 @@ export function ServiceDetailView({
             </div>
 
             {/* Order box */}
-            <Card className="card-lift w-full shrink-0 lg:w-80">
+            <Card className="card-lift w-full shrink-0 border-primary/20 shadow-glow lg:sticky lg:top-24 lg:w-80">
               <CardContent className="space-y-3 p-5">
                 <div>
                   <p className="text-xs text-muted-foreground">
                     {service.pricingModel === 'CUSTOM_QUOTE' ? 'Pricing' : 'Price'}
                   </p>
-                  <p className="text-2xl font-bold text-primary">{priceLabel}</p>
+                  <p className="font-heading text-2xl font-bold text-primary">{priceLabel}</p>
                   {service.priceNote && <p className="mt-1 text-xs text-muted-foreground">{service.priceNote}</p>}
                 </div>
                 <Button className="w-full" asChild>
@@ -128,12 +132,12 @@ export function ServiceDetailView({
       {/* Description + features */}
       <div className="grid gap-8 lg:grid-cols-5">
         <Reveal className="lg:col-span-3">
-          <h2 className="text-xl font-semibold">About this service</h2>
+          <h2 className="font-heading text-xl font-semibold">About this service</h2>
           <p className="mt-3 whitespace-pre-line leading-relaxed text-muted-foreground">{service.description}</p>
 
           {service.features.length > 0 && (
             <>
-              <h3 className="mt-8 text-lg font-semibold">What&apos;s included</h3>
+              <h3 className="mt-8 font-heading text-lg font-semibold">What&apos;s included</h3>
               <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                 {service.features.map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm">
@@ -193,7 +197,7 @@ export function ServiceDetailView({
       {/* Pricing breakdown */}
       {(service.packages.length > 0 || service.addOns.length > 0) && (
         <Reveal>
-          <h2 className="text-xl font-semibold">Pricing &amp; packages</h2>
+          <h2 className="font-heading text-xl font-semibold">Pricing &amp; packages</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {service.packages.map((p) => (
               <Card key={p.id} className="card-lift border-primary/30">
@@ -234,7 +238,7 @@ export function ServiceDetailView({
       {/* FAQs */}
       {service.faqs.length > 0 && (
         <Reveal>
-          <h2 className="text-xl font-semibold">Frequently asked questions</h2>
+          <h2 className="font-heading text-xl font-semibold">Frequently asked questions</h2>
           <Accordion type="single" collapsible className="mt-4">
             {service.faqs.map((faq, i) => (
               <AccordionItem key={faq.q} value={`faq-${i}`}>
@@ -250,7 +254,7 @@ export function ServiceDetailView({
       {related.length > 0 && (
         <Reveal>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Related services</h2>
+            <h2 className="font-heading text-xl font-semibold">Related services</h2>
             <Button variant="ghost" size="sm" asChild>
               <Link href={`/services?category=${service.category.slug}`}>
                 All in {service.category.name} <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -275,11 +279,11 @@ export function ServiceDetailView({
 
       {/* Bottom CTA */}
       <Reveal>
-        <div className="flex flex-col items-start gap-4 rounded-xl border border-primary/30 bg-primary/5 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex flex-col items-start gap-4 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/8 via-background to-brand-fuchsia/5 p-6 shadow-soft sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <FileText className="mt-1 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
             <div>
-              <h2 className="text-lg font-semibold">Ready to start?</h2>
+              <h2 className="font-heading text-lg font-semibold">Ready to start?</h2>
               <p className="text-sm text-muted-foreground">
                 Submit the service-specific form — no payment is taken until you accept a quotation.
               </p>

@@ -60,20 +60,24 @@ export function OnboardingOverlay() {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           role="status"
         >
           <motion.div
-            className="w-[min(92vw,380px)] rounded-2xl border bg-card p-6 shadow-lg"
+            className="relative w-[min(92vw,380px)] overflow-hidden rounded-2xl border border-primary/20 bg-card p-6 shadow-glow"
             initial={reduceMotion ? false : { scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={reduceMotion ? undefined : { scale: 0.95, opacity: 0 }}
           >
-            <div className="mx-auto flex w-fit flex-col items-center gap-4 text-center">
-              <div className="relative flex h-28 w-28 items-center justify-center rounded-xl border bg-background">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-aurora-rich opacity-40"
+            />
+            <div className="relative mx-auto flex w-fit flex-col items-center gap-4 text-center">
+              <div className="relative flex h-28 w-28 items-center justify-center rounded-xl border border-primary/20 bg-background shadow-soft">
                 {/* a little monitor that boots */}
                 <motion.div
                   className="absolute inset-2 rounded-lg bg-primary/10"
@@ -92,7 +96,7 @@ export function OnboardingOverlay() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <p className="font-medium">
+                <p className="font-heading font-medium">
                   Welcome to TechService Hub, {name}. Let&apos;s build something great!
                 </p>
                 <div className="flex h-5 items-center justify-center gap-1.5 text-sm text-muted-foreground">

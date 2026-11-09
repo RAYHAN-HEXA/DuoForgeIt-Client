@@ -60,7 +60,7 @@ export default function AdminRequestsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+          <h1 className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tight sm:text-3xl">
             <FileText className="h-5 w-5 text-primary" /> Service requests
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
@@ -88,7 +88,7 @@ export default function AdminRequestsPage() {
           {data.items.map((r) => (
             <Card
               key={r.id}
-              className="cursor-pointer transition-colors hover:border-primary/40"
+              className="card-lift cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-glow"
               onClick={() => setOpenId(r.id)}
             >
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">

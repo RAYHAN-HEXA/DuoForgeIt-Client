@@ -61,7 +61,7 @@ export default function AdminOrdersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
+          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">Orders</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">{data?.total ?? '…'} total</p>
         </div>
         <div className="flex gap-2">
@@ -89,7 +89,7 @@ export default function AdminOrdersPage() {
         </div>
       ) : data && data.items.length > 0 ? (
         <>
-          <Card>
+          <Card className="overflow-hidden shadow-soft">
             <CardContent className="p-0">
               <table className="w-full text-sm">
                 <thead>
@@ -104,7 +104,7 @@ export default function AdminOrdersPage() {
                 </thead>
                 <tbody>
                   {data.items.map((o) => (
-                    <tr key={o.id} className="border-b last:border-0 hover:bg-muted/40">
+                    <tr key={o.id} className="border-b last:border-0 transition-colors hover:bg-primary/[0.035]">
                       <td className="p-3">
                         <p className="font-medium">{o.title}</p>
                         <p className="text-xs text-muted-foreground">{o.orderNumber} · {new Date(o.createdAt).toLocaleDateString()}</p>
@@ -115,7 +115,7 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="p-3"><StatusBadge status={o.status} /></td>
                       <td className="p-3">{o.paymentStatus ? <StatusBadge status={o.paymentStatus} /> : <span className="text-xs text-muted-foreground">none</span>}</td>
-                      <td className="p-3 font-semibold">{formatBDT(o.totalAmount)}</td>
+                      <td className="p-3 font-heading font-semibold">{formatBDT(o.totalAmount)}</td>
                       <td className="p-3 text-right">
                         <Button variant="ghost" size="sm" asChild>
                           <Link href={`/admin/orders/${o.id}`}>Open <ArrowRight className="h-3.5 w-3.5" /></Link>

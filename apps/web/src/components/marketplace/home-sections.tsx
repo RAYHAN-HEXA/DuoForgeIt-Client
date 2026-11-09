@@ -47,18 +47,22 @@ export function MarketplaceHomeSections() {
 function MarketplaceCategories({ categories }: { categories?: MarketplaceCategoryDto[] }) {
   if (!categories?.length) return null;
   return (
-    <section className="border-y bg-muted/30 py-14">
+    <section className="relative border-y bg-muted/20 py-14">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent"
+      />
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex flex-wrap items-center justify-center gap-3">
           {categories.map((c) => (
             <Link
               key={c.slug}
               href={`/services?category=${c.slug}`}
-              className="group flex items-center gap-2 rounded-full border bg-background px-4 py-2 text-sm font-medium transition-all hover:border-primary/40 hover:shadow-sm"
+              className="group flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-4 py-2 text-sm font-medium shadow-xs backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary hover:text-primary-foreground hover:shadow-glow"
             >
-              <CategoryIcon iconKey={c.iconKey} className="h-4 w-4 text-primary" />
+              <CategoryIcon iconKey={c.iconKey} className="h-4 w-4 text-primary transition-colors duration-300 group-hover:text-primary-foreground" />
               {c.name}
-              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+              <ArrowRight className="h-3.5 w-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
             </Link>
           ))}
         </div>
@@ -82,9 +86,13 @@ function MarketplaceFeatured({
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* Section heading mirrors the homepage SectionHeading markup */}
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">Services</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Popular services, ready to start</h2>
-          <p className="mt-3 text-muted-foreground">
+          <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+            <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-gradient-to-r from-primary to-brand-fuchsia" />
+            Services
+          </p>
+          <h2 className="text-balance font-heading text-3xl font-bold tracking-tight sm:text-4xl">Popular services, ready to start</h2>
+          <span aria-hidden="true" className="mx-auto mt-4 block h-px w-16 rounded-full bg-gradient-to-r from-primary via-brand-violet to-brand-fuchsia" />
+          <p className="mt-3 text-pretty text-muted-foreground">
             Starting prices — submit a request with your requirements and we send a quotation before any payment.
           </p>
         </div>

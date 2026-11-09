@@ -41,7 +41,7 @@ export default function CartPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <Reveal>
-        <h1 className="text-3xl font-bold tracking-tight">Your cart</h1>
+        <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Your cart</h1>
         <p className="mt-1 text-muted-foreground">Review your services before checkout.</p>
       </Reveal>
 
@@ -99,7 +99,7 @@ export default function CartPage() {
                           value={item.requirements ?? ''}
                           placeholder="Requirements for this item (optional)…"
                           rows={2}
-                          className="w-full resize-y rounded-md border bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                          className="w-full resize-y rounded-lg border border-border/70 bg-transparent px-3 py-2 text-sm transition-shadow placeholder:text-muted-foreground focus-visible:border-primary/40 focus-visible:shadow-[0_0_0_4px_color-mix(in_oklch,var(--primary)_10%,transparent)] focus-visible:outline-none"
                           onBlur={(e) => {
                             if ((item.requirements ?? '') !== e.target.value) {
                               void withBusy(item.id, () => updateItem(item.id, { requirements: e.target.value || null }));
@@ -144,9 +144,9 @@ export default function CartPage() {
           </div>
 
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <Card className="card-lift hover:shadow-lg">
+            <Card className="card-lift border-primary/20 shadow-glow">
               <CardContent className="space-y-4 p-6">
-                <h2 className="font-semibold">Order summary</h2>
+                <h2 className="font-heading font-semibold">Order summary</h2>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal ({cart.items.length} item{cart.items.length > 1 ? 's' : ''})</span>
@@ -159,7 +159,7 @@ export default function CartPage() {
                   <Separator />
                   <div className="flex justify-between font-semibold">
                     <span>Total</span>
-                    <span className="text-lg">{formatBDT(cart.total)}</span>
+                    <span className="font-heading text-lg">{formatBDT(cart.total)}</span>
                   </div>
                 </div>
                 <Button size="lg" className="w-full" onClick={() => router.push('/checkout')}>

@@ -45,7 +45,7 @@ function OrdersContent({ enabled }: { enabled: boolean }) {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
       <Reveal>
-        <h1 className="text-3xl font-bold tracking-tight">My orders</h1>
+        <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">My orders</h1>
         <p className="mt-1 text-muted-foreground">Track progress, download deliverables, request revisions.</p>
       </Reveal>
 
@@ -67,7 +67,7 @@ function OrdersContent({ enabled }: { enabled: boolean }) {
               {data.items.map((o) => (
                 <StaggerItem key={o.id}>
                   <Link href={`/orders/${o.id}`} className="group block">
-                    <Card className="card-lift hover:-translate-y-0.5 hover:shadow-md">
+                    <Card className="card-lift transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-glow">
                       <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -80,7 +80,7 @@ function OrdersContent({ enabled }: { enabled: boolean }) {
                         </div>
                         <div className="flex items-center gap-3">
                           <StatusBadge status={o.status} />
-                          <span className="font-bold">{formatBDT(o.totalAmount)}</span>
+                          <span className="font-heading font-bold">{formatBDT(o.totalAmount)}</span>
                           <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5" />
                         </div>
                       </CardContent>
@@ -115,8 +115,10 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
     <button
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 ${
-        active ? 'border-primary bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
+      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
+        active
+          ? 'border-primary bg-gradient-to-r from-primary to-brand-violet text-primary-foreground shadow-glow'
+          : 'border-border/70 bg-background/80 text-muted-foreground hover:border-primary/40 hover:text-foreground'
       }`}
     >
       {children}

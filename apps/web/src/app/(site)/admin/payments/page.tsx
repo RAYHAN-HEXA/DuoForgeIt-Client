@@ -106,7 +106,7 @@ export default function AdminPaymentsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+          <h1 className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tight sm:text-3xl">
             <Wallet className="h-5 w-5 text-primary" /> Payment management
           </h1>
           <p className="mt-0.5 max-w-2xl text-sm text-muted-foreground">
@@ -127,8 +127,8 @@ export default function AdminPaymentsPage() {
               setPage(1);
             }}
             className={cn(
-              'text-left transition-shadow hover:shadow-md rounded-xl',
-              status === card.key && 'ring-2 ring-primary',
+              'rounded-xl text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow',
+              status === card.key && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
             )}
           >
             <StatCard
@@ -141,7 +141,7 @@ export default function AdminPaymentsPage() {
         <button
           type="button"
           onClick={resetFilters}
-          className={cn('text-left transition-shadow hover:shadow-md rounded-xl', !hasFilters && 'ring-2 ring-primary')}
+          className={cn('rounded-xl text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow', !hasFilters && 'ring-2 ring-primary ring-offset-2 ring-offset-background')}
         >
           <StatCard
             icon={CircleDollarSign}
@@ -255,7 +255,7 @@ export default function AdminPaymentsPage() {
       ) : (
         <>
           {/* Desktop table */}
-          <Card className="hidden lg:block">
+          <Card className="hidden overflow-hidden shadow-soft lg:block">
             <CardContent className="p-0">
               <table className="w-full text-sm">
                 <thead>
@@ -317,7 +317,7 @@ function StatCard({ icon: Icon, label, value, hint }: { icon: typeof Wallet; lab
   return (
     <Card size="sm">
       <CardContent className="flex items-center gap-3 py-1">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/15">
           <Icon className="h-4 w-4 text-primary" />
         </div>
         <div className="min-w-0">
@@ -325,7 +325,7 @@ function StatCard({ icon: Icon, label, value, hint }: { icon: typeof Wallet; lab
           {value === null ? (
             <Skeleton className="mt-1 h-6 w-10" />
           ) : (
-            <p className="text-lg font-semibold leading-tight">{value}</p>
+            <p className="font-heading text-lg font-semibold leading-tight">{value}</p>
           )}
           {hint && <p className="truncate text-[11px] text-muted-foreground">{hint}</p>}
         </div>
@@ -337,7 +337,7 @@ function StatCard({ icon: Icon, label, value, hint }: { icon: typeof Wallet; lab
 function PaymentRow({ payment, onOpen }: { payment: AdminPaymentDto; onOpen: () => void }) {
   const reviewable = payment.status === 'PENDING' || payment.status === 'SUBMITTED';
   return (
-    <tr className="border-b last:border-0 hover:bg-muted/40">
+    <tr className="border-b last:border-0 transition-colors hover:bg-primary/[0.035]">
       <td className="p-3">
         <p>{payment.order.customerName}</p>
         <p className="text-xs text-muted-foreground">{payment.order.customerEmail}</p>
@@ -360,7 +360,7 @@ function PaymentRow({ payment, onOpen }: { payment: AdminPaymentDto; onOpen: () 
           {payment.methodLabelSnapshot ?? payment.methodKeySnapshot ?? 'Legacy submission'}
         </p>
       </td>
-      <td className="p-3 font-semibold">{formatBDT(payment.amount)}</td>
+      <td className="p-3 font-heading font-semibold">{formatBDT(payment.amount)}</td>
       <td className="p-3">
         <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
           {payment.transactionId ?? '—'}
@@ -401,7 +401,7 @@ function MobilePaymentCard({ payment, onOpen }: { payment: AdminPaymentDto; onOp
               </span>
             )}
           </div>
-          <p className="text-lg font-bold">{formatBDT(payment.amount)}</p>
+          <p className="font-heading text-lg font-bold">{formatBDT(payment.amount)}</p>
         </div>
         <p className="text-muted-foreground">
           {payment.order.customerName} —{' '}

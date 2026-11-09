@@ -95,9 +95,9 @@ export function ServiceCard({ service }: { service: MarketplaceServiceCardDto })
 
   return (
     <motion.div variants={cardVariants(Boolean(reduced))} className="h-full">
-      <article className="group flex h-full flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 focus-within:border-primary/50 focus-within:shadow-lg">
+      <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-soft transition-all duration-500 hover:-translate-y-1 hover:border-primary/40 hover:shadow-glow focus-within:border-primary/50 focus-within:shadow-glow">
         {/* Thumbnail strip (image zoom on hover; icon fallback keeps heights stable → no CLS) */}
-        <div className="relative h-32 overflow-hidden bg-primary/5">
+        <div className="relative h-32 overflow-hidden bg-gradient-to-br from-primary/10 to-brand-fuchsia/5">
           {image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -111,6 +111,10 @@ export function ServiceCard({ service }: { service: MarketplaceServiceCardDto })
               <CategoryIcon iconKey={service.category.iconKey} className="h-10 w-10 text-primary/60" />
             </div>
           )}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card/60 to-transparent"
+          />
           <div className="absolute left-3 top-3 flex gap-1.5">
             {service.isPopular && (
               <Badge className="gap-1 border-0 bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300">
@@ -131,7 +135,7 @@ export function ServiceCard({ service }: { service: MarketplaceServiceCardDto })
             <span>{service.category.name}</span>
           </div>
 
-          <h3 className="text-base font-semibold leading-snug">
+          <h3 className="font-heading text-base font-semibold leading-snug">
             <Link
               href={`/services/${service.slug}`}
               className="rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -146,7 +150,7 @@ export function ServiceCard({ service }: { service: MarketplaceServiceCardDto })
             <div className="flex items-center justify-between gap-2">
               <div>
                 <p className="sr-only">Price</p>
-                <p className="text-lg font-bold text-primary" data-testid="price-label">
+                <p className="font-heading text-lg font-bold text-primary" data-testid="price-label">
                   {formatPriceLabel(service)}
                 </p>
                 {showDelivery && (

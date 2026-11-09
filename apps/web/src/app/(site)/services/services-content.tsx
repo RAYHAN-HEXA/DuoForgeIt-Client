@@ -97,7 +97,9 @@ export function ServicesContent({ initialData }: { initialData?: Paginated<Servi
     <div className="space-y-8">
       <Reveal className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Services</h1>
+          <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+            Services
+          </h1>
           <p className="mt-1 text-muted-foreground">
             {isOutOfRange
               ? `Page ${page} doesn’t exist — this catalog has ${totalPages} page${totalPages === 1 ? '' : 's'}.`
@@ -243,8 +245,10 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
-        active ? 'border-primary bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
+      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
+        active
+          ? 'border-primary bg-gradient-to-r from-primary to-brand-violet text-primary-foreground shadow-glow'
+          : 'border-border/70 bg-background/80 text-muted-foreground hover:-translate-y-0.5 hover:border-primary/40 hover:text-foreground'
       }`}
     >
       {children}
@@ -254,13 +258,13 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 function ServiceCard({ service }: { service: ServiceDto }) {
   return (
-    <Card className="card-lift group flex h-full flex-col hover:-translate-y-1 hover:shadow-lg">
+    <Card className="card-lift group flex h-full flex-col transition-transform duration-500 hover:-translate-y-1 hover:shadow-glow">
       <CardContent className="flex flex-1 flex-col gap-3 p-6">
         <div className="flex items-center justify-between">
-          <Badge variant="secondary">{service.category.name}</Badge>
+          <Badge variant="secondary" className="bg-primary/8 text-primary">{service.category.name}</Badge>
           {service.isFeatured && <Star className="h-4 w-4 fill-amber-400 text-amber-400" />}
         </div>
-        <h3 className="text-lg font-semibold leading-snug">{service.name}</h3>
+        <h3 className="font-heading text-lg font-semibold leading-snug">{service.name}</h3>
         <p className="line-clamp-2 text-sm text-muted-foreground">{service.tagline ?? service.description}</p>
         <div className="mt-auto flex items-center justify-between pt-3">
           <div>
@@ -272,9 +276,9 @@ function ServiceCard({ service }: { service: ServiceDto }) {
             <p className="text-sm font-medium">{service.deliveryDays} days</p>
           </div>
         </div>
-        <Button variant="outline" className="mt-2 w-full group-hover:bg-primary group-hover:text-primary-foreground" asChild>
+        <Button variant="outline" className="mt-2 w-full transition-colors duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground" asChild>
           <Link href={`/services/${service.slug}`}>
-            View details <ArrowRight className="h-4 w-4" />
+            View details <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           </Link>
         </Button>
       </CardContent>

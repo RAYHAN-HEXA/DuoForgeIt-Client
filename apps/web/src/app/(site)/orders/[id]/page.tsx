@@ -91,7 +91,7 @@ function OrderDetailContent() {
       <Reveal className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">{order.title}</h1>
+            <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">{order.title}</h1>
             <StatusBadge status={order.status} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -107,7 +107,7 @@ function OrderDetailContent() {
       {cancellable && <CancelSection orderId={order.id} onDone={() => void mutate()} />}
 
       {/* Progress tracker */}
-      <Card className="card-lift">
+      <Card className="card-lift border-primary/15 shadow-glow">
         <CardHeader>
           <CardTitle className="text-base">Progress</CardTitle>
         </CardHeader>
@@ -158,9 +158,9 @@ function OrderDetailContent() {
                 <Separator />
               </div>
             ))}
-            <div className="flex justify-between font-bold">
+            <div className="flex justify-between font-heading font-bold">
               <span>Total</span>
-              <span>{formatBDT(order.totalAmount)}</span>
+              <span className="text-primary">{formatBDT(order.totalAmount)}</span>
             </div>
             {order.notes && (
               <p className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">{order.notes}</p>
@@ -175,7 +175,7 @@ function OrderDetailContent() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/15">
                 <UserRound className="h-4 w-4 text-primary" />
               </div>
               <div>
@@ -238,7 +238,7 @@ function OrderDetailContent() {
                   )}
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="font-semibold">{formatBDT(p.amount)}</p>
+                  <p className="font-heading font-semibold">{formatBDT(p.amount)}</p>
                   <StatusBadge status={p.status} className="mt-1" />
                 </div>
               </div>
@@ -322,7 +322,7 @@ function OrderDetailContent() {
                   {order.deliverables.map((d) => (
                     <li key={d.id} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
                       <span className="flex min-w-0 items-center gap-2">
-                        <FileText className="h-4 w-4 shrink-0 text-primary" />
+                        <FileText className="h-4 w-4 shrink-0 text-primary drop-shadow-[0_0_6px_var(--glow)]" />
                         <span className="truncate font-medium">{d.title}</span>
                         <Badge variant="outline" className="shrink-0 text-[10px]">v{d.version}</Badge>
                       </span>

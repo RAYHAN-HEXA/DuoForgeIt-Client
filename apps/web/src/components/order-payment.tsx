@@ -338,7 +338,7 @@ export function OrderPaymentSection({
           />
         ) : (
           <>
-            <ol className="space-y-1 rounded-lg border p-3 text-sm text-muted-foreground">
+            <ol className="space-y-1 rounded-xl border border-primary/15 bg-gradient-to-br from-primary/[0.04] to-transparent p-3 text-sm text-muted-foreground">
               <li>
                 1. Pick a receiving account below and open its app (bKash / Nagad / Rocket / your
                 bank).
@@ -372,7 +372,7 @@ export function OrderPaymentSection({
                   <Label
                     key={account.id}
                     className={cn(
-                      'flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm has-[[data-state=checked]]:border-primary',
+                      'flex cursor-pointer items-start gap-3 rounded-xl border p-3 text-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-soft has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/[0.04] has-[[data-state=checked]]:shadow-glow',
                       selectedId && selectedId !== account.id && 'opacity-70',
                     )}
                   >
@@ -401,7 +401,7 @@ export function OrderPaymentSection({
 
             {/* Selected account details + instructions */}
             {selected && (
-              <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
+              <div className="space-y-4 rounded-xl border border-primary/15 bg-gradient-to-br from-primary/[0.04] to-transparent p-4 shadow-soft">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="flex items-center gap-2 text-sm font-medium">
@@ -620,9 +620,21 @@ function SummaryTile({
   highlight?: boolean;
 }) {
   return (
-    <div className={cn('rounded-lg border p-3', highlight && 'border-primary/40 bg-primary/5')}>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={cn('mt-0.5 text-lg font-semibold', muted && 'text-muted-foreground')}>
+    <div
+      className={cn(
+        'rounded-xl border border-border/70 bg-card/60 p-3 shadow-soft transition-colors',
+        highlight &&
+          'border-primary/30 bg-gradient-to-br from-primary/10 to-brand-fuchsia/5 shadow-glow',
+      )}
+    >
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p
+        className={cn(
+          'mt-1 font-heading text-lg font-semibold',
+          muted && 'text-muted-foreground',
+          highlight && 'text-primary',
+        )}
+      >
         {value}
       </p>
     </div>

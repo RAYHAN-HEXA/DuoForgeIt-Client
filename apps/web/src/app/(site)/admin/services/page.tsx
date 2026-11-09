@@ -162,7 +162,7 @@ export default function AdminServicesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+          <h1 className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tight sm:text-3xl">
             <Store className="h-5 w-5 text-primary" /> Service catalog
           </h1>
           <p className="mt-0.5 max-w-2xl text-sm text-muted-foreground">
@@ -437,7 +437,7 @@ function SummaryCard({
   return (
     <Card size="sm">
       <CardContent className="flex items-center gap-3 py-1">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/15">
           <Icon className="h-4 w-4 text-primary" />
         </div>
         <div className="min-w-0">
@@ -445,7 +445,7 @@ function SummaryCard({
           {value === null ? (
             <Skeleton className="mt-1 h-6 w-10" />
           ) : (
-            <p className="text-lg font-semibold leading-tight">{value}</p>
+            <p className="font-heading text-lg font-semibold leading-tight">{value}</p>
           )}
           <p className="truncate text-[11px] text-muted-foreground">{hint}</p>
         </div>
@@ -487,7 +487,7 @@ function ServiceRow({
       <CardContent className="space-y-3 py-1">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-start gap-3">
-            <div className="hidden h-16 w-24 shrink-0 overflow-hidden rounded-lg border bg-primary/5 sm:block">
+            <div className="hidden h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-primary/10 bg-gradient-to-br from-primary/10 to-brand-fuchsia/5 sm:block">
               {image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={image} alt="" className="h-full w-full object-cover" loading="lazy" />

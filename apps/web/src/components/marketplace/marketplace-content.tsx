@@ -107,8 +107,12 @@ export function MarketplaceContent() {
       {/* Heading + intro */}
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Service Marketplace</h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+            <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-gradient-to-r from-primary to-brand-fuchsia" />
+            Marketplace
+          </p>
+          <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Service Marketplace</h1>
+          <p className="mt-2 text-pretty text-muted-foreground">
             Browse our services, submit a request with your requirements, receive a quotation, and pay
             securely from your wallet. Prices shown are starting prices — the final quotation depends on
             complexity, scope and deadline.
@@ -182,9 +186,9 @@ export function MarketplaceContent() {
           initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduced ? 0.15 : 0.3 }}
-          className="flex items-start gap-4 rounded-xl border bg-primary/5 p-5"
+          className="flex items-start gap-4 rounded-2xl border border-primary/15 bg-gradient-to-r from-primary/8 to-brand-fuchsia/5 p-5 shadow-soft"
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/15">
             <CategoryIcon iconKey={activeCategory.iconKey} className="h-6 w-6 text-primary" />
           </div>
           <div>
@@ -346,7 +350,7 @@ function ServiceSection({
     >
       <div className="mb-4 flex items-center gap-2">
         {icon}
-        <h2 className="text-xl font-semibold">{title}</h2>
+        <h2 className="font-heading text-xl font-semibold">{title}</h2>
       </div>
       {children}
     </motion.section>
@@ -374,10 +378,10 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 ${
+      className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 ${
         active
-          ? 'border-primary bg-primary text-primary-foreground'
-          : 'bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
+          ? 'border-primary bg-gradient-to-r from-primary to-brand-violet text-primary-foreground shadow-glow'
+          : 'border-border/70 bg-background/80 text-muted-foreground hover:border-primary/40 hover:text-foreground'
       }`}
     >
       {children}

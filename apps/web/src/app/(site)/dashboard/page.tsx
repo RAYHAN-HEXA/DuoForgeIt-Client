@@ -19,7 +19,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/empty-state';
 import { AnimatedCounter } from '@/components/motion/animated-counter';
-import { Reveal } from '@/components/motion/reveal';
+import { Reveal, Stagger, StaggerItem } from '@/components/motion/reveal';
 import { StatusBadge } from '@/components/status-badge';
 import { RequireAuth } from '@/components/guards';
 import { useAuth } from '@/hooks/use-auth';
@@ -46,10 +46,14 @@ function DashboardContent({ name, emailVerified }: { name: string; emailVerified
   const pendingPayments = orders.filter((o) => o.paymentStatus === 'SUBMITTED' || o.paymentStatus === 'PENDING');
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-24 left-1/4 h-56 w-[520px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
+      />
+      <div className="relative flex flex-wrap items-center justify-between gap-3">
         <Reveal>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
             Welcome back, {name.split(' ')[0]}
           </h1>
           <p className="mt-1 text-muted-foreground">Your projects at a glance.</p>
@@ -67,12 +71,12 @@ function DashboardContent({ name, emailVerified }: { name: string; emailVerified
       )}
 
       {/* Stats */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={Package} label="Total orders" value={data?.total ?? 0} loading={isLoading} />
-        <StatCard icon={Clock3} label="Active" value={active.length} loading={isLoading} />
-        <StatCard icon={CircleCheckBig} label="Completed" value={completed.length} loading={isLoading} />
-        <StatCard icon={Wallet} label="Payments to verify" value={pendingPayments.length} loading={isLoading} />
-      </div>
+      <Stagger className="relative mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StaggerItem><StatCard icon={Package} label="Total orders" value={data?.total ?? 0} loading={isLoading} /></StaggerItem>
+        <StaggerItem><StatCard icon={Clock3} label="Active" value={active.length} loading={isLoading} /></StaggerItem>
+        <StaggerItem><StatCard icon={CircleCheckBig} label="Completed" value={completed.length} loading={isLoading} /></StaggerItem>
+        <StaggerItem><StatCard icon={Wallet} label="Payments to verify" value={pendingPayments.length} loading={isLoading} /></StaggerItem>
+      </Stagger>
 
       {/* Recent orders */}
       <div className="mt-10">
@@ -95,7 +99,7 @@ function DashboardContent({ name, emailVerified }: { name: string; emailVerified
           <div className="mt-4 space-y-3">
             {orders.map((o) => (
               <Link key={o.id} href={`/orders/${o.id}`} className="group block">
-                <Card className="card-lift hover:-translate-y-0.5 hover:shadow-md">
+                <Card className="card-lift transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-glow">
                   <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                     <div>
                       <p className="font-medium">{o.title}</p>
@@ -133,14 +137,14 @@ function StatCard({ icon: Icon, label, value, loading }: { icon: React.Component
   return (
     <Card className="card-lift hover:shadow-md">
       <CardContent className="flex items-center gap-4 p-5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 transition-colors duration-300 group-hover/card:bg-primary/15">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/15 transition-colors duration-300 group-hover/card:from-primary/20">
           <Icon className="h-5 w-5 text-primary" />
         </div>
         <div>
           {loading ? (
             <Skeleton className="h-6 w-10" />
           ) : (
-            <AnimatedCounter value={value} className="text-2xl font-bold leading-none" />
+            <AnimatedCounter value={value} className="font-heading text-2xl font-bold leading-none" />
           )}
           <p className="mt-1 text-sm text-muted-foreground">{label}</p>
         </div>

@@ -37,7 +37,7 @@ function NotificationsContent() {
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <Reveal className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
+          <h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">Notifications</h1>
           <p className="mt-1 text-muted-foreground">{data ? `${data.unread} unread` : ''}</p>
         </div>
         {data && data.unread > 0 && (
@@ -55,12 +55,18 @@ function NotificationsContent() {
             const card = (
               <Card
                 className={cn(
-                  'card-lift hover:shadow-sm',
-                  !n.readAt && 'border-primary/30 bg-primary/[0.04]',
+                  'card-lift relative overflow-hidden transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-glow',
+                  !n.readAt &&
+                    'border-primary/25 bg-primary/[0.04] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-gradient-to-b before:from-primary before:to-brand-fuchsia',
                 )}
               >
                 <CardContent className="flex items-start gap-3 p-4">
-                  {!n.readAt && <Dot className="-ml-1.5 mt-1 h-5 w-5 shrink-0 text-primary" strokeWidth={4} />}
+                  {!n.readAt && (
+                    <Dot
+                      className="animate-pulse-soft -ml-1.5 mt-1 h-5 w-5 shrink-0 text-primary"
+                      strokeWidth={4}
+                    />
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className={cn('text-sm', !n.readAt ? 'font-semibold' : 'font-medium')}>{n.title}</p>
                     <p className="mt-0.5 text-sm text-muted-foreground">{n.body}</p>

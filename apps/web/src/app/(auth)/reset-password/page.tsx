@@ -86,7 +86,7 @@ function ResetPasswordContent() {
               <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Password updated</h1>
+              <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">Password updated</h1>
               <p className="mt-2 text-sm text-muted-foreground">You can now sign in with your new password.</p>
             </div>
             <Button asChild>
@@ -99,7 +99,7 @@ function ResetPasswordContent() {
               <ShieldAlert className="h-8 w-8 text-destructive" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Link not valid</h1>
+              <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">Link not valid</h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 This reset link is invalid, expired, or already used.
               </p>
@@ -118,7 +118,7 @@ function ResetPasswordContent() {
       <div className="flex flex-col items-center gap-4 text-center">
         <Mascot mood={mood} className="h-40 w-40" />
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Choose a new password</h1>
+          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">Choose a new password</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             for <span className="font-medium text-foreground">{email}</span>
           </p>

@@ -41,7 +41,7 @@ export default function AdminCustomersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+          <h1 className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tight sm:text-3xl">
             <Users className="h-5 w-5 text-primary" /> Customers
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">{data?.total ?? '…'} registered</p>
@@ -57,7 +57,7 @@ export default function AdminCustomersPage() {
           {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
         </div>
       ) : data && data.items.length > 0 ? (
-        <Card>
+        <Card className="overflow-hidden shadow-soft">
           <CardContent className="p-0">
             <table className="w-full text-sm">
               <thead>
@@ -70,10 +70,10 @@ export default function AdminCustomersPage() {
               </thead>
               <tbody>
                 {data.items.map((c) => (
-                  <tr key={c.id} className="border-b last:border-0 hover:bg-muted/40">
+                  <tr key={c.id} className="border-b last:border-0 transition-colors hover:bg-primary/[0.035]">
                     <td className="p-3">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
+                        <Avatar className="h-9 w-9 ring-2 ring-primary/10 ring-offset-2 ring-offset-background">
                           <AvatarImage src={undefined} alt="" />
                           <AvatarFallback className="text-xs font-semibold">
                             {c.fullName.slice(0, 2).toUpperCase()}

@@ -566,7 +566,9 @@ export function ServiceForm({ service }: { service?: AdminServiceDetailDto }) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{isEdit ? 'Edit service' : 'Add service'}</h1>
+          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
+            {isEdit ? 'Edit service' : 'Add service'}
+          </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             {isEdit
               ? 'Changes go live immediately once saved as Published.'
@@ -825,9 +827,9 @@ export function ServiceForm({ service }: { service?: AdminServiceDetailDto }) {
                 />
               </Field>
 
-              <div className="sm:col-span-2 rounded-lg border bg-muted/40 p-4 text-sm">
+              <div className="sm:col-span-2 rounded-xl border border-primary/15 bg-gradient-to-r from-primary/5 to-brand-fuchsia/5 p-4 text-sm">
                 <p className="font-medium">Price label preview</p>
-                <p className="mt-1 text-lg font-bold text-primary">
+                <p className="mt-1 font-heading text-lg font-bold text-primary">
                   {form.pricingModel === 'FIXED' && `Fixed ৳${form.basePrice || '0'}`}
                   {form.pricingModel === 'STARTING_FROM' && `From ৳${form.priceFrom || '0'}`}
                   {form.pricingModel === 'RANGE' && `৳${form.priceFrom || '0'}–৳${form.priceTo || '0'}`}
@@ -1407,7 +1409,7 @@ export function ServiceForm({ service }: { service?: AdminServiceDetailDto }) {
         </TabsContent>
       </Tabs>
 
-      <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-between gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+      <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 bg-background/85 px-4 py-3 shadow-[0_-12px_32px_-28px_var(--glow)] backdrop-blur-xl sm:-mx-6 sm:px-6">
         <Button variant="ghost" onClick={() => router.push('/admin/services')} disabled={saving}>
           Cancel
         </Button>
