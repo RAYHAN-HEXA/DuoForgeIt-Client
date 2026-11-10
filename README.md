@@ -73,6 +73,7 @@ auth-sync endpoint claims the row — no self-service role escalation is possibl
 
 - `POST /api/auth/sync` · `GET /api/auth/me` — Firebase ID token → Neon profile
 - `GET /api/public/homepage` · `GET /api/services[/:slug]` · `GET /api/categories`
+- `POST /api/contact` — public contact form; saves to the admin inbox and emails both founders
 - `GET/POST/PATCH/DELETE /api/cart(/items/:itemId)` — server-computed totals
 - `POST /api/orders` — idempotent checkout (`TSH-YYYY-NNNNNN`, snapshot pricing,
   transactional); `GET /api/orders[/:id]`; cancel/payment/revision/review/attachment subroutes

@@ -88,25 +88,40 @@ export async function sendCustomerEmail(to: string, subject: string, html: strin
   return sendOne(to, subject, html);
 }
 
+/** Escape untrusted text before interpolating it into email HTML. */
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** Escape text and keep line breaks visible in the HTML email. */
+function emailText(value: string): string {
+  return escapeHtml(value).replace(/\r?\n/g, '<br/>');
+}
+
 /** Minimal inline-styled email shell — renders fine in Gmail/Outlook. */
 export function emailShell(title: string, rows: Array<[string, string]>, ctaText?: string, ctaUrl?: string): string {
   const rowHtml = rows
     .map(
       ([k, v]) =>
-        `<tr><td style="padding:6px 12px;color:#64748b;font-size:13px;white-space:nowrap">${k}</td>` +
-        `<td style="padding:6px 12px;color:#0f172a;font-size:14px;font-weight:600">${v}</td></tr>`,
+        `<tr><td style="padding:6px 12px;color:#64748b;font-size:13px;white-space:nowrap">${emailText(k)}</td>` +
+        `<td style="padding:6px 12px;color:#0f172a;font-size:14px;font-weight:600">${emailText(v)}</td></tr>`,
     )
     .join('');
   const cta =
     ctaText && ctaUrl
-      ? `<p style="margin:18px 0 0"><a href="${ctaUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600">${ctaText}</a></p>`
+      ? `<p style="margin:18px 0 0"><a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600">${escapeHtml(ctaText)}</a></p>`
       : '';
   return (
     `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto">` +
     `<div style="background:#0f2b5b;color:#ffffff;padding:16px 20px;border-radius:10px 10px 0 0">` +
     `<span style="font-size:15px;font-weight:700;letter-spacing:2px">TECHSERVICE HUB</span></div>` +
     `<div style="border:1px solid #e2e8f0;border-top:0;padding:20px;border-radius:0 0 10px 10px">` +
-    `<h2 style="margin:0 0 12px;font-size:17px;color:#0f2b5b">${title}</h2>` +
+    `<h2 style="margin:0 0 12px;font-size:17px;color:#0f2b5b">${escapeHtml(title)}</h2>` +
     `<table style="width:100%;border-collapse:collapse">${rowHtml}</table>${cta}` +
     `<p style="margin:16px 0 0;color:#94a3b8;font-size:12px">Automated notification — TechService Hub admin console.</p>` +
     `</div></div>`
