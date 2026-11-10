@@ -42,6 +42,15 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     if (user.accountStatus !== 'ACTIVE') {
       return next(new ApiError(403, 'ACCOUNT_SUSPENDED', 'This account is suspended'));
     }
+    // Email-verification gate — the rules layer for this stack. Google users
+    // pass via the ID-token claim; OTP-verified users have the DB flag set.
+    // /auth/sync deliberately doesn't run through here so the verify loop
+    // (/verify-email) stays reachable for unverified accounts.
+    if (!user.emailVerified && !decoded.email_verified) {
+      return next(
+        new ApiError(403, 'VERIFY_EMAIL_FIRST', 'Please verify your email address to continue'),
+      );
+    }
     req.authUser = {
       id: user.id,
       firebaseUid: user.firebaseUid!,

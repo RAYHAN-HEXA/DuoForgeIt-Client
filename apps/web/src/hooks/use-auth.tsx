@@ -13,7 +13,6 @@ import {
   updateProfile,
   verifyPasswordResetCode,
   confirmPasswordReset,
-  sendEmailVerification,
   type User as FirebaseUser,
 } from 'firebase/auth';
 import type { PublicUser } from '@tsh/shared';
@@ -45,13 +44,13 @@ export type AuthContextValue = {
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
-  register: (fullName: string, email: string, password: string) => Promise<void>;
+  /** registrationGrant = single-use token from POST /auth/otp/verify. */
+  register: (fullName: string, email: string, password: string, registrationGrant: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   confirmPasswordReset: (code: string, newPassword: string) => Promise<void>;
   verifyResetCode: (code: string) => Promise<string>;
   changePassword: (newPassword: string) => Promise<void>;
-  resendVerification: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
 
@@ -65,9 +64,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const syncedUid = useRef<string | null>(null);
 
   const syncProfile = useCallback(
-    async (fb: FirebaseUser, throwOnError = false): Promise<PublicUser | null> => {
+    async (fb: FirebaseUser, throwOnError = false, registrationGrant?: string): Promise<PublicUser | null> => {
       try {
-        const { user: profile } = await api.post<{ user: PublicUser; isNew: boolean }>('/auth/sync', {});
+        const { user: profile } = await api.post<{ user: PublicUser; isNew: boolean }>(
+          '/auth/sync',
+          registrationGrant ? { registrationGrant } : {},
+        );
         syncedUid.current = fb.uid;
         setUser(profile);
         return profile;
@@ -107,16 +109,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return unsub;
   }, [syncProfile]);
 
-  /** After registration Firebase doesn't auto-set displayName in the token — patch it. */
+  /**
+   * Create the Firebase account only AFTER the emailed OTP was verified (the
+   * registrationGrant is the proof) — a fake email can never produce an
+   * account. Firebase's sendEmailVerification is superseded by the OTP flow.
+   */
   const register = useCallback(
-    async (fullName: string, email: string, password: string) => {
+    async (fullName: string, email: string, password: string, registrationGrant: string) => {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(cred.user, { displayName: fullName });
-      if (!cred.user.emailVerified) {
-        await sendEmailVerification(cred.user).catch(() => undefined);
-      }
+      // Claim the uid before our grant-carrying sync so onAuthStateChanged
+      // doesn't fire a duplicate no-grant sync mid-registration.
+      syncedUid.current = cred.user.uid;
       try {
-        await syncProfile(cred.user, true);
+        await syncProfile(cred.user, true, registrationGrant);
       } catch (err) {
         await signOut(auth).catch(() => undefined);
         syncedUid.current = null;
@@ -185,11 +191,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await updatePassword(auth.currentUser, newPassword);
   }, []);
 
-  const resendVerification = useCallback(async () => {
-    if (!auth.currentUser) throw new Error('Not signed in');
-    await sendEmailVerification(auth.currentUser);
-  }, []);
-
   const refreshProfile = useCallback(async () => {
     if (!auth.currentUser) return;
     try {
@@ -214,7 +215,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       confirmPasswordReset: confirmPasswordResetWith,
       verifyResetCode,
       changePassword,
-      resendVerification,
       refreshProfile,
     }),
     [
@@ -229,7 +229,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       confirmPasswordResetWith,
       verifyResetCode,
       changePassword,
-      resendVerification,
       refreshProfile,
     ],
   );

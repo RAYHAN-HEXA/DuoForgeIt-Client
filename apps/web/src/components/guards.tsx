@@ -23,11 +23,17 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
     // path + search so /orders?page=2 returns to the same view after login.
     if (!loading && !user) {
       router.replace(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      return;
+    }
+    // Email-verification gate: unverified accounts remediate at /verify-email.
+    if (!loading && user && !user.emailVerified) {
+      router.replace('/verify-email');
     }
   }, [loading, user, router]);
 
   if (loading) return <GuardLoader />;
   if (!user) return <GuardLoader />; // redirect is in flight
+  if (!user.emailVerified) return <GuardLoader />; // /verify-email redirect is in flight
   return <>{children}</>;
 }
 
@@ -40,11 +46,18 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
     // after sign-in — never a hardcoded /admin.
     if (!loading && !user) {
       router.replace(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      return;
+    }
+    // Email-verification gate (admins are provisioned verified — this only
+    // catches anomalies; /verify-email self-remediates them).
+    if (!loading && user && !user.emailVerified) {
+      router.replace('/verify-email');
     }
   }, [loading, user, router]);
 
   if (loading) return <GuardLoader />;
   if (!user) return <GuardLoader />; // redirect is in flight
+  if (!user.emailVerified) return <GuardLoader />; // /verify-email redirect is in flight
   if (!isAdmin) {
     return (
       <div className="flex min-h-[50vh] flex-1 items-center justify-center px-4">

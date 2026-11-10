@@ -13,6 +13,7 @@ import {
   UPLOAD_LIMITS,
   type FormFieldType,
 } from '../constants/index.js';
+import { emailFieldSchema } from '../validation/email.js';
 
 // ─── Pagination ──────────────────────────────────────────────
 
@@ -31,11 +32,12 @@ export const loginFormSchema = z.object({
 });
 export type LoginForm = z.infer<typeof loginFormSchema>;
 
-/** Client-side registration form (Firebase creates the account). */
+/** Client-side registration form (Firebase creates the account *after* the
+ *  emailed OTP is verified — an unproven address can never create an account). */
 export const registerFormSchema = z
   .object({
     fullName: z.string().trim().min(2, 'Please enter your full name').max(120),
-    email: z.email('Enter a valid email address'),
+    email: emailFieldSchema,
     password: z.string().min(6, 'Password must be at least 6 characters').max(128),
     confirmPassword: z.string(),
   })
@@ -44,6 +46,39 @@ export const registerFormSchema = z
     path: ['confirmPassword'],
   });
 export type RegisterForm = z.infer<typeof registerFormSchema>;
+
+// ─── Email OTP (registration gate + legacy-account verification) ──────────
+
+export const OTP_PURPOSES = ['REGISTER', 'VERIFY'] as const;
+export type OtpPurpose = (typeof OTP_PURPOSES)[number];
+
+/**
+ * POST /api/auth/otp/request — email a 6-digit code. REGISTER pre-checks that
+ * the address isn't already linked to an account; VERIFY remediates existing
+ * (legacy) unverified accounts. The server re-runs this schema so a bypassed
+ * client form still hits strict syntax + disposable-domain rejection.
+ */
+export const otpRequestSchema = z.object({
+  email: emailFieldSchema,
+  purpose: z.enum(OTP_PURPOSES),
+  /** Optional — used only to personalise the REGISTER email. */
+  fullName: z.string().trim().max(120).optional(),
+});
+export type OtpRequestInput = z.infer<typeof otpRequestSchema>;
+
+/** POST /api/auth/otp/verify — check the code, get a single-use grant token. */
+export const otpVerifySchema = z.object({
+  email: emailFieldSchema,
+  purpose: z.enum(OTP_PURPOSES),
+  code: z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit code from your email'),
+});
+export type OtpVerifyInput = z.infer<typeof otpVerifySchema>;
+
+/** POST /api/auth/sync — optional proof that the email passed OTP verification. */
+export const authSyncSchema = z.object({
+  registrationGrant: z.string().trim().min(20).max(200).optional(),
+});
+export type AuthSyncInput = z.infer<typeof authSyncSchema>;
 
 export const forgotPasswordSchema = z.object({
   email: z.email('Enter a valid email address'),

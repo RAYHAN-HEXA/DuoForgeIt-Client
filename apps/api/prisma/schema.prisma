@@ -1101,3 +1101,29 @@ model WalletSetting {
   value     Json
   updatedAt DateTime @updatedAt
 }
+
+// ─────────────────────── Email OTP (registration gate) ───────────────────
+// 6-digit emailed codes that gate account creation. Codes are stored hashed;
+// a successful verify mints a single-use opaque grant token (also stored
+// hashed) that POST /auth/sync consumes to set emailVerified: true — so an
+// account can never exist before its email was proven deliverable.
+
+enum OtpPurpose {
+  REGISTER
+  VERIFY
+}
+
+model OtpChallenge {
+  id             String      @id @default(uuid())
+  email          String
+  purpose        OtpPurpose
+  codeHash       String
+  attempts       Int         @default(0)
+  expiresAt      DateTime
+  consumedAt     DateTime?
+  grantHash      String?
+  grantExpiresAt DateTime?
+  createdAt      DateTime    @default(now())
+
+  @@index([email, purpose, createdAt])
+}

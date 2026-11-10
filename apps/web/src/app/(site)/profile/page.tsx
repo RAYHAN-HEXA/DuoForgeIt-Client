@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { BadgeCheck, KeyRound, Loader2, MailWarning, UserRound } from 'lucide-react';
 import { api, errorMessage } from '@/lib/api';
@@ -24,7 +25,7 @@ export default function ProfilePage() {
 }
 
 function ProfileContent() {
-  const { user, firebaseUser, refreshProfile, changePassword, resendVerification } = useAuth();
+  const { user, firebaseUser, refreshProfile, changePassword } = useAuth();
 
   const [fullName, setFullName] = useState(user?.fullName ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
@@ -79,15 +80,6 @@ function ProfileContent() {
     }
   }
 
-  async function onResendVerification() {
-    try {
-      await resendVerification();
-      toast.success('Verification email sent', { description: 'Check your inbox (and spam folder).' });
-    } catch (err) {
-      toast.error('Could not send', { description: errorMessage(err) });
-    }
-  }
-
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <Reveal>
@@ -125,8 +117,8 @@ function ProfileContent() {
                   {user.role === 'ADMIN' && <Badge className="bg-primary">Admin</Badge>}
                 </div>
                 {!user.emailVerified && (
-                  <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={onResendVerification}>
-                    Resend verification email
+                  <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
+                    <Link href="/verify-email">Verify your email with a code</Link>
                   </Button>
                 )}
               </div>

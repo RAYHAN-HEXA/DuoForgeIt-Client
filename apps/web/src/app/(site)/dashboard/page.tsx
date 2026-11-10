@@ -66,7 +66,13 @@ function DashboardContent({ name, emailVerified }: { name: string; emailVerified
       {!emailVerified && (
         <div className="mt-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
           <BadgeCheck className="h-4 w-4 shrink-0" />
-          Please verify your email — check your inbox for the confirmation link.
+          <span>
+            Please verify your email —{' '}
+            <Link href="/verify-email" className="font-semibold underline underline-offset-2 hover:opacity-80">
+              verify now
+            </Link>{' '}
+            with the code we email you.
+          </span>
         </div>
       )}
 

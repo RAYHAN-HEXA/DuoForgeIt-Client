@@ -14,7 +14,8 @@ import { prisma } from '../config/prisma.js';
 import { mailTransport } from '../services/mail.service.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { apiLimiter, authLimiter, uploadRateLimiter, paymentSubmitRateLimiter } from '../middleware/rate-limit.js';
+import { apiLimiter, authLimiter, uploadRateLimiter, paymentSubmitRateLimiter, otpRateLimiter } from '../middleware/rate-limit.js';
+import * as otpController from '../controllers/otp.controller.js';
 import * as marketplaceController from '../controllers/marketplace.controller.js';
 import * as paymentController from '../controllers/payment.controller.js';
 import {
@@ -35,6 +36,9 @@ import {
   quotationDeclineSchema,
   requestListQuerySchema,
   requestStatusUpdateSchema,
+  authSyncSchema,
+  otpRequestSchema,
+  otpVerifySchema,
 } from '@tsh/shared';
 import * as authController from '../controllers/auth.controller.js';
 import * as catalogController from '../controllers/catalog.controller.js';
@@ -128,7 +132,12 @@ router.get('/health', async (_req, res, next) => {
 // ─── Auth (Firebase ID tokens; sync provisions the Neon profile) ─────
 
 const authRouter = Router();
-authRouter.post('/sync', authController.syncProfile);
+// Email-OTP gate: a 6-digit code is mailed before an account may exist
+// (REGISTER) or before a legacy account is un-gated (VERIFY). The tighter
+// otpRateLimiter sits on top of authLimiter because every request sends mail.
+authRouter.post('/otp/request', otpRateLimiter, validate({ body: otpRequestSchema }), otpController.requestOtpHandler);
+authRouter.post('/otp/verify', otpRateLimiter, validate({ body: otpVerifySchema }), otpController.verifyOtpHandler);
+authRouter.post('/sync', validate({ body: authSyncSchema }), authController.syncProfile);
 authRouter.get('/me', authenticate, authController.me);
 router.use('/auth', authLimiter, authRouter);
 

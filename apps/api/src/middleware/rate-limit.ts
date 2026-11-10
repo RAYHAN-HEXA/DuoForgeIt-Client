@@ -85,6 +85,34 @@ export async function uploadRateLimiter(req: Request, res: Response, next: NextF
   }
 }
 
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: {
+      code: 'OTP_TOO_MANY_REQUESTS',
+      message: 'Too many verification-code requests — try again in 15 minutes',
+    },
+  },
+});
+
+/**
+ * OTP-email budget (5/15min/IP) — tighter than everything else because each
+ * request sends a real email (money) to an arbitrary address (abuse vector).
+ * Applied per endpoint, before authenticate, so it keys on IP alone.
+ */
+export async function otpRateLimiter(req: Request, res: Response, next: NextFunction) {
+  try {
+    await otpLimiter(req, res, next);
+  } catch {
+    // Fail closed – treat as service unavailable.
+    res.status(503).json({ error: { code: 'SERVICE_UNAVAILABLE', message: 'Rate limit service unavailable' } });
+  }
+}
+
 const paymentSubmitLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,

@@ -11,14 +11,47 @@ export declare const loginFormSchema: z.ZodObject<{
     password: z.ZodString;
 }, z.core.$strip>;
 export type LoginForm = z.infer<typeof loginFormSchema>;
-/** Client-side registration form (Firebase creates the account). */
+/** Client-side registration form (Firebase creates the account *after* the
+ *  emailed OTP is verified — an unproven address can never create an account). */
 export declare const registerFormSchema: z.ZodObject<{
     fullName: z.ZodString;
-    email: z.ZodEmail;
+    email: z.ZodString;
     password: z.ZodString;
     confirmPassword: z.ZodString;
 }, z.core.$strip>;
 export type RegisterForm = z.infer<typeof registerFormSchema>;
+export declare const OTP_PURPOSES: readonly ["REGISTER", "VERIFY"];
+export type OtpPurpose = (typeof OTP_PURPOSES)[number];
+/**
+ * POST /api/auth/otp/request — email a 6-digit code. REGISTER pre-checks that
+ * the address isn't already linked to an account; VERIFY remediates existing
+ * (legacy) unverified accounts. The server re-runs this schema so a bypassed
+ * client form still hits strict syntax + disposable-domain rejection.
+ */
+export declare const otpRequestSchema: z.ZodObject<{
+    email: z.ZodString;
+    purpose: z.ZodEnum<{
+        REGISTER: "REGISTER";
+        VERIFY: "VERIFY";
+    }>;
+    fullName: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export type OtpRequestInput = z.infer<typeof otpRequestSchema>;
+/** POST /api/auth/otp/verify — check the code, get a single-use grant token. */
+export declare const otpVerifySchema: z.ZodObject<{
+    email: z.ZodString;
+    purpose: z.ZodEnum<{
+        REGISTER: "REGISTER";
+        VERIFY: "VERIFY";
+    }>;
+    code: z.ZodString;
+}, z.core.$strip>;
+export type OtpVerifyInput = z.infer<typeof otpVerifySchema>;
+/** POST /api/auth/sync — optional proof that the email passed OTP verification. */
+export declare const authSyncSchema: z.ZodObject<{
+    registrationGrant: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export type AuthSyncInput = z.infer<typeof authSyncSchema>;
 export declare const forgotPasswordSchema: z.ZodObject<{
     email: z.ZodEmail;
 }, z.core.$strip>;

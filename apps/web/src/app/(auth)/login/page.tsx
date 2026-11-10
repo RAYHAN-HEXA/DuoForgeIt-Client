@@ -33,17 +33,19 @@ function LoginPageContent() {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get('next');
-  const { login, loginWithGoogle, user, loading } = useAuth();
+  const { login, loginWithGoogle, user, firebaseUser, loading } = useAuth();
   const { mood, emailFocus, passwordFocus, blur, shake } = useMascotForm();
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Auto-redirect if already authenticated
+  // Auto-redirect if already authenticated — unverified accounts go to the
+  // email-verification loop instead of their destination.
   useEffect(() => {
     if (!loading && user) {
-      router.replace(safeNextPath(next));
+      const emailVerified = Boolean(user.emailVerified || firebaseUser?.emailVerified);
+      router.replace(emailVerified ? safeNextPath(next) : '/verify-email');
     }
-  }, [loading, user, router, next]);
+  }, [loading, user, firebaseUser, router, next]);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginFormSchema),
@@ -54,7 +56,7 @@ function LoginPageContent() {
   function formatAuthError(err: unknown): string {
     if (err instanceof AuthSyncError) {
       if (err.code === 'VERIFY_EMAIL_FIRST') {
-        return 'Please verify your email before logging in. Check your inbox for the verification link.';
+        return 'This email is registered but not verified — finish the emailed-code verification to link it.';
       }
       if (err.code === 'EMAIL_LINKED_TO_DIFFERENT_UID') {
         return 'This email is already associated with another sign-in method.';

@@ -652,6 +652,19 @@ exports.Prisma.WalletSettingScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.OtpChallengeScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  purpose: 'purpose',
+  codeHash: 'codeHash',
+  attempts: 'attempts',
+  expiresAt: 'expiresAt',
+  consumedAt: 'consumedAt',
+  grantHash: 'grantHash',
+  grantExpiresAt: 'grantExpiresAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -908,6 +921,11 @@ exports.WithdrawalStatus = exports.$Enums.WithdrawalStatus = {
   CANCELLED: 'CANCELLED'
 };
 
+exports.OtpPurpose = exports.$Enums.OtpPurpose = {
+  REGISTER: 'REGISTER',
+  VERIFY: 'VERIFY'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   FounderProfile: 'FounderProfile',
@@ -945,7 +963,8 @@ exports.Prisma.ModelName = {
   DepositRequest: 'DepositRequest',
   WithdrawalRequest: 'WithdrawalRequest',
   PaymentMethodConfig: 'PaymentMethodConfig',
-  WalletSetting: 'WalletSetting'
+  WalletSetting: 'WalletSetting',
+  OtpChallenge: 'OtpChallenge'
 };
 
 /**
