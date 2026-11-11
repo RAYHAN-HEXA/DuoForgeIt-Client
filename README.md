@@ -36,8 +36,9 @@ Web and API are cross-wired through Vercel Production env vars:
 build time, changing them requires a new web deployment.
 
 Deploys run from Git: pushing `main` to
-`RAYHAN-HEXA/DuoForgeIt-Client` builds the web project and pushing `main` to
-`RAYHAN-HEXA/DuoForgeIt-Server` builds the API project. See
+`RAYHAN-HEXA/DuoForgeIt-Client` builds BOTH the web and the API projects
+(`tsh-api` was reconnected to this repo 2026-11-11; the `DuoForgeIt-Server`
+remote is a non-deploying mirror). See
 `docs/DEPLOYMENT.md` for the full runbook.
 
 ## Running locally

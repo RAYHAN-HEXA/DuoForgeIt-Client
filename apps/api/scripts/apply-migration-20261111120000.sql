@@ -1,5 +1,11 @@
 -- Manual-apply for migration 20261111120000_email_otp_registration_gate.
 --
+-- APPLIED 2026-11-11 08:38 UTC (registration had been 500ing with INTERNAL
+-- since the OTP deploy): statement-for-statement over Neon's SQL-over-HTTPS
+-- proxy from the 5432-blocked dev machine — see docs/DEPLOYMENT.md
+-- "When 5432 is blocked but 443 works". Kept as the template for any future
+-- additive migration that must land without CLI access.
+--
 -- WHY THIS EXISTS: the local network black-holes Neon's data plane, so
 -- `prisma migrate deploy` can't reach the database. This script applies the
 -- exact same DDL plus the `_prisma_migrations` bookkeeping row (what

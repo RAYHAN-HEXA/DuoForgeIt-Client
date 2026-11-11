@@ -58,7 +58,11 @@ client expects unapplied migrations produces raw `P2022/P2021` errors on
 reads that select the new columns — surfacing as generic "Internal server
 error" 500s on customer flows (this happened 2026-11-06: checkout 500'd
 because `manual_payments_v2` + `blob_storage_paths` were never applied while
-the API was redeployed).
+the API was redeployed, and again 2026-11-11: registration 500'd because
+`20261111120000_email_otp_registration_gate` shipped without being applied).
+Since the 2026-11-11 fix, `P2021/P2022` surface as a distinct 503
+`DB_SCHEMA_MISMATCH` instead of an opaque 500 — seeing that code in the wild
+means exactly one thing: apply the pending migration.
 
 ```bash
 cd apps/api
@@ -76,18 +80,50 @@ CI. Check state in the Neon console at any time:
 SELECT migration_name, finished_at FROM _prisma_migrations ORDER BY migration_name;
 ```
 
-## Git flow
+### When 5432 is blocked but 443 works — SQL over HTTPS
 
-Both remotes mirror the full monorepo and both are connected to Vercel:
-
-| Remote | Repository | Vercel project |
-| --- | --- | --- |
-| `origin` | `RAYHAN-HEXA/DuoForgeIt-Client` | `techservicehub` (web) |
-| `server` | `RAYHAN-HEXA/DuoForgeIt-Server` | `tsh-api` (api) |
+The black-holed-5432 machine (2026-11-11) could still reach Neon over HTTPS,
+so the migration was applied through Neon's HTTP query proxy with
+`@neondatabase/serverless` instead of waiting for a clean network:
 
 ```bash
-git push origin main   # triggers the web production build
-git push server main   # triggers the API production build
+mkdir /tmp/neon-fix && cd /tmp/neon-fix && npm init -y >/dev/null && npm i @neondatabase/serverless
+cat > check.mjs <<'EOF'
+import { readFileSync } from 'node:fs';
+import { neon } from '@neondatabase/serverless';
+// <repo> = the monorepo root; DIRECT_URL comes from apps/api/.env (query params stripped)
+const url = readFileSync('<repo>/apps/api/.env', 'utf8')
+  .match(/^DIRECT_URL="?([^"\n]+)"?$/m)[1].split('?')[0];
+const sql = neon(url);
+console.log(JSON.stringify(await sql`SELECT migration_name FROM _prisma_migrations ORDER BY 1`));
+EOF
+node check.mjs
+```
+
+Plain DDL statements run through `sql.query(...)` (the tagged-template form
+rejects non-parameterized strings). For additive migrations a committed
+idempotent manual-apply script is the cleaner route —
+`apps/api/scripts/apply-migration-20261111120000.sql` is the template: exact
+DDL of the migration plus the `_prisma_migrations` bookkeeping row (with the
+sha256 checksum of the real migration.sql), every statement guarded, safe to
+paste into the Neon Console SQL Editor or run over the HTTP proxy.
+
+## Git flow
+
+Both remotes mirror the full monorepo, but only `origin` triggers
+deployments now. **`tsh-api` was reconnected (2026-11-11) to the
+`DuoForgeIt-Client` repo** — its production build log reads
+`Cloning github.com/RAYHAN-HEXA/DuoForgeIt-Client (Branch: main)` — so a
+single push deploys BOTH apps:
+
+| Remote | Repository | Vercel project(s) |
+| --- | --- | --- |
+| `origin` | `RAYHAN-HEXA/DuoForgeIt-Client` | `techservicehub` (web) **and** `tsh-api` (api) |
+| `server` | `RAYHAN-HEXA/DuoForgeIt-Server` | none (legacy; can lag `main`) |
+
+```bash
+git push origin main   # triggers BOTH the web and the API production builds
+git push server main    # keeps the server mirror in sync (no deploy)
 ```
 
 Production Branch is `main` for both projects. Pushes to other branches create
