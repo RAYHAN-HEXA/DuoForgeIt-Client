@@ -1,0 +1,9 @@
+# Local build artifacts — the CLI uploads the whole repo, and these three
+# are ~1.2GB of regenerable output that chokes the throttled upload path.
+# Remote builds regenerate all of them:
+#   apps/web/.next   — Next rebuilds remotely (proven by the git-based web deploys)
+#   packages/shared/dist — npm `prepare` script rebuilds it on remote install
+#   apps/api/dist    — tsc -b creates it during the remote build
+apps/web/.next
+apps/api/dist
+packages/shared/dist

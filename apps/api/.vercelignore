@@ -1,0 +1,6 @@
+# The generated Prisma client is 43MB of engine/wasm — the bulk of the CLI
+# upload. Vercel's postinstall (`prisma generate`) rebuilds it from the
+# committed schema, so it never needs to travel. `dist` is local tsc output,
+# rebuilt by the Vercel build too.
+src/generated
+dist
