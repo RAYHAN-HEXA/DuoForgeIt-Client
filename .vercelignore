@@ -7,3 +7,7 @@
 apps/web/.next
 apps/api/dist
 packages/shared/dist
+# 582MB local scratch archive (gitignored) — never travels to Vercel.
+# A 2026-11-11 CLI fallback deploy stalled on it: the upload itself
+# finished, then the flaky network dropped the follow-up API call.
+apps.zip
