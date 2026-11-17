@@ -454,4 +454,9 @@ html {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+  /* CSS wins before hydration: reduced-motion visitors see only the poster
+     until they explicitly press Play. */
+  .hero-video-media:not([data-user-opted-in='true']) {
+    opacity: 0 !important;
+  }
 }

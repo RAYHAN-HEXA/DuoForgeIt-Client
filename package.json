@@ -17,7 +17,7 @@
     "build": "npm run build -w @tsh/shared && npm run build -w @tsh/api && npm run build -w @tsh/web",
     "typecheck": "npm run typecheck -w @tsh/shared && npm run typecheck -w @tsh/api && npm run typecheck -w @tsh/web",
     "lint": "eslint packages/shared apps/api && npm run lint -w @tsh/web",
-    "test": "npm run test -w @tsh/shared && npm run test -w @tsh/api",
+    "test": "npm run test -w @tsh/shared && npm run test -w @tsh/api && npm run test -w @tsh/web",
     "db:migrate": "npm run db:migrate -w @tsh/api",
     "db:seed": "npm run db:seed -w @tsh/api",
     "db:studio": "npm run db:studio -w @tsh/api"

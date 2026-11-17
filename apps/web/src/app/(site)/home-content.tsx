@@ -27,6 +27,7 @@ import { api, errorMessage } from '@/lib/api';
 import { SERVICE_MARKETPLACE_ENABLED } from '@/lib/feature-flags';
 import { MarketplaceHomeSections } from '@/components/marketplace/home-sections';
 import { GuideVideo } from '@/components/site/guide-video';
+import { HeroVideo } from '@/components/site/hero-video';
 import { Reveal } from '@/components/motion/reveal';
 import { TextReveal } from '@/components/motion/text-reveal';
 import { TiltCard } from '@/components/motion/tilt-card';
@@ -142,19 +143,15 @@ export function HomeContent() {
 
 function Hero({ hero }: { hero: Partial<HeroContent> }) {
   return (
-    <section className="relative isolate overflow-hidden border-b border-soft-blue/10 bg-space-deep">
-      {/* Cinematic planet artwork. Decorative — the copy below carries the meaning. */}
+    <section className="relative isolate flex min-h-[36rem] items-center overflow-hidden border-b border-soft-blue/10 bg-space-deep sm:min-h-[44rem] lg:min-h-[min(88svh,52rem)]">
+      {/* Decorative background video + poster fallback. Copy stays above it in real HTML. */}
+      <HeroVideo />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[url('/space/hero-galaxy.svg')] bg-cover bg-center sm:bg-right-center"
+        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-space-deep via-space-deep/70 to-transparent"
       />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-space-deep via-space-deep/75 to-transparent"
-      />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-aurora opacity-25" />
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-20 sm:px-6 sm:pb-36 sm:pt-28">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-20 pt-20 sm:px-6 sm:pb-28 sm:pt-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -224,10 +221,10 @@ function Hero({ hero }: { hero: Partial<HeroContent> }) {
         </motion.div>
       </div>
 
-      {/* Blend the artwork into the next section. */}
+      {/* Blend the video into the next section. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-background"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-28 bg-gradient-to-b from-transparent to-background"
       />
     </section>
   );
