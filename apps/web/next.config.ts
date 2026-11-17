@@ -60,6 +60,8 @@ const noindexRules = noindexPaths.flatMap((p) => [
 ]);
 
 const nextConfig: NextConfig = {
+  // Set by the prescribed `next upgrade --agent=security` flow (16.4.3 -> 16.4.6).
+  experimental: { agentUpgrade: "security" },
   cacheComponents: true,
   partialPrefetching: true,
   async headers() {
