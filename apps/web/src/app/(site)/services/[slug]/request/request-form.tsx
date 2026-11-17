@@ -122,7 +122,7 @@ function RequestForm({ form, slug }: { form: MarketplaceServiceFormDto; slug: st
     return (
       <Card className="card-lift border-primary/20 shadow-glow">
         <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/20">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-cyan-400/10 ring-1 ring-primary/20">
             <CheckCircle2 className="h-9 w-9 text-primary" aria-hidden="true" />
           </div>
           <div>

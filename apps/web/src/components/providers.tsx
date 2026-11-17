@@ -9,7 +9,7 @@ import { Toaster } from '@/components/ui/sonner';
 /** Single client boundary wrapping the whole app (theme + auth + cart + toasts). */
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
       <AuthProvider>
         <CartProvider>
           {children}

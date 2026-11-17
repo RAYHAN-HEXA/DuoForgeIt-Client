@@ -407,7 +407,7 @@ function SummaryCard({
   return (
     <Card size="sm">
       <CardContent className="flex items-center gap-3 py-1">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/15">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-cyan-400/10 ring-1 ring-primary/15">
           <Icon className="h-4 w-4 text-primary" />
         </div>
         <div className="min-w-0">

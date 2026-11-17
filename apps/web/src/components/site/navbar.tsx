@@ -54,8 +54,8 @@ export function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-xl transition-all duration-300 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/30 after:to-transparent supports-[backdrop-filter]:bg-background/55 ${
-        scrolled ? 'shadow-[0_18px_44px_-32px_var(--glow)]' : ''
+      className={`sticky top-0 z-50 border-b border-soft-blue/15 bg-space-deep/85 backdrop-blur-xl transition-all duration-300 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-primary/35 after:to-transparent supports-[backdrop-filter]:bg-space-deep/75 ${
+        scrolled ? 'shadow-[0_16px_40px_-30px_var(--glow)]' : ''
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
@@ -71,7 +71,7 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`relative rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-300 after:absolute after:inset-x-3.5 after:bottom-1 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-gradient-to-r after:from-primary after:via-brand-violet after:to-brand-fuchsia after:transition-transform after:duration-300 hover:bg-primary/5 hover:text-foreground hover:after:scale-x-100 ${
+              className={`relative rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-300 after:absolute after:inset-x-3.5 after:bottom-1 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-gradient-to-r after:from-primary after:via-soft-blue after:to-cyan-400 after:transition-transform after:duration-300 hover:bg-primary/5 hover:text-foreground hover:after:scale-x-100 ${
                 pathname === link.href
                   ? 'bg-primary/8 text-foreground after:scale-x-100'
                   : 'text-muted-foreground'

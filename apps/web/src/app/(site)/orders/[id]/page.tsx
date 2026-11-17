@@ -175,7 +175,7 @@ function OrderDetailContent() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/15">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-cyan-400/10 ring-1 ring-primary/15">
                 <UserRound className="h-4 w-4 text-primary" />
               </div>
               <div>

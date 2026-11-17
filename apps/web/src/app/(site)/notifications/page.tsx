@@ -57,7 +57,7 @@ function NotificationsContent() {
                 className={cn(
                   'card-lift relative overflow-hidden transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-glow',
                   !n.readAt &&
-                    'border-primary/25 bg-primary/[0.04] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-gradient-to-b before:from-primary before:to-brand-fuchsia',
+                    'border-primary/25 bg-primary/[0.04] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-gradient-to-b before:from-primary before:to-cyan-400',
                 )}
               >
                 <CardContent className="flex items-start gap-3 p-4">

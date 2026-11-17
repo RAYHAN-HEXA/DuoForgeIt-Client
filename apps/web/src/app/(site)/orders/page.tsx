@@ -117,7 +117,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       aria-pressed={active}
       className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
         active
-          ? 'border-primary bg-gradient-to-r from-primary to-brand-violet text-primary-foreground shadow-glow'
+          ? 'border-primary bg-gradient-to-r from-primary to-soft-blue text-primary-foreground shadow-glow'
           : 'border-border/70 bg-background/80 text-muted-foreground hover:border-primary/40 hover:text-foreground'
       }`}
     >

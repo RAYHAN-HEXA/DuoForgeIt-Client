@@ -56,7 +56,7 @@ export default function AdminMessagesPage() {
               key={m.id}
               className={
                 !m.isRead
-                  ? 'card-lift relative overflow-hidden border-primary/25 bg-primary/[0.03] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-gradient-to-b before:from-primary before:to-brand-fuchsia'
+                  ? 'card-lift relative overflow-hidden border-primary/25 bg-primary/[0.03] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-gradient-to-b before:from-primary before:to-cyan-400'
                   : 'card-lift'
               }
             >

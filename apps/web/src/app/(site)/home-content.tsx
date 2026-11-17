@@ -19,7 +19,6 @@ import {
   ShoppingCart,
   Star,
   UserCheck,
-  Waypoints,
   Wrench,
 } from 'lucide-react';
 import type { HomepageDto } from '@tsh/shared';
@@ -28,10 +27,8 @@ import { api, errorMessage } from '@/lib/api';
 import { SERVICE_MARKETPLACE_ENABLED } from '@/lib/feature-flags';
 import { MarketplaceHomeSections } from '@/components/marketplace/home-sections';
 import { GuideVideo } from '@/components/site/guide-video';
-import { GradientOrbs } from '@/components/motion/gradient-orbs';
 import { Reveal } from '@/components/motion/reveal';
 import { TextReveal } from '@/components/motion/text-reveal';
-import { Parallax } from '@/components/motion/parallax';
 import { TiltCard } from '@/components/motion/tilt-card';
 import { SpotlightCard } from '@/components/motion/spotlight-card';
 import { Button } from '@/components/ui/button';
@@ -145,100 +142,93 @@ export function HomeContent() {
 
 function Hero({ hero }: { hero: Partial<HeroContent> }) {
   return (
-    <section className="relative overflow-hidden bg-aurora-rich">
-      <div className="absolute inset-0 bg-grid opacity-70" aria-hidden="true" />
-      <div className="absolute inset-0 bg-grain opacity-[0.03]" aria-hidden="true" />
-      <Parallax className="absolute inset-0" offset={26}>
-        <GradientOrbs className="opacity-90" />
-      </Parallax>
+    <section className="relative isolate overflow-hidden border-b border-soft-blue/10 bg-space-deep">
+      {/* Cinematic planet artwork. Decorative — the copy below carries the meaning. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-4 h-[560px] w-[560px] -translate-x-1/2 animate-spin-slow rounded-full border border-dashed border-primary/10 [mask-image:radial-gradient(circle,transparent_58%,#000_60%)]"
+        className="pointer-events-none absolute inset-0 bg-[url('/space/hero-galaxy.svg')] bg-cover bg-center sm:bg-right-center"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-24 h-[760px] w-[760px] -translate-x-1/2 animate-spin-slow rounded-full border border-dashed border-brand-violet/10 [animation-direction:reverse] [mask-image:radial-gradient(circle,transparent_64%,#000_66%)]"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-space-deep via-space-deep/75 to-transparent"
       />
-      <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl animate-float-slow" aria-hidden="true" />
-      <div className="relative mx-auto flex max-w-7xl flex-col items-center gap-14 px-4 pb-24 pt-20 text-center sm:px-6 sm:pt-28">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-aurora opacity-25" />
+
+      <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-20 sm:px-6 sm:pb-36 sm:pt-28">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="max-w-3xl space-y-6"
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+          className="max-w-2xl space-y-6 text-left"
         >
-          <Badge variant="outline" className="animate-badge-pop border-primary/20 bg-background/70 px-3 py-1 text-foreground shadow-soft backdrop-blur">
-            <span className="mr-2 flex h-2 w-2 animate-pulse-soft rounded-full bg-primary" />
+          <Badge variant="outline" className="border-primary/25 bg-panel/70 px-3 py-1 text-foreground shadow-soft backdrop-blur">
+            <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-primary" />
             Two founders. Direct access. Zero layers.
           </Badge>
-          <h1 className="text-balance font-heading text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl">
+
+          <h1 className="text-balance font-heading text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
             <TextReveal
               text={`${hero.headline?.split('.').slice(0, 2).join('.')}.`}
               className="block"
               delay={0.1}
             />
             <motion.span
-              className="block text-gradient-strong"
-              initial={{ opacity: 0, y: 24 }}
+              className="block text-gradient"
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
               {hero.headline?.split('.').slice(2).join('.').trim() || 'One Digital Solution.'}
             </motion.span>
           </h1>
+
           <motion.p
-            className="mx-auto max-w-2xl text-pretty text-lg text-muted-foreground"
-            initial={{ opacity: 0, y: 16 }}
+            className="max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
+            initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.55, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
             {hero.subheadline}
           </motion.p>
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+
+          <motion.div
+            className="flex flex-col gap-3 sm:flex-row sm:items-center"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
             <Button size="lg" className="h-12 px-7 text-base" asChild>
               <Link href={hero.primaryCta?.href ?? '/services'}>
                 {hero.primaryCta?.label ?? 'Explore Services'}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="h-12 bg-background/70 px-7 text-base backdrop-blur" asChild>
+            <Button size="lg" variant="outline" className="h-12 border-soft-blue/25 bg-panel/60 px-7 text-base backdrop-blur" asChild>
               <Link href={hero.secondaryCta?.href ?? '/register'}>
                 {hero.secondaryCta?.label ?? 'Start Your Project'}
               </Link>
             </Button>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Founder peek cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.25, ease: 'easeOut' }}
-          className="grid w-full max-w-4xl gap-4 sm:grid-cols-3"
-        >
-          {[
-            { icon: UserCheck, title: 'Choose your lead', body: 'Hand-pick the founder who drives your project.' },
-            { icon: Waypoints, title: '7-stage pipeline', body: 'Track progress from submission to delivery.' },
-            { icon: ShieldCheck, title: 'Secure delivery', body: 'Files shared via expiring secure links.' },
-          ].map((c) => (
-            <TiltCard key={c.title} className="h-full">
-              <SpotlightCard>
-                <Card className="card-lift h-full bg-background/70 backdrop-blur">
-                  <CardContent className="flex items-start gap-3 p-5 text-left">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/15">
-                      <c.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{c.title}</p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">{c.body}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </SpotlightCard>
-            </TiltCard>
-          ))}
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 pt-2 text-sm text-muted-foreground">
+            {[
+              { icon: UserCheck, label: 'Choose your project lead' },
+              { icon: ShieldCheck, label: 'Secure file delivery' },
+            ].map((item) => (
+              <li key={item.label} className="flex items-center gap-2">
+                <item.icon className="h-4 w-4 text-primary" aria-hidden="true" />
+                {item.label}
+              </li>
+            ))}
+          </ul>
         </motion.div>
       </div>
+
+      {/* Blend the artwork into the next section. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-background"
+      />
     </section>
   );
 }
@@ -340,29 +330,32 @@ function FeaturedServices({ services }: { services: HomepageDto['featuredService
 
 function WhyUs({ items }: { items: Array<{ title: string; body: string }> }) {
   return (
-    <section className="border-y bg-muted/30 py-20 sm:py-28">
+    <section className="relative py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <SectionHeading eyebrow="Why us" title="Built differently, on purpose" />
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {items.map((item, i) => (
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-            >
-              <Card className="card-lift h-full transition-transform duration-500 hover:-translate-y-1 hover:shadow-glow">
-                <CardContent className="p-6">
-                  <span className="bg-gradient-to-br from-primary via-brand-violet to-brand-fuchsia bg-clip-text font-heading text-4xl font-extrabold text-transparent">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <h3 className="mt-3 font-heading font-semibold">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+        {/* Floating dark-blue panel — the reference's core content treatment. */}
+        <div className="relative rounded-3xl border border-soft-blue/15 bg-panel/80 p-6 shadow-soft backdrop-blur sm:p-10">
+          <SectionHeading eyebrow="Why us" title="Built differently, on purpose" />
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {items.map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.45, delay: i * 0.07 }}
+              >
+                <Card className="card-lift h-full bg-raised/60">
+                  <CardContent className="p-6">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/30 font-heading text-sm font-semibold text-primary">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <h3 className="mt-4 font-heading font-semibold">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -388,7 +381,7 @@ function HowItWorks({ steps }: { steps: Array<{ title: string; body: string }> }
         </Reveal>
         <div className="relative mt-16 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="absolute left-0 right-0 top-6 hidden h-px bg-gradient-to-r from-primary/10 via-primary/40 to-primary/10 lg:block" aria-hidden="true">
-            <span className="absolute inset-0 animate-pulse-soft bg-gradient-to-r from-transparent via-brand-fuchsia/60 to-transparent" />
+            <span className="absolute inset-0 animate-pulse-soft bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent" />
           </div>
           {steps.map((step, i) => (
             <motion.div
@@ -400,7 +393,7 @@ function HowItWorks({ steps }: { steps: Array<{ title: string; body: string }> }
               className="group relative text-center"
             >
               <span className="relative z-10 mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-primary/30 bg-background font-heading text-lg font-bold text-primary shadow-soft transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-primary group-hover:shadow-glow">
-                <span className="absolute inset-0 -z-10 rounded-full bg-gradient-to-br from-primary/10 to-brand-fuchsia/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <span className="absolute inset-0 -z-10 rounded-full bg-gradient-to-br from-primary/10 to-cyan-400/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 {i + 1}
               </span>
               <h3 className="mt-4 font-heading font-semibold">{step.title}</h3>
@@ -470,7 +463,7 @@ function Founders({ founders }: { founders: HomepageDto['founders'] }) {
                           className="h-32 w-full object-cover object-top transition-transform group-hover/port:scale-105"
                         />
                       ) : (
-                        <div className="flex h-32 items-center justify-center bg-gradient-to-br from-primary/15 to-fuchsia-500/10">
+                        <div className="flex h-32 items-center justify-center bg-gradient-to-br from-primary/15 to-cyan-500/10">
                           <Code2 className="h-8 w-8 text-primary/40" />
                         </div>
                       )}
@@ -502,7 +495,7 @@ function Portfolio({ projects }: { projects: HomepageDto['portfolio'] }) {
           {projects.map((p) => (
             <Card key={p.id} className="card-lift group overflow-hidden hover:-translate-y-1 hover:shadow-lg">
               <CardContent className="flex h-full flex-col p-0">
-                <div className="flex h-40 items-center justify-center bg-gradient-to-br from-primary/15 to-fuchsia-500/10">
+                <div className="flex h-40 items-center justify-center bg-gradient-to-br from-primary/15 to-cyan-500/10">
                   {p.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.imageUrl} alt={p.title} className="h-full w-full object-cover transition-transform group-hover:scale-105" />

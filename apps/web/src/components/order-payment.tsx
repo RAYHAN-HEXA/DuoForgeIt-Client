@@ -624,7 +624,7 @@ function SummaryTile({
       className={cn(
         'rounded-xl border border-border/70 bg-card/60 p-3 shadow-soft transition-colors',
         highlight &&
-          'border-primary/30 bg-gradient-to-br from-primary/10 to-brand-fuchsia/5 shadow-glow',
+          'border-primary/30 bg-gradient-to-br from-primary/10 to-cyan-400/5 shadow-glow',
       )}
     >
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>

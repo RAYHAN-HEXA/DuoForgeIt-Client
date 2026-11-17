@@ -31,7 +31,7 @@ export default function AdminOverviewPage() {
     <div className="space-y-8">
       <Reveal>
         <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-          <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-gradient-to-r from-primary to-brand-fuchsia" />
+          <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-gradient-to-r from-primary to-cyan-400" />
           Admin
         </p>
         <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">Overview</h1>
@@ -65,7 +65,7 @@ export default function AdminOverviewPage() {
                       {m.month}: {formatBDT(m.revenue)} · {m.orders} orders
                     </div>
                     <div
-                      className="w-full origin-bottom animate-bar-grow rounded-t bg-gradient-to-t from-primary to-brand-violet transition-all duration-300 group-hover:from-primary group-hover:to-brand-fuchsia group-hover:shadow-glow"
+                      className="w-full origin-bottom animate-bar-grow rounded-t bg-gradient-to-t from-primary to-soft-blue transition-all duration-300 group-hover:from-primary group-hover:to-cyan-400 group-hover:shadow-glow"
                       style={{ height: `${Math.max(2, (Number(m.revenue) / maxRevenue) * 130)}px` }}
                     />
                     <span className="text-[10px] text-muted-foreground">{m.month.slice(5)}</span>
@@ -117,7 +117,7 @@ export default function AdminOverviewPage() {
                       <span className="text-muted-foreground">{s.orders}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-muted">
-                      <div className="h-full origin-left animate-[underline-slide_700ms_cubic-bezier(0.22,1,0.36,1)_both] rounded-full bg-gradient-to-r from-primary to-brand-violet" style={{ width: `${(s.orders / max) * 100}%` }} />
+                      <div className="h-full origin-left animate-[underline-slide_700ms_cubic-bezier(0.22,1,0.36,1)_both] rounded-full bg-gradient-to-r from-primary to-soft-blue" style={{ width: `${(s.orders / max) * 100}%` }} />
                     </div>
                   </div>
                 );
@@ -162,7 +162,7 @@ function Stat({ icon: Icon, label, value, loading }: { icon: React.ComponentType
   return (
     <Card className="card-lift">
       <CardContent className="flex items-center gap-4 p-5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/15 transition-colors duration-300 group-hover/card:from-primary/20">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-cyan-400/10 ring-1 ring-primary/15 transition-colors duration-300 group-hover/card:from-primary/20">
           <Icon className="h-5 w-5 text-primary" />
         </div>
         <div>

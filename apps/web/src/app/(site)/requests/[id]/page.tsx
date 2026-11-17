@@ -147,7 +147,7 @@ function RequestDetailContent() {
       </Reveal>
 
       {accepted && (
-        <Card className="card-lift animate-badge-pop border-primary/40 bg-gradient-to-r from-primary/8 to-brand-fuchsia/5 shadow-glow">
+        <Card className="card-lift animate-badge-pop border-primary/40 bg-gradient-to-r from-primary/8 to-cyan-400/5 shadow-glow">
           <CardContent className="flex items-start gap-3 p-4">
             <PartyPopper className="h-5 w-5 text-primary" />
             <div className="text-sm">

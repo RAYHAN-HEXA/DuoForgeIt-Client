@@ -67,7 +67,7 @@ export function ServiceDetailView({
         </nav>
 
         <div className="group/hero overflow-hidden rounded-2xl border border-primary/10 shadow-glow">
-          <div className={`relative h-44 overflow-hidden sm:h-56 ${image ? '' : 'bg-gradient-to-br from-primary/10 to-brand-fuchsia/5'}`}>
+          <div className={`relative h-44 overflow-hidden sm:h-56 ${image ? '' : 'bg-gradient-to-br from-primary/10 to-cyan-400/5'}`}>
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={image} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover/hero:scale-[1.03]" />
@@ -279,7 +279,7 @@ export function ServiceDetailView({
 
       {/* Bottom CTA */}
       <Reveal>
-        <div className="relative flex flex-col items-start gap-4 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/8 via-background to-brand-fuchsia/5 p-6 shadow-soft sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex flex-col items-start gap-4 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/8 via-background to-cyan-400/5 p-6 shadow-soft sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <FileText className="mt-1 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
             <div>

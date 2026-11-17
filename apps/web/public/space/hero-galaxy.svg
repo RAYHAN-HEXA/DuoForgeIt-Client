@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A luminous blue planet rising through a star field">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#030b14"/>
+      <stop offset="0.5" stop-color="#061522"/>
+      <stop offset="1" stop-color="#0a2a3d"/>
+    </linearGradient>
+    <radialGradient id="nebula" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#1b7fa5" stop-opacity="0.55"/>
+      <stop offset="0.55" stop-color="#0d4c6d" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#061522" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="nebula2" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2ba7c9" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#061522" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="planet" cx="0.3" cy="0.28" r="0.92">
+      <stop offset="0" stop-color="#66d6ee"/>
+      <stop offset="0.22" stop-color="#2e9dc0"/>
+      <stop offset="0.55" stop-color="#135c83"/>
+      <stop offset="0.82" stop-color="#0a2d45"/>
+      <stop offset="1" stop-color="#041320"/>
+    </radialGradient>
+    <radialGradient id="atmosphere" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0.72" stop-color="#39d5f5" stop-opacity="0"/>
+      <stop offset="0.85" stop-color="#39d5f5" stop-opacity="0.3"/>
+      <stop offset="0.94" stop-color="#7fe4ff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#39d5f5" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#030b14" stop-opacity="0.97"/>
+      <stop offset="0.38" stop-color="#030b14" stop-opacity="0.8"/>
+      <stop offset="0.68" stop-color="#030b14" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#030b14" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bottomFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0.55" stop-color="#061522" stop-opacity="0"/>
+      <stop offset="1" stop-color="#061522" stop-opacity="0.95"/>
+    </linearGradient>
+    <filter id="blur50" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="50"/></filter>
+    <filter id="blur14" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <pattern id="stars" width="240" height="240" patternUnits="userSpaceOnUse">
+      <circle cx="22" cy="36" r="1.1" fill="#c7effc" opacity="0.55"/>
+      <circle cx="164" cy="84" r="0.8" fill="#9fe4f8" opacity="0.4"/>
+      <circle cx="96" cy="182" r="1.4" fill="#7fe4ff" opacity="0.3"/>
+      <circle cx="214" cy="206" r="0.7" fill="#f1f7fc" opacity="0.3"/>
+      <circle cx="58" cy="142" r="0.6" fill="#72bfe8" opacity="0.35"/>
+      <circle cx="132" cy="28" r="0.6" fill="#f1f7fc" opacity="0.25"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#stars)"/>
+
+  <!-- nebula haze behind the planet -->
+  <ellipse cx="1220" cy="430" rx="560" ry="390" fill="url(#nebula)" filter="url(#blur50)"/>
+  <ellipse cx="980" cy="700" rx="420" ry="220" fill="url(#nebula2)" filter="url(#blur50)"/>
+  <ellipse cx="1540" cy="120" rx="300" ry="240" fill="url(#nebula2)" filter="url(#blur50)" opacity="0.6"/>
+
+  <!-- a few brighter stars -->
+  <g fill="#d9f5ff">
+    <circle cx="310" cy="180" r="1.8" opacity="0.75"/>
+    <circle cx="520" cy="620" r="1.6" opacity="0.6"/>
+    <circle cx="740" cy="250" r="1.5" opacity="0.5"/>
+    <circle cx="180" cy="520" r="1.4" opacity="0.45"/>
+    <circle cx="1420" cy="790" r="1.7" opacity="0.55"/>
+  </g>
+
+  <!-- planet -->
+  <circle cx="1250" cy="520" r="500" fill="url(#atmosphere)"/>
+  <circle cx="1250" cy="520" r="410" fill="url(#planet)"/>
+  <circle cx="1250" cy="520" r="411" fill="none" stroke="#8ef0ff" stroke-width="5" opacity="0.35" filter="url(#blur14)"/>
+  <path d="M 940 250 A 410 410 0 0 1 960 800" fill="none" stroke="#a6f2ff" stroke-width="8" opacity="0.45" filter="url(#blur14)"/>
+  <ellipse cx="1360" cy="480" rx="230" ry="300" fill="#030b14" opacity="0.28" filter="url(#blur50)"/>
+
+  <!-- keep the left side dark for text -->
+  <rect width="1600" height="900" fill="url(#shade)"/>
+  <rect width="1600" height="900" fill="url(#bottomFade)"/>
+  <rect width="1600" height="900" filter="url(#grain)" opacity="0.035" style="mix-blend-mode:soft-light"/>
+</svg>

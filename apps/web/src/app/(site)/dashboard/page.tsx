@@ -143,7 +143,7 @@ function StatCard({ icon: Icon, label, value, loading }: { icon: React.Component
   return (
     <Card className="card-lift hover:shadow-md">
       <CardContent className="flex items-center gap-4 p-5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-brand-fuchsia/10 ring-1 ring-primary/15 transition-colors duration-300 group-hover/card:from-primary/20">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-cyan-400/10 ring-1 ring-primary/15 transition-colors duration-300 group-hover/card:from-primary/20">
           <Icon className="h-5 w-5 text-primary" />
         </div>
         <div>

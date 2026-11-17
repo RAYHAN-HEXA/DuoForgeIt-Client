@@ -17,7 +17,7 @@ export default function OpenGraphImage() {
           alignItems: 'flex-start',
           justifyContent: 'center',
           padding: '72px 96px',
-          background: 'linear-gradient(135deg, #0b1220 0%, #101a33 55%, #1d2b5e 100%)',
+          background: 'linear-gradient(135deg, #061522 0%, #0c2435 55%, #0e7490 100%)',
           color: '#f8fafc',
           fontFamily: 'sans-serif',
         }}
@@ -25,22 +25,22 @@ export default function OpenGraphImage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
           {/* Mascot mark — same geometry as components/mascot.tsx */}
           <svg width="110" height="105" viewBox="0 0 200 190">
-            <rect x="48" y="34" width="104" height="130" rx="34" fill="#6366f1" />
+            <rect x="48" y="34" width="104" height="130" rx="34" fill="#39d5f5" />
             <rect x="62" y="52" width="76" height="62" rx="14" fill="#f8fafc" />
-            <circle cx="88" cy="80" r="10" fill="#0b1220" />
-            <circle cx="112" cy="80" r="10" fill="#0b1220" />
+            <circle cx="88" cy="80" r="10" fill="#061522" />
+            <circle cx="112" cy="80" r="10" fill="#061522" />
             <circle cx="88" cy="80" r="4" fill="#f8fafc" />
             <circle cx="112" cy="80" r="4" fill="#f8fafc" />
-            <path d="M86 98 Q100 108 114 98" fill="none" strokeWidth="6" strokeLinecap="round" stroke="#0b1220" />
-            <line x1="100" y1="34" x2="100" y2="20" strokeWidth="6" strokeLinecap="round" stroke="#6366f1" />
-            <circle cx="100" cy="16" r="7" fill="#6366f1" />
+            <path d="M86 98 Q100 108 114 98" fill="none" strokeWidth="6" strokeLinecap="round" stroke="#061522" />
+            <line x1="100" y1="34" x2="100" y2="20" strokeWidth="6" strokeLinecap="round" stroke="#39d5f5" />
+            <circle cx="100" cy="16" r="7" fill="#39d5f5" />
           </svg>
           <div style={{ fontSize: 64, fontWeight: 700, letterSpacing: '-0.02em' }}>TechService Hub</div>
         </div>
         <div style={{ marginTop: 48, fontSize: 44, lineHeight: 1.25, maxWidth: 900 }}>
           Your ideas. Our expertise. One digital solution.
         </div>
-        <div style={{ marginTop: 28, fontSize: 28, color: '#a5b4fc' }}>
+        <div style={{ marginTop: 28, fontSize: 28, color: '#9fe4f8' }}>
           Web development · Software · Presentations · Documentation · IT consulting
         </div>
       </div>

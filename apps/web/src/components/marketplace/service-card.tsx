@@ -97,7 +97,7 @@ export function ServiceCard({ service }: { service: MarketplaceServiceCardDto })
     <motion.div variants={cardVariants(Boolean(reduced))} className="h-full">
       <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-soft transition-all duration-500 hover:-translate-y-1 hover:border-primary/40 hover:shadow-glow focus-within:border-primary/50 focus-within:shadow-glow">
         {/* Thumbnail strip (image zoom on hover; icon fallback keeps heights stable → no CLS) */}
-        <div className="relative h-32 overflow-hidden bg-gradient-to-br from-primary/10 to-brand-fuchsia/5">
+        <div className="relative h-32 overflow-hidden bg-gradient-to-br from-primary/10 to-cyan-400/5">
           {image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

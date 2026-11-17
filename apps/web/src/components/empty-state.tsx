@@ -25,7 +25,7 @@ export function EmptyState({
         aria-hidden="true"
         className="pointer-events-none absolute -top-16 left-1/2 h-32 w-64 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
       />
-      <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-brand-fuchsia/15 ring-1 ring-primary/20">
+      <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-cyan-400/15 ring-1 ring-primary/20">
         <Icon className="h-5 w-5 text-primary" />
       </div>
       <div>
@@ -54,7 +54,7 @@ export function SectionHeading({
         <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
           <span
             aria-hidden="true"
-            className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-gradient-to-r from-primary to-brand-fuchsia"
+            className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-gradient-to-r from-primary to-cyan-400"
           />
           {eyebrow}
         </p>
@@ -65,7 +65,7 @@ export function SectionHeading({
       <span
         aria-hidden="true"
         className={cn(
-          'mt-4 block h-px w-16 rounded-full bg-gradient-to-r from-primary via-brand-violet to-brand-fuchsia',
+          'mt-4 block h-px w-16 rounded-full bg-gradient-to-r from-primary via-soft-blue to-cyan-400',
           align === 'center' && 'mx-auto',
         )}
       />

@@ -70,7 +70,7 @@ export function ImageUploadField({
             </button>
           </div>
         ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-primary/25 bg-gradient-to-br from-primary/8 to-brand-fuchsia/5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-dashed border-primary/25 bg-gradient-to-br from-primary/8 to-cyan-400/5">
             <ImagePlus className="h-5 w-5 text-primary/50" />
           </div>
         )}

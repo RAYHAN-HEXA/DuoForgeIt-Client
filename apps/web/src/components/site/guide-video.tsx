@@ -18,7 +18,7 @@ export function GuideVideo({
       <div className="group relative overflow-hidden rounded-2xl border border-primary/20 bg-black shadow-glow ring-1 ring-foreground/10">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-px z-10 rounded-2xl bg-gradient-to-r from-primary/25 via-transparent to-brand-fuchsia/25 opacity-60 [mask:linear-gradient(#000,#000)_content-box,linear-gradient(#000,#000)] [mask-composite:exclude] [padding:1px]"
+          className="pointer-events-none absolute -inset-px z-10 rounded-2xl bg-gradient-to-r from-primary/25 via-transparent to-cyan-400/25 opacity-60 [mask:linear-gradient(#000,#000)_content-box,linear-gradient(#000,#000)] [mask-composite:exclude] [padding:1px]"
         />
         <video
           className="aspect-video w-full"

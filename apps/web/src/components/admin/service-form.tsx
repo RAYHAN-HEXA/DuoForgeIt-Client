@@ -827,7 +827,7 @@ export function ServiceForm({ service }: { service?: AdminServiceDetailDto }) {
                 />
               </Field>
 
-              <div className="sm:col-span-2 rounded-xl border border-primary/15 bg-gradient-to-r from-primary/5 to-brand-fuchsia/5 p-4 text-sm">
+              <div className="sm:col-span-2 rounded-xl border border-primary/15 bg-gradient-to-r from-primary/5 to-cyan-400/5 p-4 text-sm">
                 <p className="font-medium">Price label preview</p>
                 <p className="mt-1 font-heading text-lg font-bold text-primary">
                   {form.pricingModel === 'FIXED' && `Fixed ৳${form.basePrice || '0'}`}

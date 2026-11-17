@@ -87,11 +87,11 @@ function MarketplaceFeatured({
         {/* Section heading mirrors the homepage SectionHeading markup */}
         <div className="mx-auto max-w-2xl text-center">
           <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-            <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-gradient-to-r from-primary to-brand-fuchsia" />
+            <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-gradient-to-r from-primary to-cyan-400" />
             Services
           </p>
           <h2 className="text-balance font-heading text-3xl font-bold tracking-tight sm:text-4xl">Popular services, ready to start</h2>
-          <span aria-hidden="true" className="mx-auto mt-4 block h-px w-16 rounded-full bg-gradient-to-r from-primary via-brand-violet to-brand-fuchsia" />
+          <span aria-hidden="true" className="mx-auto mt-4 block h-px w-16 rounded-full bg-gradient-to-r from-primary via-soft-blue to-cyan-400" />
           <p className="mt-3 text-pretty text-muted-foreground">
             Starting prices — submit a request with your requirements and we send a quotation before any payment.
           </p>

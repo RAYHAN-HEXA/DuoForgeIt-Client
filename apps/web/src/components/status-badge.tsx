@@ -5,34 +5,34 @@ import { cn } from '@/lib/utils';
 /** One consistent color language for statuses across dashboard + admin. */
 
 const ORDER_STYLES: Record<OrderStatus, string> = {
-  SUBMITTED: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-900 dark:text-slate-300',
-  UNDER_REVIEW: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300',
-  APPROVED: 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300',
-  IN_PROGRESS: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300',
-  QUALITY_REVIEW: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300',
-  COMPLETED: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300',
-  DELIVERED: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300',
-  REJECTED: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300',
-  CANCELLED: 'bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-900 dark:text-zinc-400',
+  SUBMITTED: 'bg-muted text-muted-foreground border-border',
+  UNDER_REVIEW: 'bg-soft-blue/10 text-soft-blue border-soft-blue/30',
+  APPROVED: 'bg-primary/10 text-primary border-primary/30',
+  IN_PROGRESS: 'bg-warning/10 text-warning border-warning/30',
+  QUALITY_REVIEW: 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/30',
+  COMPLETED: 'bg-success/10 text-success border-success/30',
+  DELIVERED: 'bg-success/10 text-success border-success/30',
+  REJECTED: 'bg-destructive/10 text-destructive border-destructive/30',
+  CANCELLED: 'bg-muted text-muted-foreground border-border',
   // Marketplace v2 pipeline (quotation-paid orders)
-  PAID_SCHEDULED: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300',
-  REVIEW_REVISION: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300',
-  DELIVERED_COMPLETED: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300',
+  PAID_SCHEDULED: 'bg-success/10 text-success border-success/30',
+  REVIEW_REVISION: 'bg-warning/10 text-warning border-warning/30',
+  DELIVERED_COMPLETED: 'bg-success/10 text-success border-success/30',
 };
 
 const PAYMENT_STYLES: Record<PaymentStatus, string> = {
-  PENDING: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-900 dark:text-slate-300',
-  SUBMITTED: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300',
-  VERIFIED: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300',
-  REJECTED: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300',
-  REFUNDED: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300',
+  PENDING: 'bg-muted text-muted-foreground border-border',
+  SUBMITTED: 'bg-soft-blue/10 text-soft-blue border-soft-blue/30',
+  VERIFIED: 'bg-success/10 text-success border-success/30',
+  REJECTED: 'bg-destructive/10 text-destructive border-destructive/30',
+  REFUNDED: 'bg-warning/10 text-warning border-warning/30',
 };
 
 const REVISION_STYLES: Record<RevisionStatus, string> = {
-  OPEN: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300',
-  IN_PROGRESS: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300',
-  RESOLVED: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300',
-  DECLINED: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300',
+  OPEN: 'bg-soft-blue/10 text-soft-blue border-soft-blue/30',
+  IN_PROGRESS: 'bg-warning/10 text-warning border-warning/30',
+  RESOLVED: 'bg-success/10 text-success border-success/30',
+  DECLINED: 'bg-destructive/10 text-destructive border-destructive/30',
 };
 
 const LABELS: Record<string, string> = {

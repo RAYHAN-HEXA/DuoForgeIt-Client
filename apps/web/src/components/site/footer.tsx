@@ -42,18 +42,14 @@ export function Footer() {
       ];
 
   return (
-    <footer className="relative overflow-hidden border-t bg-muted/20">
+    <footer className="relative overflow-hidden border-t border-soft-blue/15 bg-space-deep">
       <div
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"
+        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-32 left-1/2 h-64 w-[720px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-grain opacity-[0.025]"
+        className="pointer-events-none absolute inset-0 bg-starfield opacity-40"
       />
       <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="space-y-3">
@@ -78,7 +74,7 @@ export function Footer() {
                     href={l.href}
                     className="group/link inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
                   >
-                    <span className="h-px w-0 bg-gradient-to-r from-primary to-brand-fuchsia transition-all duration-300 group-hover/link:w-3" />
+                    <span className="h-px w-0 bg-gradient-to-r from-primary to-cyan-400 transition-all duration-300 group-hover/link:w-3" />
                     {l.label}
                   </Link>
                 </li>
@@ -95,7 +91,7 @@ export function Footer() {
                   href={l.href}
                   className="group/link inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
                 >
-                  <span className="h-px w-0 bg-gradient-to-r from-primary to-brand-fuchsia transition-all duration-300 group-hover/link:w-3" />
+                  <span className="h-px w-0 bg-gradient-to-r from-primary to-cyan-400 transition-all duration-300 group-hover/link:w-3" />
                   {l.label}
                 </Link>
               </li>
