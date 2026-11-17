@@ -143,27 +143,25 @@ export function HomeContent() {
 
 function Hero({ hero }: { hero: Partial<HeroContent> }) {
   return (
-    <section className="relative isolate flex min-h-[36rem] items-center overflow-hidden border-b border-soft-blue/10 bg-space-deep sm:min-h-[44rem] lg:min-h-[min(88svh,52rem)]">
-      {/* Decorative background video + poster fallback. Copy stays above it in real HTML. */}
-      <HeroVideo />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-space-deep via-space-deep/70 to-transparent"
-      />
+    <section className="relative isolate overflow-hidden border-b border-soft-blue/10 bg-space-deep">
+      <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 pb-20 pt-14 sm:px-6 sm:pb-24 sm:pt-16 lg:grid-cols-2 lg:items-center lg:gap-12 lg:pb-28 lg:pt-20">
+        {/* Video panel first in DOM so mobile stacks the picture above the copy. */}
+        <div className="order-1 lg:order-2">
+          <HeroVideo />
+        </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-20 pt-20 sm:px-6 sm:pb-28 sm:pt-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="max-w-2xl space-y-6 text-left"
+          className="order-2 max-w-2xl space-y-6 text-left lg:order-1"
         >
           <Badge variant="outline" className="border-primary/25 bg-panel/70 px-3 py-1 text-foreground shadow-soft backdrop-blur">
             <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-primary" />
             Two founders. Direct access. Zero layers.
           </Badge>
 
-          <h1 className="text-balance font-heading text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
+          <h1 className="text-balance font-heading text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
             <TextReveal
               text={`${hero.headline?.split('.').slice(0, 2).join('.')}.`}
               className="block"

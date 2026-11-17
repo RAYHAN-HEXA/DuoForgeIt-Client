@@ -9,11 +9,11 @@ const VIDEO_SRC = '/videos/hero-background.mp4';
 const POSTER_SRC = '/videos/hero-poster.webp';
 
 /**
- * Cinematic, decorative background video for the homepage hero.
+ * Cinematic hero video in its own framed panel — nothing overlays the picture.
  *
- * The poster + navy gradient live beneath the video, so the hero is never
- * blank: before the first frame, when autoplay is blocked, when the visitor
- * prefers reduced motion, and if the source fails to load.
+ * The poster fills the frame, so the panel is never blank: before the first
+ * frame, when autoplay is blocked, when the visitor prefers reduced motion,
+ * and if the source fails to load.
  */
 export function HeroVideo({ className }: { className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -121,15 +121,21 @@ export function HeroVideo({ className }: { className?: string }) {
   const showVideo = !videoFailed && (!prefersReducedMotion || explicitPlay);
 
   return (
-    <>
-      <div ref={containerRef} aria-hidden="true" className={cn('pointer-events-none absolute inset-0 overflow-hidden', className)}>
+    <div className={cn('relative w-full', className)}>
+      {/* Framed panel: the picture is never overlaid by copy — only a faint
+          bottom fade keeps the corner controls legible. */}
+      <div
+        ref={containerRef}
+        aria-hidden="true"
+        className="relative aspect-video w-full overflow-hidden rounded-2xl border border-primary/20 bg-space-deep shadow-glow ring-1 ring-foreground/10"
+      >
         {/* Static fallback: present before the first frame and whenever motion is off. */}
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-space-deep bg-cover bg-center"
           style={{ backgroundImage: `url(${POSTER_SRC})` }}
         />
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-space-deep/55 via-space-deep/25 to-[#030B14]/75" />
+        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-space-deep/30" />
 
         {!videoFailed && (
           <video
@@ -162,7 +168,7 @@ export function HeroVideo({ className }: { className?: string }) {
             type="button"
             onClick={toggleSound}
             aria-label={heroVideoMuteLabel(soundOn)}
-            className="absolute bottom-6 right-[4.25rem] z-20 flex h-11 w-11 items-center justify-center rounded-full border border-soft-blue/25 bg-panel/85 text-foreground shadow-soft backdrop-blur transition-colors hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-space-deep sm:bottom-8 sm:right-[4.75rem]"
+            className="absolute bottom-3 right-[3.25rem] z-20 flex h-10 w-10 items-center justify-center rounded-full border border-soft-blue/25 bg-panel/85 text-foreground shadow-soft backdrop-blur transition-colors hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-space-deep sm:bottom-4 sm:right-[3.5rem]"
           >
             {soundOn ? <Volume2 className="h-4 w-4" aria-hidden="true" /> : <VolumeX className="h-4 w-4" aria-hidden="true" />}
           </button>
@@ -170,12 +176,12 @@ export function HeroVideo({ className }: { className?: string }) {
             type="button"
             onClick={togglePlayback}
             aria-label={heroVideoControlLabel(isPlaying)}
-            className="absolute bottom-6 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-soft-blue/25 bg-panel/85 text-foreground shadow-soft backdrop-blur transition-colors hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-space-deep sm:bottom-8 sm:right-6"
+            className="absolute bottom-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-soft-blue/25 bg-panel/85 text-foreground shadow-soft backdrop-blur transition-colors hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-space-deep sm:bottom-4 sm:right-4"
           >
             {isPlaying ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
           </button>
         </>
       )}
-    </>
+    </div>
   );
 }
