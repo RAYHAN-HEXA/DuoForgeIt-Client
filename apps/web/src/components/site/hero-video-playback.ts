@@ -28,3 +28,7 @@ export function shouldPlayHeroVideo(input: HeroVideoPlaybackInput): boolean {
 export function heroVideoControlLabel(isPlaying: boolean): string {
   return isPlaying ? 'Pause background video' : 'Play background video';
 }
+
+export function heroVideoMuteLabel(soundOn: boolean): string {
+  return soundOn ? 'Mute background video' : 'Unmute background video';
+}

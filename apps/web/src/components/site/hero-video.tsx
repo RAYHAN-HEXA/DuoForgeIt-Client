@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pause, Play } from 'lucide-react';
+import { Pause, Play, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { heroVideoControlLabel, shouldPlayHeroVideo } from './hero-video-playback';
+import { heroVideoControlLabel, heroVideoMuteLabel, shouldPlayHeroVideo } from './hero-video-playback';
 
 const VIDEO_SRC = '/videos/hero-background.mp4';
 const POSTER_SRC = '/videos/hero-poster.webp';
@@ -26,6 +26,8 @@ export function HeroVideo({ className }: { className?: string }) {
   const [tabVisible, setTabVisible] = useState(true);
   const [videoFailed, setVideoFailed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  // Autoplay must start muted (browser policy); visitors unmute via the button.
+  const [soundOn, setSoundOn] = useState(false);
 
   // All browser reads happen in effects, so server and first client render agree.
   useEffect(() => {
@@ -73,14 +75,14 @@ export function HeroVideo({ className }: { className?: string }) {
 
     if (!video.paused) return;
     // Muting must happen before play() for autoplay policies to allow it.
-    video.muted = true;
+    video.muted = !soundOn;
     const attempt = video.play();
     // Autoplay can still be rejected by the browser; the poster remains and
     // the play/pause button reflects the real state via onPlay/onPause.
     if (attempt && typeof attempt.catch === 'function') {
       attempt.catch(() => undefined);
     }
-  }, [prefersReducedMotion, explicitPlay, manuallyPaused, inView, tabVisible, videoFailed]);
+  }, [prefersReducedMotion, explicitPlay, manuallyPaused, inView, tabVisible, videoFailed, soundOn]);
 
   useEffect(() => {
     syncPlayback();
@@ -100,11 +102,20 @@ export function HeroVideo({ className }: { className?: string }) {
 
     setManuallyPaused(false);
     setExplicitPlay(true);
-    video.muted = true;
+    video.muted = !soundOn;
     const attempt = video.play();
     if (attempt && typeof attempt.catch === 'function') {
       attempt.catch(() => undefined);
     }
+  };
+
+  // Unmuting inside the click gesture is what browser autoplay policies allow.
+  const toggleSound = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    const next = !soundOn;
+    setSoundOn(next);
+    video.muted = !next;
   };
 
   const showVideo = !videoFailed && (!prefersReducedMotion || explicitPlay);
@@ -146,14 +157,24 @@ export function HeroVideo({ className }: { className?: string }) {
       </div>
 
       {!videoFailed && (
-        <button
-          type="button"
-          onClick={togglePlayback}
-          aria-label={heroVideoControlLabel(isPlaying)}
-          className="absolute bottom-6 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-soft-blue/25 bg-panel/85 text-foreground shadow-soft backdrop-blur transition-colors hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-space-deep sm:bottom-8 sm:right-6"
-        >
-          {isPlaying ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={toggleSound}
+            aria-label={heroVideoMuteLabel(soundOn)}
+            className="absolute bottom-6 right-[4.25rem] z-20 flex h-11 w-11 items-center justify-center rounded-full border border-soft-blue/25 bg-panel/85 text-foreground shadow-soft backdrop-blur transition-colors hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-space-deep sm:bottom-8 sm:right-[4.75rem]"
+          >
+            {soundOn ? <Volume2 className="h-4 w-4" aria-hidden="true" /> : <VolumeX className="h-4 w-4" aria-hidden="true" />}
+          </button>
+          <button
+            type="button"
+            onClick={togglePlayback}
+            aria-label={heroVideoControlLabel(isPlaying)}
+            className="absolute bottom-6 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-soft-blue/25 bg-panel/85 text-foreground shadow-soft backdrop-blur transition-colors hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-space-deep sm:bottom-8 sm:right-6"
+          >
+            {isPlaying ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
+          </button>
+        </>
       )}
     </>
   );

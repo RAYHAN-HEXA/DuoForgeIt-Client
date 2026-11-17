@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { heroVideoControlLabel, shouldPlayHeroVideo, type HeroVideoPlaybackInput } from './hero-video-playback';
+import { heroVideoControlLabel, heroVideoMuteLabel, shouldPlayHeroVideo, type HeroVideoPlaybackInput } from './hero-video-playback';
 
 const ALLOWED: HeroVideoPlaybackInput = {
   prefersReducedMotion: false,
@@ -47,5 +47,15 @@ describe('heroVideoControlLabel', () => {
 
   it('offers Play while the video is paused', () => {
     expect(heroVideoControlLabel(false)).toBe('Play background video');
+  });
+});
+
+describe('heroVideoMuteLabel', () => {
+  it('offers Unmute while sound is off (autoplay starts muted)', () => {
+    expect(heroVideoMuteLabel(false)).toBe('Unmute background video');
+  });
+
+  it('offers Mute while sound is on', () => {
+    expect(heroVideoMuteLabel(true)).toBe('Mute background video');
   });
 });
